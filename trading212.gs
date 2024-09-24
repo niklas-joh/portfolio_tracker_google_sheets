@@ -1,54 +1,217 @@
 /**
  * ========================= Constants ============================
  * 
- * This section defines constants that are used throughout the codebase
- * to avoid magic numbers, strings, or hardcoding of key values.
+ * This section defines constants used throughout the codebase to avoid magic numbers, strings, or hardcoding of key values.
  * 
- * Constants help make the code more maintainable, as these values
- * are defined in one place and can be easily updated if needed.
+ * Constants help make the code more maintainable, as these values are defined in one place and can be easily updated if needed.
  * 
  * The constants include:
- * - `API_DOMAIN': The domain for calling the Trading212 API, used to construct final URLs
- * - `API_VERSION': The API version used. Used to construct the base url. For fetchTransactions,
- *                  this is already included in the nextPagePath
- * - `API_BASE_URL`: The concatination of API_DOMAIN AND API_VERSION used to construct various endpoint URLs.
+ * - `API_DOMAIN`: The domain for calling the Trading212 API, used to construct final URLs.
+ * - `API_VERSION`: The API version used. Used to construct the base URL.
+ * - `API_BASE_URL`: The concatenation of API_DOMAIN and API_VERSION used to construct various endpoint URLs.
  * - `SHEET_NAMES`: An object that maps to the names of the Google Sheets where data will be written.
- * 
- * Using these constants helps ensure consistency and prevents errors due 
- * to typos in repeated strings (e.g., sheet names or URLs).
+ * - `API_ENDPOINT`: An object mapping logical names to API endpoint paths.
+ * - `RATE_LIMITS`: An object defining rate limits for each API endpoint.
  */
 
 // Constants for managing API base URL and versioning
 const API_DOMAIN = 'https://live.trading212.com';
 const API_VERSION = '/api/v0/';  // Keep versioning separate to allow easier upgrades
 
-// Combine for initial API requests, but not for pagination (already includes api_version)
+// Combine for initial API requests, but not for pagination (already includes API_VERSION)
 const API_BASE_URL = `${API_DOMAIN}${API_VERSION}`;
 
+/**
+ * Mapping of sheet names for data storage in Google Sheets.
+ */
 const SHEET_NAMES = {
   PIES: 'Pies',
   INSTRUMENTS_LIST: 'InstrumentsList',
   ACCOUNT_CASH: 'Cash',
   ACCOUNT_INFO: 'AccountInfo',
   TRANSACTIONS: '212Transactions',
-  ORDER_HISTORY: 'History'
+  ORDER_HISTORY: 'History',
+  DIVIDENDS: 'Dividends'
 };
 
-const  API_ENDPOINT = {
+/**
+ * Mapping of API endpoints.
+ */
+const API_ENDPOINT = {
   PIES: 'equity/pies',
   INSTRUMENTS_LIST: 'equity/metadata/instruments',
   ACCOUNT_CASH: 'equity/account/cash',
   ACCOUNT_INFO: 'equity/account/info',
   TRANSACTIONS: 'history/transactions',
-  ORDER_HISTORY: 'equity/history/orders'
+  ORDER_HISTORY: 'equity/history/orders',
+  DIVIDENDS: 'history/dividends'
 };
+
+/**
+ * Rate limit configurations for each API endpoint.
+ * Maps API endpoints to their rate limits and time windows.
+ */
+
+const SECOND = 1000;
+const MINUTE = 60 * SECOND;  // 60 seconds in a minute
+const HOUR = 60 * MINUTE;    // 60 minutes in an hour
+
+
+const RATE_LIMITS = {
+  [API_ENDPOINT.PIES]: { limit: 1, windowMs: 30 * SECOND },
+  [API_ENDPOINT.INSTRUMENTS_LIST]: { limit: 1, windowMs: 50 * SECOND },
+  [API_ENDPOINT.ACCOUNT_CASH]: { limit: 6, windowMs: 1 * SECOND },
+  [API_ENDPOINT.ACCOUNT_INFO]: { limit: 6, windowMs: 30 * SECOND },
+  [API_ENDPOINT.TRANSACTIONS]: { limit: 6, windowMs: 1 * MINUTE },
+  [API_ENDPOINT.ORDER_HISTORY]: { limit: 6, windowMs: 1 * MINUTE },
+  [API_ENDPOINT.DIVIDENDS]: { limit: 6, windowMs: 1 * MINUTE },
+  // Add other endpoints and their rate limits as needed
+};
+/**
+ * ===================== onOpen Function ===========================
+ */
+
+/**
+ * Adds a custom menu to the spreadsheet when it is opened.
+ */
+function onOpen() {
+  SpreadsheetApp.getUi()
+    .createMenu('Trading212')
+    .addItem('Set API Key', 'promptApiKey')
+    .addToUi();
+}
+
+/**
+ * ===================== UI Interaction Functions ==================
+ */
+
+/**
+ * Prompts the user to enter their API key and stores it in User Properties.
+ * This function should be called from a context with UI access, such as a custom menu item.
+ */
+function promptApiKey() {
+  var ui = SpreadsheetApp.getUi();
+  var response = ui.prompt('Enter your Trading212 API Key', 'Please enter your API key:', ui.ButtonSet.OK_CANCEL);
+
+  if (response.getSelectedButton() == ui.Button.OK) {
+    var apiKey = response.getResponseText();
+    if (apiKey) {
+      PropertiesService.getUserProperties().setProperty('API_KEY', apiKey);
+      ui.alert('API Key saved successfully.');
+    } else {
+      ui.alert('No API Key entered. Please try again.');
+    }
+  } else {
+    ui.alert('API Key entry canceled.');
+  }
+}
+
+/**
+ * Retrieves the stored API key from User Properties.
+ * If the API key is not set, logs an error message.
+ *
+ * @returns {string|null} The stored API key, or null if not available.
+ */
+function getAuthKey() {
+  var apiKey = PropertiesService.getUserProperties().getProperty('API_KEY');
+  if (!apiKey) {
+    Logger.log('API Key is not set. Please use the "Trading212 > Set API Key" menu to enter your API key.');
+    // Optionally, you could throw an error or notify the user through other means
+  }
+  return apiKey;
+}
+/**
+ * ===================== Class Definitions =========================
+ */
+/**
+ * Class representing a rate limiter for API endpoints.
+ */
+class RateLimiter {
+  /**
+   * Creates a rate limiter with the given rate limits.
+   * 
+   * @param {Object} rateLimits - An object mapping endpoints to their rate limits and time windows.
+   */
+  constructor(rateLimits) {
+    this.rateLimits = rateLimits;
+    this.requestLogs = {}; // Stores timestamps of requests per endpoint
+  }
+
+  /**
+   * Checks if a request to the given endpoint can proceed based on the rate limits.
+   * 
+   * @param {string} endpoint - The API endpoint path.
+   * @returns {Object} An object containing a `proceed` boolean and an optional `waitTime`.
+   */
+  canProceed(endpoint) {
+    const now = Date.now();
+    const rateLimit = this.rateLimits[endpoint];
+
+    // If no rate limit is defined for the endpoint, proceed with the request
+    if (!rateLimit) {
+      return { proceed: true };
+    }
+
+    // Initialize the request log for the endpoint if it doesn't exist
+    if (!this.requestLogs[endpoint]) {
+      this.requestLogs[endpoint] = [];
+    }
+
+    // Remove timestamps outside the time window
+    this.requestLogs[endpoint] = this.requestLogs[endpoint].filter(
+      timestamp => now - timestamp < rateLimit.windowMs
+    );
+
+    // Check if we can proceed with the request
+    if (this.requestLogs[endpoint].length < rateLimit.limit) {
+      // Log the request timestamp
+      this.requestLogs[endpoint].push(now);
+      return { proceed: true };
+    } else {
+      // Calculate the wait time until the earliest request falls outside the time window
+      const earliestTimestamp = this.requestLogs[endpoint][0];
+      const waitTime = rateLimit.windowMs - (now - earliestTimestamp);
+      return { proceed: false, waitTime };
+    }
+  }
+}
+
+/**
+ * ===================== Initialization ============================
+ */
+
+// Initialize RateLimiter (singleton instance)
+const rateLimiter = new RateLimiter(RATE_LIMITS);
+
+/**
+ * ===================== Rate Limiter Functions =====================
+ * 
+ * This section implements a centralized rate limiter to manage API call limits.
+ * It ensures that API requests adhere to the rate limits specified for each endpoint.
+ * 
+ * The rate limiter tracks the number of requests made to each endpoint within their respective time windows.
+ * If the rate limit is reached, it calculates the necessary wait time before the next request can proceed.
+ * 
+ * Functions in this section include:
+ * - `RateLimiter`: A class that encapsulates rate-limiting logic.
+ * - `canProceedWithRequest`: A function that checks if a request can proceed or needs to wait.
+ */
+
+/**
+ * Checks if a request to the given endpoint can proceed based on rate limits.
+ * 
+ * @param {string} endpoint - The API endpoint path.
+ * @returns {Object} An object containing a `proceed` boolean and an optional `waitTime`.
+ */
+function canProceedWithRequest(endpoint) {
+  return rateLimiter.canProceed(endpoint);
+}
 
 /**
  * ===================== Fetch Functions =========================
  * 
- * This section contains functions responsible for retrieving data 
- * from the Trading212 API. Each function fetches data from a specific 
- * endpoint and writes it to the corresponding Google Sheet.
+ * This section contains functions responsible for retrieving data from the Trading212 API.
+ * Each function fetches data from a specific endpoint and writes it to the corresponding Google Sheet.
  * 
  * The functions in this section use `fetchDataAndWriteToSheet()` to handle:
  * - Making API requests.
@@ -56,57 +219,58 @@ const  API_ENDPOINT = {
  * - Writing the response data into Google Sheets.
  * 
  * The key fetch functions in this section include:
- * - `fetchPies()`: Fetches data related to investment pies.
- * - `fetchInstrumentsList()`: Fetches the list of financial instruments.
- * - `fetchAccountCash()`: Retrieves account cash balance data.
- * - `fetchAccountMetaData()`: Retrieves general account metadata.
- * - `fetchTransactions()`: Retrieves paginated transaction history data.
- * 
- * Each function is built to handle API retries, caching of data where 
- * appropriate, and writing data dynamically to the corresponding Google Sheet.
- * 
- * Key parameters used in this section:
- * - `params`: Object containing optional query parameters for the API call.
- * - `sheetName`: The name of the Google Sheet where data will be written.
- * - `retries`: Optional number of retry attempts for failed API requests.
- * 
- * Example Usage:
- * 
- * fetchPies();                   // Fetches pies data and writes it to the "Pies" sheet.
- * fetchInstrumentsList();         // Fetches instruments list and writes it to the "InstrumentsList" sheet.
- * fetchAccountCash();             // Fetches account cash data and writes it to the "Cash" sheet.
- * fetchAccountMetaData();         // Fetches account metadata and writes it to the "AccountInfo" sheet.
- * fetchTransactions();            // Fetches paginated transactions data and writes it to the "Transactions" sheet.
- * 
+ * - `fetchPies()`
+ * - `fetchInstrumentsList()`
+ * - `fetchAccountCash()`
+ * - `fetchAccountMetaData()`
+ * - `fetchTransactions()`
+ * - `fetchOrderHistory()`
  */
 
 /**
- * Main function to fetch data from a Trading212 API endpoint and write it to a specified sheet.
- * Automatically handles pagination if nextPagePath is present.
- * 
- * @param {string} endpoint - The API endpoint path (e.g., 'pies', 'metadata/instruments') or full URL if fetching the next page.
- * @param {string} sheetName - The name of the Google Sheet where the data will be written.
- * @param {Object} params - An object containing the required and optional parameters for the API call.
- * @param {number} [startRow=2] - The row where data should be written (appended).
- * @param {boolean} [isNextPage=false] - A flag to indicate if it's fetching the next page via nextPagePath.
+ * Fetches data from a Trading212 API endpoint and writes it to a specified Google Sheet.
+ * Automatically handles pagination if `nextPagePath` is present in the API response.
+ * Utilizes rate limiting to comply with API request limits.
+ *
+ * @param {string} endpoint - The API endpoint path (e.g., 'equity/pies').
+ * @param {string} sheetName - The name of the Google Sheet where data will be written.
+ * @param {Object} [params={}] - Optional query parameters for the API call (e.g., { limit: 50 }).
+ * @param {number} [startRow=2] - The row number to start writing data (default is 2).
  * @returns {void}
  */
-function fetchDataAndWriteToSheet(endpoint, sheetName, params = {}, startRow = 2, isNextPage = false) {
-  let url = constructApiUrl(endpoint, params, isNextPage);
+function fetchDataAndWriteToSheet(endpoint, sheetName, params = {}, startRow = 2) {
+  // Construct the initial API URL
+  let url = constructApiUrl(endpoint, params);
+  
+  // Start fetching data
+  fetchAndHandleData(url, sheetName, startRow, endpoint);
+}
 
-  // Make the API request
-  let data = makeApiRequest(url);
+/**
+ * Fetches a page of data, writes it to the sheet, and handles pagination recursively.
+ *
+ * @param {string} url - The URL to fetch data from.
+ * @param {string} sheetName - The name of the Google Sheet where data will be written.
+ * @param {number} currentRow - The current row number to start writing data.
+ * @param {string} endpoint - The API endpoint to use for rate limiting.
+ */
+function fetchAndHandleData(url, sheetName, currentRow, endpoint) {
+  // Make the API request with rate limiting
+  let data = rateLimitedRequest(url, endpoint);
 
   if (data) {
-    // Write data and get the number of rows written
-    const rowsWritten = writeDataToSheet(data.items || data, sheetName, startRow);
+    // Write the data and calculate the next row to write
+    const rowsWritten = writeDataToSheet(data.items || data, sheetName, currentRow);
 
-    // Handle pagination if nextPagePath is present
+    // If there is more data (pagination), fetch the next page
     if (data.nextPagePath) {
       Logger.log('Fetching next page of data...: ' + data.nextPagePath);
 
-      // Fetch the next page
-      fetchDataAndWriteToSheet(data.nextPagePath, sheetName, {}, startRow + rowsWritten, true);
+      // Construct the next page URL
+      const nextPageUrl = constructApiUrl(data.nextPagePath, {}, true);
+
+      // Recursively fetch the next page
+      fetchAndHandleData(nextPageUrl, sheetName, currentRow + rowsWritten, endpoint);
     } else {
       Logger.log('No more data to fetch.');
     }
@@ -118,9 +282,6 @@ function fetchDataAndWriteToSheet(endpoint, sheetName, params = {}, startRow = 2
 /**
  * Fetches the "pies" data from the Trading212 API and writes it to the "Pies" sheet.
  * 
- * This function calls the generic `fetchDataAndWriteToSheet()` function, passing the 'pies' endpoint.
- * 
- * @version v0
  * @returns {void}
  */
 function fetchPies() {
@@ -130,9 +291,6 @@ function fetchPies() {
 /**
  * Fetches the instruments list data from the Trading212 API and writes it to the "InstrumentsList" sheet.
  * 
- * This function calls the generic `fetchDataAndWriteToSheet()` function, passing the 'metadata/instruments' endpoint.
- * 
- * @version v0
  * @returns {void}
  */
 function fetchInstrumentsList() {
@@ -142,12 +300,6 @@ function fetchInstrumentsList() {
 /**
  * Fetches the account cash data from the Trading212 API and writes it to the "Cash" sheet.
  * 
- * This function calls the generic `fetchDataAndWriteToSheet()` function, passing the 'account/cash' endpoint.
- * 
- * @example
- * fetchAccountCash();  // Fetches account cash data and writes it to the "Cash" sheet.
- * 
- * @version v0
  * @returns {void}
  */
 function fetchAccountCash() {
@@ -157,12 +309,6 @@ function fetchAccountCash() {
 /**
  * Fetches the account metadata from the Trading212 API and writes it to the "AccountInfo" sheet.
  * 
- * This function calls the generic `fetchDataAndWriteToSheet()` function, passing the 'account/info' endpoint.
- *
- * @example
- * fetchAccountMetaData();  // Fetches account metadata and writes it to the "AccountInfo" sheet.
- * 
- * @version v0
  * @returns {void}
  */
 function fetchAccountMetaData() {
@@ -182,22 +328,22 @@ function fetchAccountMetaData() {
  * @param {Object} [params={}] - Optional query parameters for the API call (e.g., cursor, limit).
  * @returns {void}
  */
+
 function fetchTransactions(params = {}) {
   // Declare parameters as a variable
   const queryParams = {
     cursorID: params.cursor || 'string',    // Default to 'string'    
-    limit: params.limit || 20,              // Max 50, API documentation defaults to 20
+    limit: params.limit || 50,              // Max 50, API documentation defaults to 20
   };
 
-  // Call the generic fetchDataAndWriteToSheet function with the query parameters
+   // Call the generic fetchDataAndWriteToSheet function with the query parameters
   fetchDataAndWriteToSheet(API_ENDPOINT.TRANSACTIONS, SHEET_NAMES.TRANSACTIONS, queryParams);
 }
 
 /**
  * Fetches the orders history data from the Trading212 API and writes it to the specified sheet.
  * Supports pagination with a cursor and allows filtering by ticker and limit.
- * Automatically handles pagination via the nextPagePath if returned by the API.
- *
+ * 
  * @example
  * fetchOrderHistory({ ticker: 'AAPL_US_EQ', limit: 10 });
  * fetchOrderHistory();
@@ -210,27 +356,43 @@ function fetchOrderHistory(params = {}) {
   const queryParams = {
     cursor: params.cursor || '0',     // Default cursor is '0'
     ticker: params.ticker || '',      // Default ticker
-    limit: params.limit || 50         // Max 50, API documentation defaults to 20
+    limit: params.limit || 20         // Max 50, API documentation defaults to 20
   };
 
-  // Make the API request and check the response
-  const data = makeApiRequest(constructApiUrl(API_ENDPOINT.ORDER_HISTORY, queryParams));
+  // Pass the request to the generic fetchDataAndWriteToSheet function
+  fetchDataAndWriteToSheet(API_ENDPOINT.ORDER_HISTORY, SHEET_NAMES.ORDER_HISTORY, queryParams);
+}
 
-  // Check if the 'items' array exists and is empty, and log a message
-  if (data && data.items && data.items.length === 0) {
-    logNoDataFound(queryParams.ticker, SHEET_NAMES.ORDER_HISTORY);
-  } else {
-    // If data exists, proceed with writing it to the sheet
-    fetchDataAndWriteToSheet(API_ENDPOINT.ORDER_HISTORY, SHEET_NAMES.ORDER_HISTORY, queryParams);
-  }
+/**
+ * Fetches the dividend history data from the Trading212 API and writes it to the specified sheet.
+ * Supports pagination with a cursor and allows filtering by ticker and limit.
+ * Automatically handles pagination via the nextPagePath if returned by the API.
+ * 
+ * @example
+ * fetchDividends({ ticker: 'AAPL_US_EQ', limit: 10 });
+ * fetchDividends();
+ * 
+ * @param {Object} [params={}] - Optional query parameters for the API call (e.g., cursor, ticker, limit).
+ * @returns {void}
+ */
+function fetchDividends(params = {}) {
+  // Declare default parameters
+  const queryParams = {
+    cursor: params.cursor || '0',     // Default cursor is '0'
+    ticker: params.ticker || '',      // Default ticker
+    limit: params.limit || 50         // Default limit is 20, max is 50
+  };
+
+  // Call the generic fetchDataAndWriteToSheet function with the 'dividends' endpoint
+  fetchDataAndWriteToSheet(API_ENDPOINT.DIVIDENDS, SHEET_NAMES.DIVIDENDS, queryParams);
 }
 
 
 /**
  * ===================== Utility Functions ========================
  * 
- * The utility functions in this section are designed to assist with common
- * tasks, such as making API requests, logging errors, and handling caching.
+ * This section contains utility functions for making API requests,handling
+ * errors, and constructing URLs.
  * 
  * These functions abstract common operations to avoid redundancy and ensure
  * that the same logic is applied consistently throughout the codebase.
@@ -239,24 +401,15 @@ function fetchOrderHistory(params = {}) {
  * - `makeApiRequest`: Handles GET requests to the API and logs errors.
  */
 
-/**
- * Retrieves the API authorization key from the 'Config' sheet in cell B1.
- *
- * @returns {string} The API authorization key.
- */
-function getAuthKey() {
-  var configSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Config');
-  return configSheet.getRange('B1').getValue();
-}
 
 /**
  * Constructs the full API URL based on the endpoint and optional query parameters.
  * Handles both initial and paginated API requests.
  * 
- * @param {string} endpointOrPath - The API endpoint path (e.g., 'pies', 'metadata/instruments') or nextPagePath (e.g., '/api/v0/...').
- * @param {Object} [params={}] - Optional query parameters (for initial requests).
- * @param {boolean} [isNextPage=false] - Flag to indicate if it's a paginated request (nextPagePath).
- * @returns {string} - The full constructed API URL.
+ * @param {string} endpointOrPath - The API endpoint path (e.g., 'pies') or nextPagePath (e.g., '/api/v0/...').
+ * @param {Object} [params={}] - Optional query parameters for the API call.
+ * @param {boolean} [isNextPage=false] - Flag indicating if it's a paginated request.
+ * @returns {string} The full constructed API URL.
  */
 function constructApiUrl(endpointOrPath, params = {}, isNextPage = false) {
   // Handle nextPagePath (pagination) if isNextPage is true
@@ -277,25 +430,89 @@ function constructApiUrl(endpointOrPath, params = {}, isNextPage = false) {
 }
 
 /**
- * Makes a GET request to the provided API URL using the authorization key.
- * Handles successful responses and delegates error handling to handleApiError.
+ * Formats an object of parameters into a query string for a URL.
+ * 
+ * @param {Object} params - The parameters to format.
+ * @returns {string} The formatted query string (e.g., 'key1=value1&key2=value2').
+ */
+function formatParams(params) {
+  return Object.keys(params)
+    .map(key => `${encodeURIComponent(key)}=${encodeURIComponent(params[key])}`)
+    .join('&');
+}
+
+/**
+ * Logs a message when no data is found for a given API request.
  *
- * @param {string} url - The API endpoint to make the GET request to.
+ * @param {string} ticker - The ticker symbol for which data was queried.
+ * @param {string} sheetName - The name of the sheet where data would have been written.
+ */
+function logNoDataFound(ticker, sheetName) {
+  Logger.log(`No data found for ticker "${ticker}" in sheet "${sheetName}".`);
+}
+
+/**
+ * ===================== API Request Function ========================
+ * 
+ * This section contains the function responsible for making API requests,
+ * applying rate limiting, and delegates error handling to handleApiError.
+ *
+ 
+ /**
+ * Makes a rate-limited API request to the provided URL.
+ * Handles rate limiting based on the endpoint.
+ *
+ * @param {string} url - The full API URL to make the GET request to.
+ * @param {string} endpoint - The API endpoint path (used for rate limiting).
+ * @returns {Object|null} The JSON-parsed response data if successful, or null if an error occurred.
+ */
+function rateLimitedRequest(url, endpoint) {
+  // Check rate limiting
+  const rateLimitStatus = canProceedWithRequest(endpoint);
+
+  if (!rateLimitStatus.proceed) {
+    Logger.log(`Rate limit reached for ${endpoint}. Waiting for ${rateLimitStatus.waitTime} ms.`);
+
+    // Ensure we don't exceed execution time limits
+    if (rateLimitStatus.waitTime > 300000) { // 5 minutes
+      throw new Error('Wait time exceeds script execution time limits.');
+    }
+
+    // Wait for the required time before proceeding
+    Utilities.sleep(rateLimitStatus.waitTime);
+  }
+
+    Logger.log('Making API request to URL: ' + url);  // Add this log
+    Logger.log(`Rate-limited request made for: ${url} on endpoint: ${endpoint}`);
+
+  // Proceed with the API request
+  return makeApiRequest(url);
+}
+
+/**
+ * Makes a GET request to the provided API URL using the authorization key.
+ * Handles successful responses and errors.
+ *
+ * @param {string} url - The full API URL to make the GET request to.
  * @returns {Object|null} The JSON-parsed response data if successful, or null if an error occurred.
  */
 function makeApiRequest(url) {
   var authKey = getAuthKey();
+  if (!authKey) {
+    Logger.log('Cannot make API request without an API Key.');
+    return null;
+  }
 
   var options = {
-    'method': 'GET',
-    'headers': {
-      'Authorization': authKey
+    method: 'GET',
+    headers: {
+      Authorization: authKey,
     },
-    'muteHttpExceptions': true  // Allows access to the response even when HTTP errors occur
+    muteHttpExceptions: true,
   };
 
   try {
-    Logger.log('Constructed URL: ' + url);
+    Logger.log('Making API request to URL: ' + url);
 
     var response = UrlFetchApp.fetch(url, options);
     var statusCode = response.getResponseCode();
@@ -306,27 +523,14 @@ function makeApiRequest(url) {
       Logger.log('API Data: ' + JSON.stringify(jsonData, null, 2));
       return jsonData;
     } else {
-      // Delegate error handling to handleApiError
+      // Handle errors
       return handleApiError(response);
     }
 
   } catch (error) {
-    // Handle unexpected errors (e.g., network issues)
-    Logger.log('An unexpected error occurred: ' + error.message);
+    Logger.log('An error occurred: ' + error.message);
     return null;
   }
-}
-
-/**
- * Formats an object of parameters into a query string for a URL.
- * 
- * @param {Object} params - The parameters to format.
- * @returns {string} The formatted query string (e.g., 'key1=value1&key2=value2').
- */
-function formatParams(params) {
-  return Object.keys(params)
-    .map(key => `${encodeURIComponent(key)}=${encodeURIComponent(params[key])}`)
-    .join('&');
 }
 
 /**
@@ -383,7 +587,7 @@ function handlePagination(data, sheetName, nextStartRow) {
 function getOrCreateSheet(sheetName) {
   var spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
   var sheet = spreadsheet.getSheetByName(sheetName);
-  
+
   // If the sheet does not exist, create it
   if (!sheet) {
     sheet = spreadsheet.insertSheet(sheetName);
@@ -391,7 +595,7 @@ function getOrCreateSheet(sheetName) {
   } else {
     Logger.log('Sheet "' + sheetName + '" already exists.');
   }
-  
+
   return sheet;
 }
 
@@ -409,13 +613,29 @@ function clearSheetAndWriteHeaders(sheet, headers) {
     Logger.log('No headers to write');
   }
 }
+/**
+ * ===================== Data Processing Functions ========================
+ * 
+ * The functions in this section handle the dynamic generation of headers 
+ * from the data retrieved from the API, as well as writing both the headers 
+ * and data to the Google Sheets. They support both single object responses 
+ * and arrays of objects.
+ * 
+ * Key functions include:
+ * - `processAndWriteDataDynamically`: Dynamically generates headers and 
+ *   writes data to the sheet, handling both single and multiple data objects.
+ * - `extractHeaders`: Recursively extracts headers (field paths) from 
+ *   nested JSON objects.
+ * - `resolveNestedField`: Extracts values from nested objects based on 
+ *   a dot-separated path.
+ */
 
 /**
- * Dynamically writes data to the specified Google Sheet, starting from the provided row.
+ * Writes data to the specified Google Sheet, starting from the provided row.
  * 
  * @param {Object|Array} data - The data to write (can be an object or array of objects).
  * @param {string} sheetName - The name of the sheet where data will be written.
- * @param {number} startRow - The row number to start writing data (default is 2).
+ * @param {number} [startRow=2] - The row number to start writing data (default is 2).
  * @returns {number} - The number of rows written.
  */
 function writeDataToSheet(data, sheetName, startRow = 2) {
@@ -442,6 +662,7 @@ function writeDataToSheet(data, sheetName, startRow = 2) {
   return rowData.length;
 }
 
+
 /**
  * Writes row data to the given sheet starting from the specified row index.
  * Handles the case where resolveNestedField returns an array, spreading it across multiple columns.
@@ -459,10 +680,10 @@ function writeRowsToSheet(sheet, rowData, startRow = 2) {
   rowData.forEach((row, rowIndex) => {
     // Flatten the row if any cell contains an array (spread array values across columns)
     const flattenedRow = row.flatMap(cell => Array.isArray(cell) ? cell : [cell]);
-    
+
     // Log the row data being written for debugging purposes
     Logger.log(`Writing row ${startRow + rowIndex}: ${JSON.stringify(flattenedRow)}`);
-    
+
     // Write the flattened row to the sheet
     sheet.getRange(startRow + rowIndex, 1, 1, flattenedRow.length).setValues([flattenedRow]);
   });
@@ -519,6 +740,13 @@ function processAndWriteDataDynamically(data, sheetName, startRow = 2) {
 }
 
 /**
+ * ===================== Data Extraction Functions ========================
+ * 
+ * This section contains functions for extracting headers and resolving
+ * nested fields in the data.
+ */
+
+/**
  * Recursively extracts the headers (field paths) from a JSON object.
  * Handles arrays within objects and generates additional headers for array elements.
  *
@@ -528,7 +756,7 @@ function processAndWriteDataDynamically(data, sheetName, startRow = 2) {
  */
 function extractHeaders(obj, parent = '') {
   let headers = [];
-  
+
   for (let key in obj) {
     if (obj.hasOwnProperty(key)) {
       let path = parent ? `${parent}.${key}` : key;
@@ -554,47 +782,7 @@ function extractHeaders(obj, parent = '') {
 
 /**
  * Resolves the value of a nested field in an object, given a dot-separated path.
- * Handles arrays and nested objects by flattening them across columns.
- * 
- * @param {Object} obj - The object to resolve the field from.
- * @param {string} path - The dot-separated path to the field.
- * @returns {*} The resolved value, which can be a simple value, array, or flattened array of object values.
- */
-function backup_resolveNestedField(obj, path) {
-  const keys = path.split('.');
-  let value = obj;
-
-  // Traverse through the object to reach the desired field
-  for (let key of keys) {
-    if (value === null || value === undefined) {
-      return '';  // Return empty string if value is null or undefined
-    }
-    value = value[key];
-  }
-
-  // Handle arrays: if value is an array, we process each object within the array
-  if (Array.isArray(value)) {
-    Logger.log(`Resolved array for path "${path}": ${JSON.stringify(value)}`);
-    return value.map(item => {
-      if (typeof item === 'object' && item !== null) {
-        return Object.values(item).join(', '); // Join the values of the object with commas
-      }
-      return item;  // If it's a primitive value, return directly
-    }).join('; ');  // Join each array item with semicolons to spread over columns
-  }
-
-  // If value is a simple object, return the object's values flattened
-  if (typeof value === 'object' && value !== null) {
-    return Object.values(value).join(', ');  // Flatten object values into a string
-  }
-
-  Logger.log(`Resolved value for path "${path}": ${value}`);
-  return value !== undefined ? value : '';  // Return the resolved value or empty string
-}
-
-/**
- * Resolves the value of a nested field in an object, given a dot-separated path.
- * Handles arrays and nested objects, flattening them if necessary.
+ * Handles arrays and nested objects by flattening them if necessary.
  * 
  * @param {Object} obj - The object to resolve the field from.
  * @param {string} path - The dot-separated path to the field.
@@ -616,14 +804,14 @@ function resolveNestedField(obj, path) {
 function resolveFieldRecursive(obj, keys, index) {
   if (obj === null || obj === undefined) return '';  // Early return if value is null or undefined
   const key = keys[index];
-  
+
   // If the value is an array, resolve for each element in the array
   if (Array.isArray(obj[key])) {
-    return resolveArray(obj[key], keys, index + 1);
+    return obj[key].map(item => resolveFieldRecursive(item, keys, index + 1)).join(', ');
   }
 
   const value = obj[key];
-  
+
   // If this is the last key, return the final value, flattening objects if necessary
   if (index === keys.length - 1) {
     if (typeof value === 'object' && value !== null) {
@@ -635,6 +823,7 @@ function resolveFieldRecursive(obj, keys, index) {
   // Continue recursion for the next key
   return resolveFieldRecursive(value, keys, index + 1);
 }
+
 
 /**
  * Resolves an array by recursively resolving fields for each element, based on the remaining keys.
@@ -690,28 +879,21 @@ function handleApiError(response) {
     case 400:
       Logger.log('Error 400: Bad filtering arguments.');
       break;
-
     case 401:
       Logger.log('Error 401: Unauthorized - Bad API key.');
-      // Optional: Implement logic to prompt user for a new API key
       break;
-
     case 403:
       Logger.log('Error 403: Forbidden - Scope missing for API key.');
       break;
-
     case 408:
       Logger.log('Error 408: Request timed out.');
       break;
-
     case 429:
       Logger.log('Error 429: Rate limit exceeded.');
       break;
-
     case 500:
       Logger.log('Error 500: Internal server error.');
       break;
-
     default:
       Logger.log(`Error ${statusCode}: ${responseText}`);
       break;
