@@ -21,52 +21,63 @@ const API_VERSION = '/api/v0/';  // Keep versioning separate to allow easier upg
 // Combine for initial API requests, but not for pagination (already includes API_VERSION)
 const API_BASE_URL = `${API_DOMAIN}${API_VERSION}`;
 
-/**
- * Mapping of sheet names for data storage in Google Sheets.
- */
-const SHEET_NAMES = {
-  PIES: 'Pies',
-  INSTRUMENTS_LIST: 'InstrumentsList',
-  ACCOUNT_CASH: 'Cash',
-  ACCOUNT_INFO: 'AccountInfo',
-  TRANSACTIONS: '212Transactions',
-  ORDER_HISTORY: 'History',
-  DIVIDENDS: 'Dividends'
-};
-
-/**
- * Mapping of API endpoints.
- */
-const API_ENDPOINT = {
-  PIES: 'equity/pies',
-  INSTRUMENTS_LIST: 'equity/metadata/instruments',
-  ACCOUNT_CASH: 'equity/account/cash',
-  ACCOUNT_INFO: 'equity/account/info',
-  TRANSACTIONS: 'history/transactions',
-  ORDER_HISTORY: 'equity/history/orders',
-  DIVIDENDS: 'history/dividends'
-};
-
-/**
- * Rate limit configurations for each API endpoint.
- * Maps API endpoints to their rate limits and time windows.
- */
-
-const SECOND = 1000;
+// Simplify writing time related values
+const SECOND = 1000;         // 1000 milliseconds in a second
 const MINUTE = 60 * SECOND;  // 60 seconds in a minute
 const HOUR = 60 * MINUTE;    // 60 minutes in an hour
 
 
-const RATE_LIMITS = {
-  [API_ENDPOINT.PIES]: { limit: 1, windowMs: 30 * SECOND },
-  [API_ENDPOINT.INSTRUMENTS_LIST]: { limit: 1, windowMs: 50 * SECOND },
-  [API_ENDPOINT.ACCOUNT_CASH]: { limit: 6, windowMs: 1 * SECOND },
-  [API_ENDPOINT.ACCOUNT_INFO]: { limit: 6, windowMs: 30 * SECOND },
-  [API_ENDPOINT.TRANSACTIONS]: { limit: 6, windowMs: 1 * MINUTE },
-  [API_ENDPOINT.ORDER_HISTORY]: { limit: 6, windowMs: 1 * MINUTE },
-  [API_ENDPOINT.DIVIDENDS]: { limit: 6, windowMs: 1 * MINUTE },
-  // Add other endpoints and their rate limits as needed
+/**
+ * ========================= API Resources ============================
+ * 
+ * This section defines a central object that maps resource names to their corresponding
+ * API endpoint, Google Sheet name, and rate limit configuration.
+ * 
+ * Each resource includes:
+ * - `endpoint`: The API endpoint for the Trading212 resource (e.g., 'equity/pies').
+ * - `sheetName`: The corresponding Google Sheet where the data will be written.
+ * - `rateLimit`: An object specifying the rate limit and time window for the API.
+ */
+
+// Centralized constants to manage API endpoints, sheet names, and rate limits
+const API_RESOURCES = {
+  PIES: {
+    endpoint: 'equity/pies',
+    sheetName: 'Pies',
+    rateLimit: { limit: 1, windowMs: 30 * SECOND } 
+  },
+  INSTRUMENTS_LIST: {
+    endpoint: 'equity/metadata/instruments',
+    sheetName: 'InstrumentsList',
+    rateLimit: { limit: 1, windowMs: 50 * SECOND }
+  },
+  ACCOUNT_CASH: {
+    endpoint: 'equity/account/cash',
+    sheetName: 'Cash',
+    rateLimit: { limit: 6, windowMs: 1 * SECOND }
+  },
+  ACCOUNT_INFO: {
+    endpoint: 'equity/account/info',
+    sheetName: 'AccountInfo',
+    rateLimit: { limit: 6, windowMs: 30 * SECOND }
+  },
+  TRANSACTIONS: {
+    endpoint: 'history/transactions',
+    sheetName: '212Transactions',
+    rateLimit: { limit: 6, windowMs: 1 * MINUTE }
+  },
+  ORDER_HISTORY: {
+    endpoint: 'equity/history/orders',
+    sheetName: 'History',
+    rateLimit: { limit: 6, windowMs: 1 * MINUTE }
+  },
+  DIVIDENDS: {
+    endpoint: 'history/dividends',
+    sheetName: 'Dividends',
+    rateLimit: { limit: 6, windowMs: 1 * MINUTE }
+  }
 };
+
 /**
  * ===================== onOpen Function ===========================
  */
@@ -180,7 +191,12 @@ class RateLimiter {
  * ===================== Initialization ============================
  */
 
-// Initialize RateLimiter (singleton instance)
+// Extract the rate limits from API_RESOURCES and map them to the endpoint paths
+const RATE_LIMITS = Object.fromEntries(
+  Object.entries(API_RESOURCES).map(([key, resource]) => [resource.endpoint, resource.rateLimit])
+);
+
+// Initialize RateLimiter (singleton instance) with extracted rate limits
 const rateLimiter = new RateLimiter(RATE_LIMITS);
 
 /**
@@ -285,7 +301,7 @@ function fetchAndHandleData(url, sheetName, currentRow, endpoint) {
  * @returns {void}
  */
 function fetchPies() {
-  fetchDataAndWriteToSheet(API_ENDPOINT.PIES, SHEET_NAMES.PIES);
+  fetchDataAndWriteToSheet(API_RESOURCES.PIES.endpoint, API_RESOURCES.PIES.sheetName);
 }
 
 /**
@@ -294,7 +310,7 @@ function fetchPies() {
  * @returns {void}
  */
 function fetchInstrumentsList() {
-  fetchDataAndWriteToSheet(API_ENDPOINT.INSTRUMENTS_LIST, SHEET_NAMES.INSTRUMENTS_LIST);
+  fetchDataAndWriteToSheet(API_RESOURCES.INSTRUMENTS_LIST.endpoint, API_RESOURCES.INSTRUMENTS_LIST.sheetName);
 }
 
 /**
@@ -303,16 +319,7 @@ function fetchInstrumentsList() {
  * @returns {void}
  */
 function fetchAccountCash() {
-  fetchDataAndWriteToSheet(API_ENDPOINT.ACCOUNT_CASH, SHEET_NAMES.ACCOUNT_CASH);
-}
-
-/**
- * Fetches the account metadata from the Trading212 API and writes it to the "AccountInfo" sheet.
- * 
- * @returns {void}
- */
-function fetchAccountMetaData() {
-  fetchDataAndWriteToSheet(API_ENDPOINT.ACCOUNT_INFO, SHEET_NAMES.ACCOUNT_INFO);
+  fetchDataAndWriteToSheet(API_RESOURCES.ACCOUNT_CASH.endpoint, API_RESOURCES.ACCOUNT_CASH.sheetName);
 }
 
 /**
@@ -337,7 +344,7 @@ function fetchTransactions(params = {}) {
   };
 
    // Call the generic fetchDataAndWriteToSheet function with the query parameters
-  fetchDataAndWriteToSheet(API_ENDPOINT.TRANSACTIONS, SHEET_NAMES.TRANSACTIONS, queryParams);
+  fetchDataAndWriteToSheet(API_RESOURCES.TRANSACTIONS.endpoint, API_RESOURCES.TRANSACTIONS.sheetName, queryParams);
 }
 
 /**
@@ -360,7 +367,7 @@ function fetchOrderHistory(params = {}) {
   };
 
   // Pass the request to the generic fetchDataAndWriteToSheet function
-  fetchDataAndWriteToSheet(API_ENDPOINT.ORDER_HISTORY, SHEET_NAMES.ORDER_HISTORY, queryParams);
+  fetchDataAndWriteToSheet(API_RESOURCES.ORDER_HISTORY.endpoint, API_RESOURCES.ORDER_HISTORY.sheetName, queryParams);
 }
 
 /**
@@ -384,7 +391,7 @@ function fetchDividends(params = {}) {
   };
 
   // Call the generic fetchDataAndWriteToSheet function with the 'dividends' endpoint
-  fetchDataAndWriteToSheet(API_ENDPOINT.DIVIDENDS, SHEET_NAMES.DIVIDENDS, queryParams);
+  fetchDataAndWriteToSheet(API_RESOURCES.DIVIDENDS.endpoint, API_RESOURCES.DIVIDENDS.sheetName, queryParams);
 }
 
 
