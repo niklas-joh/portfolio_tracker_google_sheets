@@ -93,9 +93,28 @@ function onOpen() {
     .addToUi();
 }
 
+function onOpen() {
+  const ui = SpreadsheetApp.getUi();
+  ui.createMenu('Trading212')
+    .addItem('Set API Key', 'showApiKeySidebar')
+    .addToUi();
+}
+
 /**
  * ===================== UI Interaction Functions ==================
  */
+
+function showApiKeySidebar() {
+  const html = HtmlService.createHtmlOutputFromFile('api_key_sidebar')
+    .setWidth(300)
+    .setHeight(250);
+  SpreadsheetApp.getUi().showSidebar(html);
+}
+
+function saveApiKey(apiKey) {
+  PropertiesService.getUserProperties().setProperty('API_KEY', apiKey);
+}
+
 
 /**
  * Prompts the user to enter their API key and stores it in User Properties.
