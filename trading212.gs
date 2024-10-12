@@ -65,6 +65,7 @@ const API_RESOURCES = {
     endpoint: 'history/transactions',
     sheetName: '212Transactions',
     rateLimit: { limit: 6, windowMs: 1 * MINUTE }
+    // TO DO: Fix 500 error when hitting end of list, i.e. when fetching more items than is remaining
   },
   ORDER_HISTORY: {
     endpoint: 'equity/history/orders',
