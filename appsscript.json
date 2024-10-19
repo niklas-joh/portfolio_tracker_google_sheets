@@ -1,0 +1,14 @@
+{
+  "timeZone": "Europe/Paris",
+  "dependencies": {
+  },
+  "exceptionLogging": "STACKDRIVER",
+  "runtimeVersion": "V8",
+  "sheets": {
+    "macros": [{
+      "menuName": "abc",
+      "functionName": "abc",
+      "defaultShortcut": "Ctrl+Alt+Shift+1"
+    }]
+  }
+}
