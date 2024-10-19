@@ -4,8 +4,11 @@ clasp/
 # ignore legacy folder
 legacy/
 
-#ignore testing folder
+# ignore testing folder
 testing/
+
+# ignore nodes_modules folder
+nodes_modules/
 
 # ignore clasp files
 .clasp.json
