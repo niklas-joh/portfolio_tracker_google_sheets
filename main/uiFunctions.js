@@ -12,19 +12,18 @@ function onOpen() {
     .addItem('Set API Key', 'showApiKeySidebar')
     .addToUi();
 
-  addStartSetupButton(); // Add Start Setup button on the Welcome sheet
 }
 
 /**
  * ===================== UI Interaction Functions ==================
  */
 
-function showApiKeySidebar() {
+function showApiKeyModal() {
   const html = HtmlService.createHtmlOutputFromFile('main/api_key_setup.html')
-    .setWidth(300)
-    .setHeight(250);
-  SpreadsheetApp.getUi().showSidebar(html);
-}
+    .setWidth(400)
+    .setHeight(300);
+  SpreadsheetApp.getUi().showModalDialog(html, 'Setup API Key');
+  }
 
 function saveApiKey(apiKey) {
   PropertiesService.getUserProperties().setProperty('API_KEY', apiKey);

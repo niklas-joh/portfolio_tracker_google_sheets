@@ -3,5 +3,5 @@
  */
 function startSetupProcess() {
     // Assuming this is where API Key input or further onboarding steps will happen
-    showApiKeySidebar(); // Leads to prompting API key sidebar as the first step of the setup process.
+    showApiKeyModal(); // Leads to prompting API key modal as the first step of the setup process.
   }
