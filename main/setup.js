@@ -10,10 +10,13 @@ function addStartSetupButton() {
     const existingButton = drawings.find(drawing => drawing.getOnAction() === 'startSetupProcess');
     if (existingButton) return;
   
-    // Create a new button to start the setup process
-    const button = sheet.insertDrawing(0, 0, 3, 3);
-    button.setName('Start Setup')
-          .setOnClickFunction('startSetupProcess');
+    // Create the button
+    const button = SpreadsheetApp.newButtonImage()
+      .setAltText('Start Setup')
+      .setOnAction('startSetupProcess')
+      .setAnchor(sheet.getRange('A1')); // Set the anchor point for the button
+  
+    sheet.insertDrawing(button);
   }
   
   /**
