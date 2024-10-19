@@ -11,8 +11,6 @@ function onOpen() {
   ui.createMenu('Trading212')
     .addItem('Set API Key', 'showApiKeySidebar')
     .addToUi();
-  
-  addStartSetupButton(); // Add the "Start Setup" button when the sheet is opened.
 }
 
 /**
