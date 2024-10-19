@@ -8,7 +8,7 @@ legacy/
 testing/
 
 # ignore nodes_modules folder
-nodes_modules/
+node_modules/
 
 # ignore clasp files
 .clasp.json
