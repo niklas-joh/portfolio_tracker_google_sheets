@@ -16,4 +16,3 @@ package.json
 # ignore clasp files
 .clasp.json
 appsscript.json
-
