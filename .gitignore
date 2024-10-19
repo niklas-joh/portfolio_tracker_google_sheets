@@ -7,9 +7,13 @@ legacy/
 # ignore testing folder
 testing/
 
-# ignore nodes_modules folder
+# ignore nodes_modules folder and files
 node_modules/
+package-lock.json
+package.json
+
 
 # ignore clasp files
 .clasp.json
-appscript.json
+appsscript.json
+
