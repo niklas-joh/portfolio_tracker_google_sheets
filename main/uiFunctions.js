@@ -20,7 +20,7 @@ function onOpen() {
  */
 
 function showApiKeySidebar() {
-  const html = HtmlService.createHtmlOutputFromFile('main/api_key_sidebar')
+  const html = HtmlService.createHtmlOutputFromFile('main/api_key_sidebar.html')
     .setWidth(300)
     .setHeight(250);
   SpreadsheetApp.getUi().showSidebar(html);
