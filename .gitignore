@@ -1,0 +1,8 @@
+# ignore clasp folder
+clasp/
+
+# ignore legacy folder
+legacy/
+
+#ignore testing folder
+testing/
