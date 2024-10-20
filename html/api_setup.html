@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Onboarding - API Setup</title>
+  <base target="_blank">
+  <?!= include('css/styles'); ?>
+</head>
+<body>
+  <div class="content" id="modalContent">
+    <p>Please choose between the demo or live environment and paste your API key:</p>
+  </div>
+  <div class="environment-selection">
+    <label for="environment">Select Environment:</label>
+    <select id="environment">
+      <option value="demo">Demo</option>
+      <option value="live">Live</option>
+    </select>
+  </div>
+  <div class="api-key-input">
+    <label for="apiKey">Enter API Key:</label>
+    <input type="text" id="apiKey" placeholder="API Key" oninput="toggleSaveButton()">
+  </div>
+  <button id="saveButton" onclick="saveApiKey()" disabled>Save</button>
+  <div id="statusMessage" style="color: green;"></div>
+  
+  <?!= include('html/onboarding_footer'); ?>
+  <?!= include('js/scripts'); ?>
+
+</body>
+</html>
