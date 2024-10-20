@@ -4,42 +4,42 @@
   <title>Custom Modal Template</title>
   <style>
     body {
-       font-family: Arial, sans-serif;
-       margin: 20px;
-       padding: 0;
-       background-color: #f5f5f5;
-     }
-     .modal-container {
-       text-align: center;
-     }
-     .title {
-       font-size: 18px;
-       font-weight: bold;
-       margin-bottom: 10px;
-     }
-     .content {
-       margin-bottom: 20px;
-     }
-     .environment-selection {
-       margin-top: 10px;
-     }
-     button {
-       background-color: #4CAF50;
-       border: none;
-       color: white;
-       padding: 10px 20px;
-       text-align: center;
-       text-decoration: none;
-       display: inline-block;
-       font-size: 16px;
-       margin: 4px 2px;
-       cursor: pointer;
-     }
-     select {
-       font-size: 16px;
-       padding: 5px;
-     }
-     button:disabled {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      padding: 0;
+      background-color: #f5f5f5;
+    }
+    .modal-container {
+      text-align: center;
+    }
+    .title {
+      font-size: 18px;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+    .content {
+      margin-bottom: 20px;
+    }
+    .environment-selection {
+      margin-top: 10px;
+    }
+    button {
+      background-color: #4CAF50;
+      border: none;
+      color: white;
+      padding: 10px 20px;
+      text-align: center;
+      text-decoration: none;
+      display: inline-block;
+      font-size: 16px;
+      margin: 4px 2px;
+      cursor: pointer;
+    }
+    select {
+      font-size: 16px;
+      padding: 5px;
+    }
+    button:disabled {
       background-color: #cccccc;
       color: #666666;
       cursor: not-allowed;
@@ -48,8 +48,8 @@
 </head>
 <body>
   <div class="modal-container">
-    <div class="title" id="modalTitle">[Title]</div>
-    <div class="content" id="modalContent">[Message]</div>
+    <div class="title" id="modalTitle"><?= title ?></div>
+    <div class="content" id="modalContent"><?= message ?></div>
     <div class="environment-selection">
       <label for="environment">Select Environment:</label>
       <select id="environment">
@@ -84,7 +84,7 @@
     function onSaveFailure(error) {
       document.getElementById('statusMessage').innerText = 'Failed to save API Key: ' + error.message;
     }
-    
+
     function toggleSaveButton() {
       const apiKey = document.getElementById('apiKey').value;
       const saveButton = document.getElementById('saveButton');

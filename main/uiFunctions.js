@@ -68,8 +68,13 @@ function saveApiKey(apiKey, environment) {
  * @param {string} message - The message or body content of the modal.
  * @param {string} htmlFile - The HTML file to load for the modal content.
  */
+
 function showCustomModal(title, message, htmlFile) {
-  const htmlContent = HtmlService.createHtmlOutputFromFile(htmlFile)
+  const template = HtmlService.createTemplateFromFile(htmlFile);
+  template.title = title;
+  template.message = message;
+
+  const htmlContent = template.evaluate()
     .setWidth(400)
     .setHeight(300);
   SpreadsheetApp.getUi().showModalDialog(htmlContent, title);
