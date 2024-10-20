@@ -66,6 +66,10 @@
   </div>
 
   <script>
+    /**
+     * Saves the API key along with the selected environment.
+     * Validates the API key input before proceeding.
+     */
     function saveApiKey() {
       const apiKey = document.getElementById('apiKey').value;
       const environment = document.getElementById('environment').value;
@@ -76,15 +80,29 @@
       }
     }
 
+    /**
+     * Handles the success response after saving the API key.
+     * Displays a success message and closes the modal after a short delay.
+     */
     function onSaveSuccess() {
       document.getElementById('statusMessage').innerText = 'API Key saved successfully!';
       setTimeout(() => google.script.host.close(), 1000);
     }
 
+    /**
+     * Handles the failure response when saving the API key.
+     * Displays an error message with the provided error details.
+     *
+     * @param {Object} error - The error object containing details of the failure.
+     */
     function onSaveFailure(error) {
       document.getElementById('statusMessage').innerText = 'Failed to save API Key: ' + error.message;
     }
 
+    /**
+     * Toggles the state of the Save button based on the API key input field.
+     * Enables the button only if a valid API key is entered.
+     */
     function toggleSaveButton() {
       const apiKey = document.getElementById('apiKey').value;
       const saveButton = document.getElementById('saveButton');
