@@ -54,9 +54,9 @@
     </div>
     <div class="api-key-input" style="margin-top: 20px;">
       <label for="apiKey">Enter API Key:</label>
-      <input type="text" id="apiKey" placeholder="API Key" style="width: 80%;">
+      <input type="text" id="apiKey" placeholder="API Key" style="width: 80%;" oninput="toggleSaveButton()">
     </div>
-    <button onclick="saveApiKey()">Save</button>
+    <button id="saveButton" onclick="saveApiKey()" disabled>Save</button>
     <div id="statusMessage" style="margin-top: 10px; color: red;"></div>
   </div>
 
