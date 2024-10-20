@@ -2,7 +2,8 @@
 <html>
 <head>
   <title>Custom Modal Template</title>
-  <?!= HtmlService.createTemplateFromFile('main/styles').getContent(); ?>
+  <base target="_blank">
+  <?!= include('main/styles'); ?>
 </head>
 <body>
   <div class="modal-container">

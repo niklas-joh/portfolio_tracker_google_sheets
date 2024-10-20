@@ -1,4 +1,21 @@
-// File: setup.gs
+/**
+ * Includes the content of another HTML file.
+ *
+ * @param {string} filename - The name of the HTML file to include.
+ * @returns {string} The content of the specified file.
+ */
+function include(filename) {
+  return HtmlService.createHtmlOutputFromFile(filename).getContent();
+}
+
+/**
+ * Handles GET requests and serves the HTML template.
+ *
+ * @returns {HtmlOutput} The HTML template evaluated for display.
+ */
+function doGet() {
+  return HtmlService.createTemplateFromFile('custom_modal').evaluate();
+}
 
 /**
  * Function triggered when the "Start Setup" button is clicked. Guides the user through initial setup.
