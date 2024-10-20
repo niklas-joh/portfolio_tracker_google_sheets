@@ -11,7 +11,7 @@ function startSetupProcess() {
  * Function to show a modal where the user can select between the demo or live environment.
  */
 function showEnvironmentSelectionModal() {
-  showCustomModal('Select Environment', 'Please choose between the demo or live environment:', 'api_key_setup.html');
+  showCustomModal('Select Environment', 'Please choose between the demo or live environment:', 'main/api_key_setup.html');
 }
 
 /**
@@ -45,7 +45,7 @@ function handleEnvironmentSelection(environment) {
  * @param {string} environment - The environment for which the API key is being set.
  */
 function showApiKeyModal(environment) {
-  showCustomModal(`Enter API Key for ${environment} Environment`, 'Please enter your API key below:', 'api_key_setup.html');
+  showCustomModal(`Enter API Key for ${environment} Environment`, 'Please enter your API key below:', 'main/api_key_setup.html');
 }
 
 /**
