@@ -1,0 +1,85 @@
+<!-- File: custom_modal.html -->
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Custom Modal Template</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      padding: 0;
+      background-color: #f5f5f5;
+    }
+    .modal-container {
+      text-align: center;
+    }
+    .title {
+      font-size: 18px;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+    .content {
+      margin-bottom: 20px;
+    }
+    .environment-selection {
+      margin-top: 10px;
+    }
+    button {
+      background-color: #4CAF50;
+      border: none;
+      color: white;
+      padding: 10px 20px;
+      text-align: center;
+      text-decoration: none;
+      display: inline-block;
+      font-size: 16px;
+      margin: 4px 2px;
+      cursor: pointer;
+    }
+    select {
+      font-size: 16px;
+      padding: 5px;
+    }
+  </style>
+</head>
+<body>
+  <div class="modal-container">
+    <div class="title" id="modalTitle">[Title]</div>
+    <div class="content" id="modalContent">[Message]</div>
+    <div class="environment-selection">
+      <label for="environment">Select Environment:</label>
+      <select id="environment">
+        <option value="demo">Demo</option>
+        <option value="live">Live</option>
+      </select>
+    </div>
+    <div class="api-key-input" style="margin-top: 20px;">
+      <label for="apiKey">Enter API Key:</label>
+      <input type="text" id="apiKey" placeholder="API Key" style="width: 80%;">
+    </div>
+    <button onclick="saveApiKey()">Save</button>
+    <div id="statusMessage" style="margin-top: 10px; color: red;"></div>
+  </div>
+
+  <script>
+    function saveApiKey() {
+      const apiKey = document.getElementById('apiKey').value;
+      const environment = document.getElementById('environment').value;
+      if (apiKey) {
+        google.script.run.withSuccessHandler(onSaveSuccess).withFailureHandler(onSaveFailure).saveApiKey(apiKey, environment);
+      } else {
+        document.getElementById('statusMessage').innerText = 'Please enter a valid API key.';
+      }
+    }
+
+    function onSaveSuccess() {
+      document.getElementById('statusMessage').innerText = 'API Key saved successfully!';
+      setTimeout(() => google.script.host.close(), 1000);
+    }
+
+    function onSaveFailure(error) {
+      document.getElementById('statusMessage').innerText = 'Failed to save API Key: ' + error.message;
+    }
+  </script>
+</body>
+</html>

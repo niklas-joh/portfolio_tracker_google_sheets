@@ -6,6 +6,8 @@
  * Constants help make the code more maintainable, as these values are defined in one place and can be easily updated if needed.
  * 
  * The constants include:
+ * - `API_DOMAIN_LIVE`: The domain for calling the live Trading212 API.
+ * - `API_DOMAIN_DEMO`: The domain for calling the demo Trading212 API.
  * - `API_DOMAIN`: The domain for calling the Trading212 API, used to construct final URLs.
  * - `API_VERSION`: The API version used. Used to construct the base URL.
  * - `API_BASE_URL`: The concatenation of API_DOMAIN and API_VERSION used to construct various endpoint URLs.
@@ -15,8 +17,14 @@
  */
 
 // Constants for managing API base URL and versioning
-const API_DOMAIN = 'https://live.trading212.com';
+const API_DOMAIN_LIVE = 'https://live.trading212.com';
+const API_DOMAIN_DEMO = 'https://demo.trading212.com';
 const API_VERSION = '/api/v0/';  // Keep versioning separate to allow easier upgrades
+
+// Determine the API domain based on the saved environment setting
+const userProperties = PropertiesService.getUserProperties();
+const selectedEnvironment = userProperties.getProperty('SELECTED_ENVIRONMENT') || 'demo';
+const API_DOMAIN = selectedEnvironment === 'live' ? API_DOMAIN_LIVE : API_DOMAIN_DEMO;
 
 // Combine for initial API requests, but not for pagination (already includes API_VERSION)
 const API_BASE_URL = `${API_DOMAIN}${API_VERSION}`;

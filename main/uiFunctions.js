@@ -1,45 +1,76 @@
-/**
- * ===================== onOpen Function ===========================
- */
+// File: setup.gs
 
 /**
- * Adds a menu when the spreadsheet is opened to open HTML sidebar to enter API.
+ * Function triggered when the "Start Setup" button is clicked. Guides the user through initial setup.
  */
-
-function onOpen() {
-  const ui = SpreadsheetApp.getUi();
-  ui.createMenu('Trading212')
-    .addItem('Set API Key', 'showApiKeySidebar')
-    .addToUi();
-
+function startSetupProcess() {
+  showEnvironmentSelectionModal();
 }
 
 /**
- * ===================== UI Interaction Functions ==================
+ * Function to show a modal where the user can select between the demo or live environment.
  */
+function showEnvironmentSelectionModal() {
+  showCustomModal('Select Environment', 'Please choose between the demo or live environment:', 'environment_selection');
+}
 
-function showApiKeyModal() {
-  const html = HtmlService.createHtmlOutputFromFile('main/api_key_setup.html')
+/**
+ * Function to handle the selected environment and prompt for the API key setup.
+ * @param {string} environment - The environment selected by the user ('demo' or 'live').
+ */
+function handleEnvironmentSelection(environment) {
+  const userProperties = PropertiesService.getUserProperties();
+  const apiKeyProperty = environment === 'live' ? 'API_KEY_LIVE' : 'API_KEY_DEMO';
+  const existingApiKey = userProperties.getProperty(apiKeyProperty);
+
+  if (existingApiKey) {
+    const ui = SpreadsheetApp.getUi();
+    const response = ui.alert(
+      `API Key for ${environment} environment already exists.`,
+      'Would you like to reset it?',
+      ui.ButtonSet.YES_NO
+    );
+
+    if (response === ui.Button.NO) {
+      ui.alert('Keeping existing API key.');
+      return;
+    }
+  }
+
+  showApiKeyModal(environment);
+}
+
+/**
+ * Function to show the API key modal based on the selected environment.
+ * @param {string} environment - The environment for which the API key is being set.
+ */
+function showApiKeyModal(environment) {
+  showCustomModal(`Enter API Key for ${environment} Environment`, 'Please enter your API key below:', 'api_key_setup');
+}
+
+/**
+ * Function to save the API key and selected environment.
+ * @param {string} apiKey - The API key entered by the user.
+ * @param {string} environment - The environment ('demo' or 'live').
+ */
+function saveApiKey(apiKey, environment) {
+  const userProperties = PropertiesService.getUserProperties();
+  const apiKeyProperty = environment === 'live' ? 'API_KEY_LIVE' : 'API_KEY_DEMO';
+  userProperties.setProperty(apiKeyProperty, apiKey);
+  userProperties.setProperty('SELECTED_ENVIRONMENT', environment); // Save the environment choice
+  SpreadsheetApp.getUi().alert(`API Key for ${environment} environment saved successfully.`);
+}
+
+
+/**
+ * Reusable function to show a custom modal dialog with consistent design.
+ * @param {string} title - The title of the modal.
+ * @param {string} message - The message or body content of the modal.
+ * @param {string} htmlFile - The HTML file to load for the modal content.
+ */
+function showCustomModal(title, message, htmlFile) {
+  const htmlContent = HtmlService.createHtmlOutputFromFile(htmlFile)
     .setWidth(400)
     .setHeight(300);
-  SpreadsheetApp.getUi().showModalDialog(html, 'Setup API Key');
-  }
-
-function saveApiKey(apiKey) {
-  PropertiesService.getUserProperties().setProperty('API_KEY', apiKey);
-}
-
-/**
- * Retrieves the stored API key from User Properties.
- * If the API key is not set, logs an error message.
- *
- * @returns {string|null} The stored API key, or null if not available.
- */
-function getAuthKey() {
-  var apiKey = PropertiesService.getUserProperties().getProperty('API_KEY');
-  if (!apiKey) {
-    Logger.log('API Key is not set. Please use the "Trading212 > Set API Key" menu to enter your API key.');
-    // Optionally, you could throw an error or notify the user through other means
-  }
-  return apiKey;
+  SpreadsheetApp.getUi().showModalDialog(htmlContent, title);
 }
