@@ -8,7 +8,10 @@
 <body>
   <div class="modal-container">
     <div class="title" id="modalTitle"><?= title ?></div>
-    <div class="content" id="modalContent"><?= message ?></div>
+    <div class="content" id="modalContent">
+      <h2><?= title ?></h2>
+      <p><?= message ?></p>
+    </div>
     <div class="environment-selection">
       <label for="environment">Select Environment:</label>
       <select id="environment">
@@ -16,12 +19,12 @@
         <option value="live">Live</option>
       </select>
     </div>
-    <div class="api-key-input" style="margin-top: 20px;">
+    <div class="api-key-input">
       <label for="apiKey">Enter API Key:</label>
-      <input type="text" id="apiKey" placeholder="API Key" style="width: 80%;" oninput="toggleSaveButton()">
+      <input type="text" id="apiKey" placeholder="API Key" oninput="toggleSaveButton()">
     </div>
     <button id="saveButton" onclick="saveApiKey()" disabled>Save</button>
-    <div id="statusMessage" style="margin-top: 10px; color: red;"></div>
+    <div id="statusMessage" style="color: red;"></div>
   </div>
 
   <script>
