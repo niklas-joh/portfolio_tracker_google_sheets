@@ -11,7 +11,7 @@ function startSetupProcess() {
  * Function to show a modal where the user can select between the demo or live environment.
  */
 function showEnvironmentSelectionModal() {
-  showCustomModal('Select Environment', 'Please choose between the demo or live environment:', 'environment_selection');
+  showCustomModal('Select Environment', 'Please choose between the demo or live environment:', 'api_key_setup');
 }
 
 /**
