@@ -1,3 +1,10 @@
+function onOpen() {
+  SpreadsheetApp.getUi()
+    .createMenu('Setup')
+    .addItem('Start Setup Wizard', 'startSetupProcess')
+    .addToUi();
+}
+
 /**
  * Includes the content of another HTML file.
  *
@@ -9,11 +16,36 @@ function include(filename) {
 }
 
 /**
- * Function triggered when the "Start Setup" button is clicked.
- * Guides the user through initial setup and creates html/api_setup.html
+ * Function to initiate the setup process.
+ * This creates a new ModalManager and initializes the journey with defined steps.
  */
 function startSetupProcess() {
-  showCustomModal('Select Environment', 'html/api_setup.html');
+  const modalManager = createModalManager();
+  const steps = defineSetupSteps();
+  modalManager.initializeJourney(steps);
+}
+
+/**
+ * Creates and returns a new ModalManager instance.
+ * @returns {ModalManager} A new ModalManager instance.
+ */
+function createModalManager() {
+  return new ModalManager();
+}
+
+/**
+ * Defines the steps for the setup process.
+ * @returns {Array} An array of step objects.
+ */
+function defineSetupSteps() {
+  return [
+    {
+      title: 'Select Environment',
+      htmlFile: 'html/api_setup.html',
+      callback: saveApiKey
+    },
+    // Add more steps as needed
+  ];
 }
 
 /**

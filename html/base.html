@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title><?!= title ?></title>
+    <base target="_blank">
+    <?!= include('css/styles'); ?>
+  </head>
+  <body>
+    <div class="progress-bar">
+      <p>Step <?!= currentStep ?> of <?!= totalSteps ?></p>
+    </div>
+    <div class="content" id="modalContent">
+      <?!= content ?>
+    </div>
+      <?!= include('html/footer'); ?>
+  </body>
+</html>

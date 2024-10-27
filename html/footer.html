@@ -1,0 +1,10 @@
+<div class="navigation-buttons">
+  <?!= if (currentStep > 1) { ?>
+    <button onclick="google.script.run.goBackToPreviousStep()">Back</button>
+  <?!= } ?>
+  <?!= if (currentStep < totalSteps) { ?>
+    <button onclick="google.script.run.proceedToNextStep()">Next</button>
+  <?!= } else { ?>
+    <button onclick="google.script.run.completeJourney()">Finish</button>
+  <?!= } ?>
+</div>
