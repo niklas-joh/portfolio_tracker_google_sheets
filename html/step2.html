@@ -1,0 +1,9 @@
+<div class="step-content">
+    <h2>API Key Configuration</h2>
+    <div class="form-group">
+      <label for="apiKey">Enter your <? if (state.environment) { ?><?= state.environment ?><? } ?> API key:</label>
+      <input type="password" id="apiKey" name="apiKey" class="input-field"
+             value="<? if (state.apiKey) { ?><?= state.apiKey ?><? } ?>" required>
+      <p class="help-text">Your API key will be securely stored.</p>
+    </div>
+  </div>

@@ -1,10 +1,13 @@
-<div class="navigation-buttons">
-  <?!= if (currentStep > 1) { ?>
-    <button onclick="google.script.run.goBackToPreviousStep()">Back</button>
-  <?!= } ?>
-  <?!= if (currentStep < totalSteps) { ?>
-    <button onclick="google.script.run.proceedToNextStep()">Next</button>
-  <?!= } else { ?>
-    <button onclick="google.script.run.completeJourney()">Finish</button>
-  <?!= } ?>
-</div>
+<div class="footer">
+    <div class="button-container">
+      <? if (showBack) { ?>
+        <button id="backButton" class="btn btn-secondary">Back</button>
+      <? } ?>
+      <? if (showNext) { ?>
+        <button id="nextButton" class="btn btn-primary">Next</button>
+      <? } ?>
+      <? if (showFinish) { ?>
+        <button id="finishButton" class="btn btn-success">Finish</button>
+      <? } ?>
+    </div>
+  </div>  

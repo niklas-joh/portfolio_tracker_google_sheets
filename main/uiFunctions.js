@@ -1,79 +1,114 @@
+// uiFunctions.js
+
+/**
+ * @description Creates the custom menu when the spreadsheet is opened
+ */
 function onOpen() {
-  SpreadsheetApp.getUi()
-    .createMenu('Setup')
-    .addItem('Start Setup Wizard', 'startSetupProcess')
+  const ui = SpreadsheetApp.getUi();
+  ui.createMenu('🛠️ Setup')
+    .addItem('Start Setup Process', 'startSetupProcess')
     .addToUi();
 }
 
 /**
- * Includes the content of another HTML file.
- *
- * @param {string} filename - The name of the HTML file to include.
- * @returns {string} The content of the specified file.
+ * @description Includes HTML content from another file
+ * @param {string} filename - The name of the file to include
+ * @returns {string} The content of the file
  */
 function include(filename) {
-  return HtmlService.createHtmlOutputFromFile(filename).getContent();
+  return HtmlService.createHtmlOutputFromFile(filename)
+    .getContent();
 }
 
 /**
- * Function to initiate the setup process.
- * This creates a new ModalManager and initializes the journey with defined steps.
+ * @description Saves the API key and environment selection to user properties
+ * @param {string} apiKey - The API key to save
+ * @param {string} environment - The selected environment ('demo' or 'live')
+ * @returns {Object} Result of the save operation
  */
-function startSetupProcess() {
-  const modalManager = createModalManager();
-  const steps = defineSetupSteps();
-  modalManager.initializeJourney(steps);
+function saveApiSettings(apiKey, environment) {
+  try {
+    const userProperties = PropertiesService.getUserProperties();
+    
+    // Store settings
+    userProperties.setProperties({
+      'API_KEY': apiKey,
+      'ENVIRONMENT': environment,
+      'SETUP_COMPLETE': 'true',
+      'SETUP_TIMESTAMP': new Date().toISOString()
+    });
+
+    return {
+      success: true,
+      message: 'Settings saved successfully'
+    };
+  } catch (error) {
+    console.error('Error saving settings:', error);
+    return {
+      success: false,
+      error: 'Failed to save settings'
+    };
+  }
 }
 
 /**
- * Creates and returns a new ModalManager instance.
- * @returns {ModalManager} A new ModalManager instance.
+ * @description Validates an API key with the selected environment
+ * @param {string} apiKey - The API key to validate
+ * @param {string} environment - The environment to validate against
+ * @returns {Promise<Object>} Validation result
  */
-function createModalManager() {
-  return new ModalManager();
+async function validateApiKey(apiKey, environment) {
+  try {
+    // Here you would typically make an API call to validate the key
+    // This is a placeholder for the actual API validation logic
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
+    return {
+      success: true,
+      message: 'API key validated successfully'
+    };
+  } catch (error) {
+    console.error('API validation error:', error);
+    return {
+      success: false,
+      error: 'Failed to validate API key'
+    };
+  }
 }
 
 /**
- * Defines the steps for the setup process.
- * @returns {Array} An array of step objects.
+ * @description Gets the current setup status
+ * @returns {Object} The current setup status and settings
  */
-function defineSetupSteps() {
-  return [
-    {
-      title: 'Select Environment',
-      htmlFile: 'html/api_setup.html',
-      callback: saveApiKey
-    },
-    // Add more steps as needed
-  ];
-}
-
-/**
- * Function to save the API key and selected environment.
- * @param {string} apiKey - The API key entered by the user.
- * @param {string} environment - The environment ('demo' or 'live').
- */
-function saveApiKey(apiKey, environment) {
+function getSetupStatus() {
   const userProperties = PropertiesService.getUserProperties();
-  const apiKeyProperty = environment === 'live' ? 'API_KEY_LIVE' : 'API_KEY_DEMO';
-  // TO DO: Check if API is correct by calling Trading212 API
+  const properties = userProperties.getProperties();
 
-  userProperties.setProperty(apiKeyProperty, apiKey);
-  userProperties.setProperty('SELECTED_ENVIRONMENT', environment); // Save the environment choice
+  return {
+    isComplete: properties.SETUP_COMPLETE === 'true',
+    environment: properties.ENVIRONMENT,
+    setupTimestamp: properties.SETUP_TIMESTAMP
+  };
 }
 
 /**
- * Reusable function to show a custom modal dialog with consistent design.
- * @param {string} title - The title of the modal.
- * @param {string} htmlFile - The HTML file to load for the modal content.
+ * @description Resets the setup, clearing all saved settings
+ * @returns {Object} Result of the reset operation
  */
+function resetSetup() {
+  try {
+    const userProperties = PropertiesService.getUserProperties();
+    userProperties.deleteAllProperties();
 
-function showCustomModal(title, htmlFile) {
-  const template = HtmlService.createTemplateFromFile(htmlFile);
-  template.title = title;
-
-  const htmlContent = template.evaluate()
-    .setWidth(500)
-    .setHeight(400);
-  SpreadsheetApp.getUi().showModalDialog(htmlContent, title);
+    return {
+      success: true,
+      message: 'Setup reset successfully'
+    };
+  } catch (error) {
+    console.error('Error resetting setup:', error);
+    return {
+      success: false,
+      error: 'Failed to reset setup'
+    };
+  }
 }

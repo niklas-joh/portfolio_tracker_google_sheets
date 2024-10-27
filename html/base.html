@@ -1,17 +1,41 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title><?!= title ?></title>
-    <base target="_blank">
+    <base target="_top">
     <?!= include('css/styles'); ?>
   </head>
   <body>
-    <div class="progress-bar">
-      <p>Step <?!= currentStep ?> of <?!= totalSteps ?></p>
-    </div>
-    <div class="content" id="modalContent">
-      <?!= content ?>
-    </div>
+    <div class="modal-container">
+      <!-- Progress Bar -->
+      <div class="progress-container">
+        <div class="progress-bar">
+          <div class="progress-fill" style="width: <?= progress.percentage ?>%"></div>
+        </div>
+        <div class="progress-text">
+          Step <?= progress.current ?> of <?= progress.total ?>
+        </div>
+      </div>
+
+      <!-- Status Messages -->
+      <div id="statusContainer" class="status-container hidden">
+        <div id="successMessage" class="status-message success hidden">
+          <span class="icon">✓</span>
+          <span class="message"></span>
+        </div>
+        <div id="errorMessage" class="status-message error hidden">
+          <span class="icon">!</span>
+          <span class="message"></span>
+        </div>
+      </div>
+
+      <!-- Content Section -->
+      <div class="content-section">
+        <?!= include('html/' + step.template); ?>
+      </div>
+
+      <!-- Footer with Navigation -->
       <?!= include('html/footer'); ?>
+    </div>
+    <?!= include('js/scripts'); ?>
   </body>
 </html>

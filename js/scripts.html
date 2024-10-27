@@ -1,51 +1,251 @@
 <script>
   /**
-   * Saves the API key along with the selected environment.
-   * Validates the API key input before proceeding.
+   * @description Initialize the modal functionality and attach event listeners
    */
-  function saveApiKey() {
-    const apiKey = document.getElementById('apiKey').value;
-    const environment = document.getElementById('environment').value;
-    if (apiKey) {
-      google.script.run.withSuccessHandler(onSaveSuccess).withFailureHandler(onSaveFailure).saveApiKey(apiKey, environment);
-    } else {
-      document.getElementById('statusMessage').innerText = 'Please enter a valid API key.';
+  function initializeModal() {
+    // Button elements
+    const backButton = document.getElementById('backButton');
+    const nextButton = document.getElementById('nextButton');
+    const finishButton = document.getElementById('finishButton');
+  
+    // Status elements
+    const statusContainer = document.getElementById('statusContainer');
+    const successMessage = document.getElementById('successMessage');
+    const errorMessage = document.getElementById('errorMessage');
+  
+    /**
+     * @description Collects form data from the current step
+     * @returns {Object} Form data as key-value pairs
+     */
+    function collectFormData() {
+      const formData = {};
+      
+      // Handle radio buttons (environment selection)
+      const radioButtons = document.querySelectorAll('input[type="radio"]:checked');
+      radioButtons.forEach(radio => {
+        formData[radio.name] = radio.value;
+      });
+  
+      // Handle text inputs (API key)
+      const textInputs = document.querySelectorAll('input[type="text"], input[type="password"]');
+      textInputs.forEach(input => {
+        if (input.value) {
+          formData[input.name] = input.value;
+        }
+      });
+  
+      return formData;
     }
+  
+    /**
+     * @description Shows a status message to the user
+     * @param {string} type - The type of message ('success' or 'error')
+     * @param {string} message - The message to display
+     */
+    function showStatusMessage(type, message) {
+      statusContainer.classList.remove('hidden');
+      successMessage.classList.add('hidden');
+      errorMessage.classList.add('hidden');
+  
+      if (type === 'success') {
+        successMessage.querySelector('.message').textContent = message;
+        successMessage.classList.remove('hidden');
+      } else {
+        errorMessage.querySelector('.message').textContent = message;
+        errorMessage.classList.remove('hidden');
+      }
+  
+      // Auto-hide success messages after 3 seconds
+      if (type === 'success') {
+        setTimeout(() => {
+          successMessage.classList.add('hidden');
+          if (!errorMessage.classList.contains('hidden')) {
+            statusContainer.classList.remove('hidden');
+          } else {
+            statusContainer.classList.add('hidden');
+          }
+        }, 3000);
+      }
+    }
+  
+    /**
+     * @description Validates the current step's data
+     * @param {Object} formData - The collected form data
+     * @returns {boolean} Whether the data is valid
+     */
+    function validateStep(formData) {
+      // Environment selection validation
+      if (document.querySelector('.radio-group')) {
+        if (!formData.environment) {
+          showStatusMessage('error', 'Please select an environment');
+          return false;
+        }
+      }
+  
+      // API key validation
+      const apiKeyInput = document.getElementById('apiKey');
+      if (apiKeyInput && !formData.apiKey) {
+        showStatusMessage('error', 'Please enter an API key');
+        return false;
+      }
+  
+      return true;
+    }
+  
+    /**
+     * @description Handles navigation between steps
+     * @param {string} direction - The direction to navigate ('next' or 'back')
+     */
+    async function handleNavigation(direction) {
+      try {
+        // Disable buttons during processing
+        if (backButton) backButton.disabled = true;
+        if (nextButton) nextButton.disabled = true;
+        if (finishButton) finishButton.disabled = true;
+  
+        const formData = collectFormData();
+  
+        // Validate only when moving forward
+        if (direction === 'next' && !validateStep(formData)) {
+          return;
+        }
+  
+        // Call server-side navigation handler
+        const result = await google.script.run
+          .withSuccessHandler(handleNavigationSuccess)
+          .withFailureHandler(handleNavigationError)
+          .handleNavigation(direction, formData);
+  
+      } catch (error) {
+        showStatusMessage('error', 'An unexpected error occurred');
+      } finally {
+        // Re-enable buttons
+        if (backButton) backButton.disabled = false;
+        if (nextButton) nextButton.disabled = false;
+        if (finishButton) finishButton.disabled = false;
+      }
+    }
+  
+    /**
+     * @description Handles successful navigation response
+     * @param {Object} result - The response from the server
+     */
+    function handleNavigationSuccess(result) {
+      if (result.success) {
+        if (result.message) {
+          showStatusMessage('success', result.message);
+        }
+      } else {
+        showStatusMessage('error', result.error || 'Navigation failed');
+      }
+    }
+  
+    /**
+     * @description Handles navigation errors
+     * @param {Error} error - The error that occurred
+     */
+    function handleNavigationError(error) {
+      showStatusMessage('error', error.message || 'An unexpected error occurred');
+    }
+  
+    /**
+     * @description Handles the completion of the journey
+     */
+    async function handleCompletion() {
+      try {
+        finishButton.disabled = true;
+        const formData = collectFormData();
+  
+        const result = await google.script.run
+          .withSuccessHandler(handleCompletionSuccess)
+          .withFailureHandler(handleCompletionError)
+          .completeJourney(formData);
+  
+      } catch (error) {
+        showStatusMessage('error', 'Failed to complete the setup');
+      } finally {
+        finishButton.disabled = false;
+      }
+    }
+  
+    /**
+     * @description Handles successful journey completion
+     * @param {Object} result - The response from the server
+     */
+    function handleCompletionSuccess(result) {
+      if (result.success) {
+        showStatusMessage('success', result.message || 'Setup completed successfully');
+        // Close the modal after a brief delay
+        setTimeout(() => {
+          google.script.host.close();
+        }, 2000);
+      } else {
+        showStatusMessage('error', result.error || 'Failed to complete setup');
+      }
+    }
+  
+    /**
+     * @description Handles journey completion errors
+     * @param {Error} error - The error that occurred
+     */
+    function handleCompletionError(error) {
+      showStatusMessage('error', error.message || 'Failed to complete setup');
+    }
+  
+    // Attach event listeners
+    if (backButton) {
+      backButton.addEventListener('click', () => handleNavigation('back'));
+    }
+  
+    if (nextButton) {
+      nextButton.addEventListener('click', () => handleNavigation('next'));
+    }
+  
+    if (finishButton) {
+      finishButton.addEventListener('click', handleCompletion);
+    }
+  
+    // Add input validation listeners
+    const inputs = document.querySelectorAll('input');
+    inputs.forEach(input => {
+      input.addEventListener('change', () => {
+        const formData = collectFormData();
+        if (validateStep(formData)) {
+          statusContainer.classList.add('hidden');
+        }
+      });
+    });
   }
-
-  /**
-   * Handles successful API key save operation.
-   * Updates the status message and shows a confirmation modal.
-   */
-  function onSaveSuccess() {
-    document.getElementById('statusMessage').innerText = 'API Key saved successfully!';
-    showConfirmationModal();
-  }
-
-  /**
-   * Handles the failure response when saving the API key.
-   * Displays an error message with the provided error details.
-   *
-   * @param {Object} error - The error object containing details of the failure.
-   */
-  function onSaveFailure(error) {
-    document.getElementById('statusMessage').innerText = 'Failed to save API Key: ' + error.message;
-  }
-
-  /**
-   * Toggles the state of the Save button based on the API key input field.
-   * Enables the button only if a valid API key is entered.
-   */
-  function toggleSaveButton() {
-    const apiKey = document.getElementById('apiKey').value;
-    const saveButton = document.getElementById('saveButton');
-    saveButton.disabled = !apiKey;
+  // Update the form based on the current state
+function updateFormFromState(state) {
+  if (!state) return;
+  
+  // Handle environment selection
+  if (state.environment) {
+    const radio = document.querySelector(`input[type="radio"][value="${state.environment}"]`);
+    if (radio) radio.checked = true;
   }
   
-  /**
-   * Displays a confirmation modal when the API key is saved successfully.
-   */
-   function showConfirmationModal() {
-    google.script.run.showCustomModal('Success', 'html/confirmation_modal.html');
+  // Handle API key
+  const apiKeyInput = document.getElementById('apiKey');
+  if (apiKeyInput && state.apiKey) {
+    apiKeyInput.value = state.apiKey;
   }
+  
+  // Handle confirmation display
+  const environmentDisplay = document.getElementById('environmentDisplay');
+  if (environmentDisplay && state.environment) {
+    environmentDisplay.textContent = state.environment;
+  }
+}
+
+// Call this after the page loads
+document.addEventListener('DOMContentLoaded', function() {
+  // Initialize the form with any existing state
+  google.script.run
+    .withSuccessHandler(function(state) {
+      updateFormFromState(state);
+    })
+    .getState();
+});
 </script>
