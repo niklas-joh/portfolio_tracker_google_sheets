@@ -11,13 +11,14 @@ function onOpen() {
 }
 
 /**
- * @description Includes HTML content from another file
+ * @description Includes and evaluates HTML content from another file
  * @param {string} filename - The name of the file to include
- * @returns {string} The content of the file
+ * @returns {string} The evaluated content of the file
  */
-function include(filename) {
-  return HtmlService.createHtmlOutputFromFile(filename)
-    .getContent();
+function include(filename, data) {
+  const template = HtmlService.createTemplateFromFile(filename);
+  template.data = data;  // Pass the data to the included template
+  return template.evaluate().getContent();
 }
 
 /**

@@ -1,16 +1,9 @@
+<!-- html/step3.html -->
 <div class="step-content">
-    <h2>Confirm Your Settings</h2>
-    <div class="confirmation-details">
-      <div class="detail-item">
-        <span class="detail-label">Environment:</span>
-        <span class="detail-value" id="environmentDisplay"></span>
-      </div>
-      <div class="detail-item">
-        <span class="detail-label">API Key:</span>
-        <span class="detail-value">•••••••••••••</span>
-      </div>
-    </div>
-    <p class="confirmation-text">
-      Please confirm your settings above. Click Finish to complete the setup.
-    </p>
-  </div>  
+  <h2>Confirm Setup</h2>
+  <p>Please confirm your settings:</p>
+  <div class="confirmation-details">
+    <p>Environment: <?= PropertiesService.getUserProperties().getProperty('ENVIRONMENT') || 'Not selected' ?></p>
+    <p>API Key: <?= PropertiesService.getUserProperties().getProperty('API_KEY') ? '********' : 'Not provided' ?></p>
+  </div>
+</div>

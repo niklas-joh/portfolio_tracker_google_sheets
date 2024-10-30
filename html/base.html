@@ -1,41 +1,35 @@
+<!-- html/base.html -->
 <!DOCTYPE html>
 <html>
   <head>
     <base target="_top">
-    <?!= include('css/styles'); ?>
+    <?!= include('css/styles', data); ?>
   </head>
   <body>
     <div class="modal-container">
-      <!-- Progress Bar -->
-      <div class="progress-container">
-        <div class="progress-bar">
-          <div class="progress-fill" style="width: <?= progress.percentage ?>%"></div>
-        </div>
-        <div class="progress-text">
-          Step <?= progress.current ?> of <?= progress.total ?>
-        </div>
+      <!-- Progress -->
+      <div class="progress-text">
+        Step <?= data.progress.current ?> of <?= data.progress.total ?>
       </div>
 
-      <!-- Status Messages -->
-      <div id="statusContainer" class="status-container hidden">
-        <div id="successMessage" class="status-message success hidden">
-          <span class="icon">✓</span>
-          <span class="message"></span>
-        </div>
-        <div id="errorMessage" class="status-message error hidden">
-          <span class="icon">!</span>
-          <span class="message"></span>
-        </div>
+      <!-- Content -->
+      <div class="content">
+        <?!= include('html/' + data.step.template, data); ?>
       </div>
 
-      <!-- Content Section -->
-      <div class="content-section">
-        <?!= include('html/' + step.template); ?>
+      <!-- Navigation -->
+      <div class="button-container">
+        <? if (data.showBack) { ?>
+          <button id="backButton" class="button secondary">Back</button>
+        <? } ?>
+        <? if (data.showNext) { ?>
+          <button id="nextButton" class="button primary">Next</button>
+        <? } ?>
+        <? if (data.showFinish) { ?>
+          <button id="finishButton" class="button primary">Finish</button>
+        <? } ?>
       </div>
-
-      <!-- Footer with Navigation -->
-      <?!= include('html/footer'); ?>
     </div>
-    <?!= include('js/scripts'); ?>
+    <?!= include('js/scripts', data); ?>
   </body>
 </html>

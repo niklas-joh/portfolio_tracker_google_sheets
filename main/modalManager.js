@@ -1,231 +1,201 @@
 // modalManager.js
+
 /**
- * @class ModalManager
- * @description Manages multi-step modal dialogs with progress tracking and navigation
+ * Manages the modal dialog for the setup process.
+ * @class
  */
 class ModalManager {
-    /**
-     * @constructor
-     * @description Initializes a new ModalManager instance
-     */
-    constructor() {
-      this.currentStep = 0;
-      this.steps = [];
-      this.state = {};
-    }
-  
-    /**
-     * @method initializeJourney
-     * @description Sets up a new modal journey with the specified steps
-     * @param {Array<{id: string, title: string, template: string, validate?: Function}>} steps 
-     * @param {Object} [initialState={}] Optional initial state for the journey
-     */
-    initializeJourney(steps, initialState = {}) {
-      this.steps = steps;
-      this.currentStep = 0;
-      this.state = initialState;
-      this.showCurrentStep();
-    }
-  
-    /**
-     * @method showCurrentStep
-     * @description Displays the current step's modal content
-     * @private
-     */
-    showCurrentStep() {
-      const template = HtmlService.createTemplateFromFile('html/base');
-      template.step = this.steps[this.currentStep];
-      template.progress = {
-        current: this.currentStep + 1,
-        total: this.steps.length,
-        percentage: ((this.currentStep + 1) / this.steps.length) * 100
-      };
-      template.state = this.state;
-      template.showBack = this.currentStep > 0;
-      template.showNext = !this.steps[this.currentStep].isLast;
-      template.showFinish = this.steps[this.currentStep].isLast;
-      
-      const html = template.evaluate()
-        .setWidth(600)
-        .setHeight(400)
-        .setTitle(this.steps[this.currentStep].title);
-        
-      SpreadsheetApp.getUi().showModalDialog(html, this.steps[this.currentStep].title);
-    }
-  
-    /**
-     * @method handleNavigation
-     * @description Handles navigation between steps, including validation and API calls
-     * @param {string} direction - Either 'next' or 'back'
-     * @param {Object} formData - Form data from the current step
-     * @returns {Object} Navigation result including success status and any error messages
-     */
-    async handleNavigation(direction, formData = {}) {
-      try {
-        if (direction === 'next') {
-          // Validate current step if validation function exists
-          const currentStep = this.steps[this.currentStep];
-          if (currentStep.validate) {
-            const validationResult = currentStep.validate(formData);
-            if (!validationResult.success) {
-              return {
-                success: false,
-                error: validationResult.error
-              };
-            }
-          }
-  
-          // Process API call if required
-          if (currentStep.apiCall) {
-            const apiResult = await currentStep.apiCall(formData);
-            if (!apiResult.success) {
-              return {
-                success: false,
-                error: apiResult.error
-              };
-            }
-          }
-  
-          // Update state with form data
-          this.state = { ...this.state, ...formData };
-  
-          // Move to next step if not at the end
-          if (this.currentStep < this.steps.length - 1) {
-            this.currentStep++;
-            this.showCurrentStep();
-          }
-        } else if (direction === 'back' && this.currentStep > 0) {
-          this.currentStep--;
-          this.showCurrentStep();
-        }
-  
-        return { success: true };
-      } catch (error) {
-        console.error('Navigation error:', error);
-        return {
-          success: false,
-          error: 'An unexpected error occurred. Please try again.'
-        };
-      }
-    }
-  
-    /**
-     * @method completeJourney
-     * @description Handles the completion of the journey
-     * @param {Object} finalData - Final form data from the last step
-     * @returns {Object} Completion result including success status and any error messages
-     */
-    async completeJourney(finalData = {}) {
-      try {
-        const finalStep = this.steps[this.currentStep];
-        
-        // Final validation if needed
-        if (finalStep.validate) {
-          const validationResult = finalStep.validate(finalData);
-          if (!validationResult.success) {
-            return {
-              success: false,
-              error: validationResult.error
-            };
-          }
-        }
-  
-        // Final API call if needed
-        if (finalStep.apiCall) {
-          const apiResult = await finalStep.apiCall(finalData);
-          if (!apiResult.success) {
-            return {
-              success: false,
-              error: apiResult.error
-            };
-          }
-        }
-  
-        // Update final state
-        this.state = { ...this.state, ...finalData };
-  
-        return { 
-          success: true,
-          message: 'Journey completed successfully'
-        };
-      } catch (error) {
-        console.error('Completion error:', error);
-        return {
-          success: false,
-          error: 'An unexpected error occurred while completing the journey.'
-        };
-      }
-    }
-  }
-  
-  // Create a singleton instance
-  const modalManager = new ModalManager();
-  
   /**
-   * @function startSetupProcess
-   * @description Initiates the setup process journey
+   * Creates an instance of ModalManager.
+   * Initializes the setup steps and retrieves user properties.
+   * @constructor
    */
-  function startSetupProcess() {
-    const setupJourney = [
-      {
-        id: 'environment',
-        title: 'Select Environment',
-        template: 'step1',
-        validate: (data) => ({
-          success: !!data.environment,
-          error: !data.environment ? 'Please select an environment' : null
-        })
-      },
-      {
-        id: 'apiKey',
-        title: 'API Key Configuration',
-        template: 'step2',
-        validate: (data) => ({
-          success: !!data.apiKey && data.apiKey.length > 0,
-          error: !data.apiKey ? 'Please enter an API key' : null
-        }),
-        apiCall: async (data) => {
-          // Simulate API key validation
-          await new Promise(resolve => setTimeout(resolve, 1000));
-          return { success: true };
-        }
-      },
-      {
-        id: 'confirmation',
-        title: 'Confirmation',
-        template: 'step3',
-        isLast: true
-      }
+  constructor() {
+    /**
+     * Array of setup steps.
+     * @type {Array<Object>}
+     */
+    this.steps = [
+      { title: 'Select Environment', template: 'step1', required: ['environment'] },
+      { title: 'API Key', template: 'step2', required: ['apiKey'] },
+      { title: 'Confirmation', template: 'step3', isLast: true }
     ];
-  
-    modalManager.initializeJourney(setupJourney);
+
+    /**
+     * User properties service.
+     * @type {GoogleAppsScript.Properties.Properties}
+     */
+    this.userProps = PropertiesService.getUserProperties();
+
+    /**
+     * Current step index.
+     * @type {number}
+     */
+    this.currentStep = parseInt(this.userProps.getProperty('CURRENT_STEP')) || 0;
   }
 
   /**
- * Gets the current state of the journey
- * @returns {Object} The current state
- */
-function getState() {
-    return ModalManager.state || {};
-  }
-  
-  // Update the showCurrentStep method in the ModalManager class
+   * Displays the current step in the modal dialog.
+   */
   showCurrentStep() {
     const template = HtmlService.createTemplateFromFile('html/base');
-    template.step = this.steps[this.currentStep];
-    template.progress = {
-      current: this.currentStep + 1,
-      total: this.steps.length,
-      percentage: ((this.currentStep + 1) / this.steps.length) * 100
+    
+    template.data = {
+      step: this.steps[this.currentStep],
+      state: {
+        environment: this.userProps.getProperty('ENVIRONMENT'),
+        apiKey: this.userProps.getProperty('API_KEY')
+      },
+      progress: {
+        current: this.currentStep + 1,
+        total: this.steps.length,
+        percentage: ((this.currentStep + 1) / this.steps.length) * 100
+      },
+      showBack: this.currentStep > 0,
+      showNext: this.currentStep < this.steps.length - 1,
+      showFinish: this.currentStep === this.steps.length - 1
     };
-    template.showBack = this.currentStep > 0;
-    template.showNext = !this.steps[this.currentStep].isLast;
-    template.showFinish = this.steps[this.currentStep].isLast;
     
     const html = template.evaluate()
       .setWidth(600)
       .setHeight(400)
-      .setTitle(this.steps[this.currentStep].title);
+      .setSandboxMode(HtmlService.SandboxMode.IFRAME);
       
     SpreadsheetApp.getUi().showModalDialog(html, this.steps[this.currentStep].title);
   }
+
+  /**
+   * Validates the current step based on required fields.
+   * @param {Object} formData - The form data to validate.
+   * @returns {Object} An object indicating if the validation passed and any error message.
+   */
+  validateStep(formData) {
+    const currentStep = this.steps[this.currentStep];
+    if (!currentStep.required) return { valid: true };
+
+    const missingFields = currentStep.required.filter(field => !formData[field]);
+    if (missingFields.length > 0) {
+      return {
+        valid: false,
+        error: `Please fill in all required fields: ${missingFields.join(', ')}`
+      };
+    }
+    return { valid: true };
+  }
+
+  /**
+   * Saves form data to user properties.
+   * @param {Object} formData - The form data to save.
+   */
+  saveFormData(formData) {
+    Object.entries(formData).forEach(([key, value]) => {
+      if (value) this.userProps.setProperty(key.toUpperCase(), value);
+    });
+  }
+
+  /**
+   * Handles navigation between steps.
+   * @param {string} direction - The direction to navigate ('next', 'back', or 'finish').
+   * @param {Object} [formData={}] - The form data to save.
+   * @returns {Object} An object indicating if the navigation was successful and any error message.
+   */
+  handleNavigation(direction, formData = {}) {
+    try {
+      // Validate current step if moving forward
+      if (direction === 'next') {
+        const validation = this.validateStep(formData);
+        if (!validation.valid) {
+          return { success: false, error: validation.error };
+        }
+      }
+
+      // Save any form data
+      this.saveFormData(formData);
+
+      // Handle navigation
+      switch (direction) {
+        case 'next':
+          if (this.currentStep < this.steps.length - 1) {
+            this.currentStep++;
+            this.userProps.setProperty('CURRENT_STEP', this.currentStep.toString());
+            this.showCurrentStep();
+            return { success: true };
+          }
+          break;
+
+        case 'back':
+          if (this.currentStep > 0) {
+            this.currentStep--;
+            this.userProps.setProperty('CURRENT_STEP', this.currentStep.toString());
+            this.showCurrentStep();
+            return { success: true };
+          }
+          break;
+
+        case 'finish':
+          this.userProps.setProperty('SETUP_COMPLETE', 'true');
+          return { success: true };
+      }
+
+      return { success: false, error: 'Invalid navigation request' };
+    } catch (error) {
+      console.error('Navigation error:', error);
+      return { success: false, error: 'An unexpected error occurred' };
+    }
+  }
+
+  /**
+   * Resets the setup process by clearing all related user properties.
+   */
+  reset() {
+    const properties = ['CURRENT_STEP', 'ENVIRONMENT', 'API_KEY', 'SETUP_COMPLETE'];
+    properties.forEach(prop => this.userProps.deleteProperty(prop));
+  }
+}
+
+/**
+ * The modal manager instance.
+ * @type {ModalManager}
+ */
+const modalManager = new ModalManager();
+
+/**
+ * Starts the setup process by resetting the state and showing the first step.
+ */
+function startSetupProcess() {
+  modalManager.reset();  // Clear any previous state
+  modalManager.currentStep = 0;
+  modalManager.showCurrentStep();
+}
+
+/**
+ * Handles navigation between steps.
+ * @param {string} direction - The direction to navigate.
+ * @param {Object} formData - The form data to save.
+ * @returns {Object} The result of the navigation attempt.
+ */
+function handleNavigation(direction, formData) {
+  return modalManager.handleNavigation(direction, formData);
+}
+
+/**
+ * Includes and evaluates an HTML template file.
+ * @param {string} filename - The name of the file to include.
+ * @param {Object} data - The data to pass to the template.
+ * @returns {string} The evaluated HTML content.
+ */
+function include(filename, data) {
+  const template = HtmlService.createTemplateFromFile(filename);
+  template.data = data;
+  return template.evaluate().getContent();
+}
+
+/**
+ * Adds a custom menu to the spreadsheet UI when it opens.
+ */
+function onOpen() {
+  SpreadsheetApp.getUi()
+    .createMenu('🔧 Setup')
+    .addItem('Start Setup', 'startSetupProcess')
+    .addToUi();
+}
