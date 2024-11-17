@@ -27,10 +27,10 @@
       }
       
       // Get API key
-      const apiKey = document.getElementById('apiKey');
-      if (apiKey && apiKey.value) {
-        formData.apiKey = apiKey.value;
-        console.log('API key found:', '***' + apiKey.value.slice(-4));
+      const api_Key = document.getElementById('apiKey');
+      if (api_Key && api_Key.value) {
+        formData.api_Key = api_Key.value;
+        console.log('API key found:', '***' + api_Key.value.slice(-4));
       } else {
         console.log('No API key found');
       }
@@ -42,7 +42,7 @@
     if (nextButton) {
       nextButton.onclick = function() {
         console.log('Next button clicked');
-        const formData = getFormData();
+        const formData = getFormData(); // Collects the data from form inputs
         console.log('Sending next navigation with data:', formData);
         
         google.script.run

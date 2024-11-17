@@ -189,13 +189,3 @@ function include(filename, data) {
   template.data = data;
   return template.evaluate().getContent();
 }
-
-/**
- * Adds a custom menu to the spreadsheet UI when it opens.
- */
-function onOpen() {
-  SpreadsheetApp.getUi()
-    .createMenu('🔧 Setup')
-    .addItem('Start Setup', 'startSetupProcess')
-    .addToUi();
-}

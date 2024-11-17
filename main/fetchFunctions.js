@@ -13,7 +13,7 @@
  * - `fetchPies()`
  * - `fetchInstrumentsList()`
  * - `fetchAccountCash()`
- * - `fetchAccountMetaData()`
+ * - `fetchAccountInfo()`
  * - `fetchTransactions()`
  * - `fetchOrderHistory()`
  */
@@ -86,6 +86,16 @@ function fetchPies() {
  */
 function fetchInstrumentsList() {
   fetchDataAndWriteToSheet(API_RESOURCES.INSTRUMENTS_LIST.endpoint, API_RESOURCES.INSTRUMENTS_LIST.sheetName);
+}
+
+/**
+ * Fetches the account information data from the Trading212 API and writes it to the specified sheet.
+ *
+ * @param {Object} [params={}] - Optional query parameters for the API call (if any).
+ * @returns {void}
+ */
+function fetchAccountInfo(params = {}) {
+  fetchDataAndWriteToSheet(API_RESOURCES.ACCOUNT_INFO.endpoint, API_RESOURCES.ACCOUNT_INFO.sheetName);
 }
 
 /**
