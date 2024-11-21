@@ -106,4 +106,4 @@ function resolveFieldRecursive(obj, keys, index) {
  */
 function flattenObject(obj) {
   return Object.values(obj).map(val => (val !== null && val !== undefined ? val : '')).join(', ');
-}
+}  

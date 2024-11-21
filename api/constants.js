@@ -54,6 +54,11 @@ const API_RESOURCES = {
     sheetName: 'Pies',
     rateLimit: { limit: 1, windowMs: 30 * SECOND } 
   },
+  PIE: {
+    endpoint: 'equity/pies/2616371',
+    sheetName: 'Pie Details',
+    rateLimit: { limit: 1, windowMs: 5 * SECOND }
+  },
   INSTRUMENTS_LIST: {
     endpoint: 'equity/metadata/instruments',
     sheetName: 'InstrumentsList',

@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <?!= include('css/styles'); ?>
+</head>
+<body>
+  <div class="setup-container">
+    <div class="step-indicator">
+      <div class="step-dot active"></div>
+      <div class="step-dot"></div>
+      <div class="step-dot"></div>
+      <div class="step-dot"></div>
+    </div>
+
+    <div id="step-welcome" class="step-container active">
+      <h5>Welcome to Trading212 Portfolio Manager</h5>
+      <p>This add-in helps you manage and analyze your Trading212 portfolio directly in Google Sheets. 
+         Let's get you set up in just a few simple steps.</p>
+      <div class="button-container">
+        <div></div>
+        <button class="waves-effect waves-light btn" onclick="nextStep()">Get Started</button>
+      </div>
+    </div>
+
+    <div id="step-environment" class="step-container">
+      <h5>Choose Your Environment</h5>
+      <p>Select whether you want to use the demo environment to test things out,
+         or connect to your live Trading212 account.</p>
+      
+      <div class="environment-cards">
+        <div class="card environment-card" onclick="selectEnvironment('demo')">
+          <div class="card-content">
+            <span class="card-title">Demo Environment</span>
+            <p>Try out the features with sample data before connecting your real account.</p>
+          </div>
+        </div>
+        
+        <div class="card environment-card" onclick="selectEnvironment('live')">
+          <div class="card-content">
+            <span class="card-title">Live Environment</span>
+            <p>Connect to your actual Trading212 account to manage your real portfolio.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="button-container">
+        <button class="waves-effect waves-light btn" onclick="prevStep()">Back</button>
+        <button class="waves-effect waves-light btn" onclick="nextStep()">Next</button>
+      </div>
+    </div>
+
+    <div id="step-api" class="step-container">
+      <h5>API Configuration</h5>
+      <p>Enter your Trading212 API key to connect your account.
+         You can find this in your Trading212 account settings.</p>
+      
+      <div class="input-field">
+        <input type="password" id="apiKey" />
+        <label for="apiKey">API Key</label>
+      </div>
+      
+      <button class="waves-effect waves-light btn" onclick="testConnection()">
+        Test Connection
+      </button>
+
+      <div id="connection-status"></div>
+
+      <div class="button-container">
+        <button class="waves-effect waves-light btn" onclick="prevStep()">Back</button>
+        <button class="waves-effect waves-light btn" onclick="nextStep()">Next</button>
+      </div>
+    </div>
+
+    <div id="step-complete" class="step-container">
+      <div class="center-align">
+        <i class="large material-icons green-text">check_circle</i>
+        <h5>Setup Complete!</h5>
+        <p>Your Trading212 Portfolio Manager is now configured and ready to use.</p>
+        <p>What would you like to do next?</p>
+      </div>
+
+      <div class="button-container">
+        <button class="waves-effect waves-light btn" onclick="showFetchDataModal()">
+          Fetch Trading212 Data
+        </button>
+        <button class="waves-effect waves-light btn" onclick="closeSetupModal()">
+          Done
+        </button>
+    </div>
+  </div>
+  </div>
+  <?!= include('js/scripts'); ?>
+</body>
+</html>

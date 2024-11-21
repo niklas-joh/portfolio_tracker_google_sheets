@@ -1,102 +1,156 @@
-<!-- js/scripts.html -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
 <script>
-  function initializeModal() {
-    console.log('Initializing modal...');
-    
-    const nextButton = document.getElementById('nextButton');
-    const backButton = document.getElementById('backButton');
-    const finishButton = document.getElementById('finishButton');
-  
-    console.log('Buttons found:', {
-      next: !!nextButton,
-      back: !!backButton,
-      finish: !!finishButton
-    });
-  
-    function getFormData() {
-      console.log('Collecting form data...');
-      const formData = {};
-      
-      // Get environment selection
-      const environment = document.querySelector('input[name="environment"]:checked');
-      if (environment) {
-        formData.environment = environment.value;
-        console.log('Environment found:', environment.value);
-      } else {
-        console.log('No environment selected');
-      }
-      
-      // Get API key
-      const api_Key = document.getElementById('apiKey');
-      if (api_Key && api_Key.value) {
-        formData.api_Key = api_Key.value;
-        console.log('API key found:', '***' + api_Key.value.slice(-4));
-      } else {
-        console.log('No API key found');
-      }
-      
-      console.log('Form data collected:', formData);
-      return formData;
-    }
-  
-    if (nextButton) {
-      nextButton.onclick = function() {
-        console.log('Next button clicked');
-        const formData = getFormData(); // Collects the data from form inputs
-        console.log('Sending next navigation with data:', formData);
-        
-        google.script.run
-          .withSuccessHandler(function(result) {
-            console.log('Navigation success:', result);
-          })
-          .withFailureHandler(function(error) {
-            console.error('Navigation error:', error);
-          })
-          .handleNavigation('next', formData);
-      };
-    }
-    
-    if (backButton) {
-      backButton.onclick = function() {
-        console.log('Back button clicked');
-        const formData = getFormData();
-        console.log('Sending back navigation with data:', formData);
-        
-        google.script.run
-          .withSuccessHandler(function(result) {
-            console.log('Navigation success:', result);
-          })
-          .withFailureHandler(function(error) {
-            console.error('Navigation error:', error);
-          })
-          .handleNavigation('back', formData);
-      };
-    }
-    
-    if (finishButton) {
-      finishButton.onclick = function() {
-        console.log('Finish button clicked');
-        const formData = getFormData();
-        console.log('Sending finish navigation with data:', formData);
-        
-        google.script.run
-          .withSuccessHandler(function(result) {
-            console.log('Navigation success:', result);
-            if (result.success) {
-              google.script.host.close();
-            }
-          })
-          .withFailureHandler(function(error) {
-            console.error('Navigation error:', error);
-          })
-          .handleNavigation('finish', formData);
-      };
+  let currentStep = 0;
+  const steps = ['welcome', 'environment', 'api', 'complete'];
+  let selectedEnvironment = 'demo';
+
+  function nextStep() {
+    if (currentStep < steps.length - 1) {
+      hideStep(steps[currentStep]);
+      currentStep++;
+      showStep(steps[currentStep]);
+      updateProgressIndicator();
     }
   }
-  
-  // Initialize when the page loads
+
+  function prevStep() {
+    if (currentStep > 0) {
+      hideStep(steps[currentStep]);
+      currentStep--;
+      showStep(steps[currentStep]);
+      updateProgressIndicator();
+    }
+  }
+
+  function showStep(stepId) {
+    document.getElementById(`step-${stepId}`).style.display = 'block';
+  }
+
+  function hideStep(stepId) {
+    document.getElementById(`step-${stepId}`).style.display = 'none';
+  }
+
+  function updateProgressIndicator() {
+    const dots = document.querySelectorAll('.step-dot');
+    dots.forEach((dot, index) => {
+      dot.classList.toggle('active', index === currentStep);
+    });
+  }
+
+  function selectEnvironment(env) {
+    selectedEnvironment = env;
+    document.querySelectorAll('.environment-card').forEach(card => {
+      card.style.border = 'none';
+    });
+    event.currentTarget.style.border = '2px solid #26a69a';
+  }
+
+  function testConnection() {
+    const apiKey = document.getElementById('apiKey').value;
+    const statusDiv = document.getElementById('connection-status');
+    
+    statusDiv.innerHTML = '<p class="blue-text">Testing connection...</p>';
+    
+    google.script.run
+      .withSuccessHandler(function(result) {
+        if (result.success) {
+          statusDiv.innerHTML = '<p class="green-text">Connection successful!</p>';
+          // Save API key and environment for later use
+          window.apiKey = apiKey;
+        } else {
+          statusDiv.innerHTML = `<p class="red-text">Connection failed: ${result.error}</p>`;
+        }
+      })
+      .withFailureHandler(function(error) {
+        statusDiv.innerHTML = `<p class="red-text">Error: ${error.message}</p>`;
+      })
+      .saveApiConfig(apiKey, selectedEnvironment);
+  }
+
+  function completeSetup() {
+    google.script.host.close();
+  }
+
+  // Initialize on page load
   document.addEventListener('DOMContentLoaded', function() {
-    console.log('DOM loaded, initializing modal...');
-    initializeModal();
+    showStep(steps[currentStep]);
+    updateProgressIndicator();
+    M.updateTextFields();
   });
-  </script>
+
+/**
+ * Displays the modal for fetching Trading212 data.
+ * This function is called when the user chooses to fetch data after completing the setup process.
+ * 
+ * @function
+ * @name showFetchDataModal
+ * @description Opens a new modal window with options for fetching different types of Trading212 data.
+ */
+function showFetchDataModal() {
+  google.script.run.showModal('html/fetchData', 'Fetch Trading212 Data');
+}
+
+/**
+ * Initiates the process of fetching selected Trading212 data.
+ * This function is called when the user clicks the "Fetch Selected Data" button in the fetch data modal.
+ * 
+ * @function
+ * @name fetchSelectedData
+ * @description Collects the selected data options from the form, validates the selection,
+ *              and calls the server-side function to fetch the data.
+ */
+ function fetchSelectedData() {
+  const form = document.getElementById('fetch-data-form');
+  const selectedOptions = Array.from(form.elements.fetchOption)
+    .filter(checkbox => checkbox.checked)
+    .map(checkbox => checkbox.value);
+
+  if (selectedOptions.length === 0) {
+    alert('Please select at least one data option to fetch.');
+    return;
+  }
+  console.log(selectedOptions);
+
+  google.script.run
+    .withSuccessHandler(onFetchSuccess)
+    .withFailureHandler(onFetchError)
+    .fetchSelectedTrading212Data(selectedOptions);
+}
+
+/**
+ * Handles successful completion of data fetching.
+ * 
+ * @function
+ * @name onFetchSuccess
+ * @param {*} result - The result returned from the server-side fetch function.
+ * @description Displays a success message to the user and closes the fetch data modal.
+ */
+function onFetchSuccess(result) {
+  alert('Data fetched successfully!');
+  closeFetchDataModal();
+}
+
+/**
+ * Handles errors that occur during data fetching.
+ * 
+ * @function
+ * @name onFetchError
+ * @param {Error} error - The error object returned from the server-side fetch function.
+ * @description Displays an error message to the user with details about the fetch failure.
+ */
+function onFetchError(error) {
+  alert('Error fetching data: ' + error);
+}
+
+/**
+ * Closes the fetch data modal.
+ * 
+ * @function
+ * @name closeFetchDataModal
+ * @description Closes the current modal window, returning the user to the previous view.
+ */
+function closeFetchDataModal() {
+  google.script.host.close();
+}
+
+</script>

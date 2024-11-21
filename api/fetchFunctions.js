@@ -80,6 +80,29 @@ function fetchPies() {
 }
 
 /**
+* Fetches specific "pie" details from the Trading212 API and writes it to the "Pie Details" sheet.
+* 
+* @param {Object} params - The parameters for the request.
+* @param {number} params.id - The ID of the pie to fetch, required (int64).
+* @returns {void}
+* @throws {Error} Throws an error if the ID is not provided or is invalid.
+*/
+function fetchPie(params) {
+  // Validate the ID parameter
+  // if (!params || typeof params.id !== 'number' || !Number.isInteger(params.id)) {
+  //  throw new Error("Invalid or missing 'id' parameter. 'id' must be an integer.");
+  // }
+
+  // Declare parameters for the API call
+ //  const queryParams = {
+  //  id: params.id,
+  //};
+
+  // Fetch data and write it to the specified sheet
+  fetchDataAndWriteToSheet(API_RESOURCES.PIE.endpoint, API_RESOURCES.PIE.sheetName);
+}
+
+/**
  * Fetches the instruments list data from the Trading212 API and writes it to the "InstrumentsList" sheet.
  * 
  * @returns {void}
@@ -177,4 +200,45 @@ function fetchDividends(params = {}) {
 
   // Call the generic fetchDataAndWriteToSheet function with the 'dividends' endpoint
   fetchDataAndWriteToSheet(API_RESOURCES.DIVIDENDS.endpoint, API_RESOURCES.DIVIDENDS.sheetName, queryParams);
+}
+
+/**
+* Fetches selected Trading212 data based on user choices.
+* 
+* @function
+* @name fetchSelectedTrading212Data
+* @param {string[]} selectedOptions - An array of strings representing the data types to fetch.
+* @returns {string} A message indicating that data fetching is complete.
+* @description This function takes an array of selected data types and calls the corresponding
+*              fetch functions for each selected type. It handles errors for individual fetch
+*              operations and logs them without stopping the entire process.
+* @example
+* fetchSelectedTrading212Data(['pies', 'accountInfo', 'transactions']);
+*/
+function fetchSelectedTrading212Data(selectedOptions) {
+const fetchFunctions = {
+  pies: fetchPies,
+  accountInfo: fetchAccountInfo,
+  accountCash: fetchAccountCash,
+  transactions: fetchTransactions,
+  orderHistory: fetchOrderHistory,
+  dividends: fetchDividends
+};
+
+// Iterate through each selected option
+for (const option of selectedOptions) {
+  // Check if a fetch function exists for the current option
+  if (fetchFunctions[option]) {
+    try {
+      // Execute the fetch function for the current option
+      fetchFunctions[option]();
+    } catch (error) {
+      // If an error occurs during fetch, log it using the Logger
+      Logger.log(`Error fetching ${option}: ${error}`);
+    }
+  }
+  // If no fetch function exists for the option, it's silently skipped
+}
+
+return 'Data fetching complete';
 }

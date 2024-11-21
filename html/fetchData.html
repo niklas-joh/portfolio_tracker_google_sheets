@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <?!= include('css/styles'); ?>
+</head>
+<body>
+  <div class="fetch-data-container">
+    <p>Select the data you'd like to retrieve from your Trading212 account:</p>
+
+    <form id="fetch-data-form">
+      <p>
+        <label>
+          <input type="checkbox" class="filled-in" name="fetchOption" value="pies" />
+          <span>Investment Pies</span>
+        </label>
+      </p>
+      <p>
+        <label>
+          <input type="checkbox" class="filled-in" name="fetchOption" value="accountInfo" />
+          <span>Account Information</span>
+        </label>
+      </p>
+      <p>
+        <label>
+          <input type="checkbox" class="filled-in" name="fetchOption" value="accountCash" />
+          <span>Account Cash</span>
+        </label>
+      </p>
+      <p>
+        <label>
+          <input type="checkbox" class="filled-in" name="fetchOption" value="transactions" />
+          <span>Transactions</span>
+        </label>
+      </p>
+      <p>
+        <label>
+          <input type="checkbox" class="filled-in" name="fetchOption" value="orderHistory" />
+          <span>Order History</span>
+        </label>
+      </p>
+      <p>
+        <label>
+          <input type="checkbox" class="filled-in" name="fetchOption" value="dividends" />
+          <span>Dividends</span>
+        </label>
+      </p>
+    </form>
+
+    <div class="button-container">
+      <button class="waves-effect waves-light btn" onclick="closeFetchDataModal()">
+        Cancel
+      </button>
+      <button class="waves-effect waves-light btn" onclick="fetchSelectedData()">
+        Fetch Selected Data
+      </button>
+    </div>
+  </div>
+  <?!= include('js/scripts'); ?>
+</body>
+</html>
