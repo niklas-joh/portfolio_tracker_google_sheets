@@ -1,15 +1,3 @@
-// uiFunctions.js
-
-/**
- * @description Creates the custom menu when the spreadsheet is opened
- */
-function onOpen() {
-  const ui = SpreadsheetApp.getUi();
-  ui.createMenu('🛠️ Setup')
-    .addItem('Start Setup Process', 'startSetupProcess')
-    .addToUi();
-}
-
 /**
  * @description Includes and evaluates HTML content from another file
  * @param {string} filename - The name of the file to include
