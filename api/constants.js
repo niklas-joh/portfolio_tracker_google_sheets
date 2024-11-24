@@ -51,7 +51,7 @@ const HOUR = 60 * MINUTE;    // 60 minutes in an hour
 const API_RESOURCES = {
   PIES: {
     endpoint: 'equity/pies',
-    sheetName: 'Pies',
+    sheetName: '🥧Pies',
     rateLimit: { limit: 1, windowMs: 30 * SECOND } 
   },
   PIE: {
