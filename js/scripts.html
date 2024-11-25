@@ -1,11 +1,12 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
 <script>
   let currentStep = 0;
-  let steps = [];
+  let steps = [];  
   let selectedEnvironment = 'demo';
 
 // Function to initialize steps dynamically
   function initializeSteps() {
+    resetSteps();
     const stepElements = document.querySelectorAll('.step');
     steps = Array.from(stepElements).map(el => el.id);
 
@@ -27,11 +28,10 @@
   * @function
   * @name resetSteps
   * @description This function is called when the user opens a new modal widow.
-  * It resets the current step to 0, hides all steps, and shows the first step.
+  * It resets the current step to 0.
   */
   function resetSteps() {
       currentStep = 0;
-      initializeSteps();
   }
 
 /**

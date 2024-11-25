@@ -6,6 +6,12 @@
 </head>
 <body>
   <div class="setup-container">
+    <div class="step-indicator">
+      <div class="step-dot active"></div>
+      <div class="step-dot"></div>
+      <div class="step-dot"></div>
+      <div class="step-dot"></div>
+    </div>
     <div id="step-selectData" class="step active">
       <div class="fetch-data-container">
         <p>Select the data you'd like to retrieve from your Trading212 account:</p>
@@ -64,6 +70,13 @@
         <h5>Fetching Data:</h5>
           <ul id="progress-list" class="collection"></ul>
       </div>
+      <div class="button-container">
+        <button class="waves-effect waves-light btn" onclick="closeModal()">
+          Cancel
+        </button>
+        <button class="waves-effect waves-light btn" onclick="closeModal()">
+          Done
+        </button>
     </div>
   </div>
   <?!= include('js/scripts'); ?>

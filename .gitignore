@@ -12,7 +12,66 @@ node_modules/
 package-lock.json
 package.json
 
-
 # ignore clasp files
 .clasp.json
 appsscript.json
+
+# Ignore all .DS_Store files
+**/.DS_Store
+
+# Ignore .gitignore files
+.gitignore
+
+# Ignore .gitattributes files
+.gitattributes
+
+# Ignore .env files
+.env
+
+# Ignore .env.example files
+.env.example
+
+# Ignore .env.local files
+.env.local
+
+# Ignore .env.local.example files
+.env.local.example
+
+# Ignore .env.production files
+.env.production
+
+# Ignore .env.production.local files
+.env.production.local
+
+# Ignore .env.staging files
+.env.staging
+
+# Ignore .env.staging.local files
+.env.staging.local
+
+# Ignore .env.test files
+.env.test
+
+# Ignore .env.test.local files
+.env.test.local
+
+# Ignore .env.development files
+.env.development
+
+# Ignore .env.development.local files
+.env.development.local
+
+# Ignore .env.example files
+.env.example
+
+# Ignore .env.example.local files
+.env.example.local
+
+# Ignore .env.example.production files
+.env.example.production
+
+# Ignore .env.example.production.local files
+.env.example.production.local
+
+# Ignore .env.example.staging files
+.env.example.staging
