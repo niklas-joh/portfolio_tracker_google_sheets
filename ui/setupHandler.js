@@ -20,4 +20,5 @@ function showSetupModal() {
  */
 function showFetchDataModal() {
   showModal('html/fetchData', 'Fetch Trading212 Data');
+  resetSteps();
 }

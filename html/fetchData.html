@@ -6,65 +6,65 @@
 </head>
 <body>
   <div class="setup-container">
-  <div id="step-selectData" class="step active">
-  <div class="fetch-data-container">
-    <p>Select the data you'd like to retrieve from your Trading212 account:</p>
+    <div id="step-selectData" class="step active">
+      <div class="fetch-data-container">
+        <p>Select the data you'd like to retrieve from your Trading212 account:</p>
 
-    <form id="fetch-data-form">
-      <p>
-        <label>
-          <input type="checkbox" class="filled-in" name="fetchOption" value="pies" />
-          <span class="black-text">Investment Pies</span>
-        </label>
-      </p>
-      <p>
-        <label>
-          <input type="checkbox" class="filled-in" name="fetchOption" value="accountInfo" />
-          <span class="black-text">Account Information</span>
-        </label>
-      </p>
-      <p>
-        <label>
-          <input type="checkbox" class="filled-in" name="fetchOption" value="accountCash" />
-          <span class="black-text">Account Cash</span>
-        </label>
-      </p>
-      <p>
-        <label>
-          <input type="checkbox" class="filled-in" name="fetchOption" value="transactions" />
-          <span class="black-text">Transactions</span>
-        </label>
-      </p>
-      <p>
-        <label>
-          <input type="checkbox" class="filled-in" name="fetchOption" value="orderHistory" />
-          <span class="black-text">Order History</span>
-        </label>
-      </p>
-      <p>
-        <label>
-          <input type="checkbox" class="filled-in" name="fetchOption" value="dividends" />
-          <span class="black-text">Dividends</span>
-        </label>
-      </p>
-    </form>
+        <form id="fetch-data-form">
+          <p>
+            <label>
+              <input type="checkbox" class="filled-in" name="fetchOption" value="pies" />
+              <span class="black-text">Investment Pies</span>
+            </label>
+          </p>
+          <p>
+            <label>
+              <input type="checkbox" class="filled-in" name="fetchOption" value="accountInfo" />
+              <span class="black-text">Account Information</span>
+            </label>
+          </p>
+          <p>
+            <label>
+              <input type="checkbox" class="filled-in" name="fetchOption" value="accountCash" />
+              <span class="black-text">Account Cash</span>
+            </label>
+          </p>
+          <p>
+            <label>
+              <input type="checkbox" class="filled-in" name="fetchOption" value="transactions" />
+              <span class="black-text">Transactions</span>
+            </label>
+          </p>
+          <p>
+            <label>
+              <input type="checkbox" class="filled-in" name="fetchOption" value="orderHistory" />
+              <span class="black-text">Order History</span>
+            </label>
+          </p>
+          <p>
+            <label>
+              <input type="checkbox" class="filled-in" name="fetchOption" value="dividends" />
+              <span class="black-text">Dividends</span>
+            </label>
+          </p>
+        </form>
 
-    <div class="button-container">
-      <button class="waves-effect waves-light btn" onclick="closeModal()">
-        Cancel
-      </button>
-      <button class="waves-effect waves-light btn" onclick="fetchSelectedData(); nextStep()">
-        Fetch Selected Data
-      </button>
-    </div>
+        <div class="button-container">
+          <button class="waves-effect waves-light btn" onclick="closeModal()">
+            Cancel
+          </button>
+          <button class="waves-effect waves-light btn" onclick="fetchSelectedData(); nextStep()">
+            Fetch Selected Data
+          </button>
+        </div>
+      </div>
     </div>
     <div id="step-fetchingData" class="step">
       <div id="fetch-progress" class="hidden">
         <h5>Fetching Data:</h5>
-        <ul id="progress-list" class="collection"></ul>
+          <ul id="progress-list" class="collection"></ul>
+      </div>
     </div>
-    </div>
-  </div>
   </div>
   <?!= include('js/scripts'); ?>
 </body>

@@ -23,6 +23,18 @@
   document.addEventListener('DOMContentLoaded', initializeSteps);
 
   /**
+  * Resets the steps to the first step.
+  * @function
+  * @name resetSteps
+  * @description This function is called when the user opens a new modal widow.
+  * It resets the current step to 0, hides all steps, and shows the first step.
+  */
+  function resetSteps() {
+      currentStep = 0;
+      initializeSteps();
+  }
+
+/**
  * Advances to the next step in the setup process.
  *
  * @function
