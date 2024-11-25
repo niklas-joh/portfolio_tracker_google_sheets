@@ -12,8 +12,8 @@
       <div class="step-dot"></div>
       <div class="step-dot"></div>
     </div>
-
-    <div id="step-welcome" class="step-container active">
+    <div id="step-container">
+    <div id="step-welcome" class="step active">
       <p>This add-in helps you manage and analyze your Trading212 portfolio directly in Google Sheets. 
          Let's get you set up in just a few simple steps.</p>
       <div class="button-container">
@@ -22,7 +22,7 @@
       </div>
     </div>
 
-    <div id="step-environment" class="step-container">
+    <div id="step-environment" class="step">
       <h5>Choose Your Environment</h5>
       <p>Select whether you want to use the demo environment to test things out,
          or connect to your live Trading212 account.</p>
@@ -45,7 +45,7 @@
       <?!= include('html/prevNextButtons'); ?>
     </div>
 
-    <div id="step-api" class="step-container">
+    <div id="step-api" class="step">
       <h5>API Configuration</h5>
       <p>Enter your Trading212 API key to connect your account.
          You can find this in your Trading212 account settings.</p>
@@ -65,7 +65,7 @@
 
     </div>
 
-    <div id="step-complete" class="step-container">
+    <div id="step-complete" class="step">
       <div class="center-align">
         <i class="large material-icons green-text">check_circle</i>
         <h5>Setup Complete!</h5>
@@ -80,6 +80,7 @@
         <button class="waves-effect waves-light btn" onclick="showFetchDataModal()">
           Fetch Trading212 Data
         </button>
+    </div>
     </div>
   </div>
   </div>

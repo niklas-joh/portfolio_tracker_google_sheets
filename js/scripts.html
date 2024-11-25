@@ -1,18 +1,63 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
 <script>
   let currentStep = 0;
-  const steps = ['welcome', 'environment', 'api', 'complete'];
+  let steps = [];
   let selectedEnvironment = 'demo';
 
+// Function to initialize steps dynamically
+  function initializeSteps() {
+    const stepElements = document.querySelectorAll('.step');
+    steps = Array.from(stepElements).map(el => el.id);
+
+    // Hide all steps except the first one
+    steps.forEach((stepId, index) => {
+      if (index === 0) {
+        showStep(stepId);
+      } else {
+        hideStep(stepId);
+      }
+    });
+  }
+
+// Call this function when the document is loaded
+  document.addEventListener('DOMContentLoaded', initializeSteps);
+
+  /**
+ * Advances to the next step in the setup process.
+ *
+ * @function
+ * @name nextStep
+ * @description This function is called when the user clicks the "Next" button.
+ * It hides the current step, increments the step counter, shows the next step,
+ * and updates the progress indicator. The function only proceeds if there are
+ * more steps available.
+ */
   function nextStep() {
+    console.log('nextStep called. Current step:', currentStep);
+    console.log('Steps array:', steps);
+    
     if (currentStep < steps.length - 1) {
+      console.log('Hiding step:', steps[currentStep]);
       hideStep(steps[currentStep]);
       currentStep++;
+      console.log('Showing next step:', steps[currentStep]);
       showStep(steps[currentStep]);
       updateProgressIndicator();
+    } else {
+      console.log('No more steps available');
     }
   }
 
+/**
+ * Moves back to the previous step in the setup process.
+ *
+ * @function
+ * @name prevStep
+ * @description This function is called when the user clicks the "Previous" button.
+ * It hides the current step, decrements the step counter, shows the previous step,
+ * and updates the progress indicator. The function only goes back if the current
+ * step is not the first step.
+ */
   function prevStep() {
     if (currentStep > 0) {
       hideStep(steps[currentStep]);
@@ -22,46 +67,125 @@
     }
   }
 
+/**
+ * Displays a specific step in the setup process.
+ *
+ * @function
+ * @name showStep
+ * @param {string} stepId - The ID of the step to be shown.
+ * @description This function makes a specific step visible by setting its
+ * display style to 'block'. The stepId parameter should correspond to
+ * the ID of the HTML element representing the step.
+ */
   function showStep(stepId) {
+    console.log('Hiding step:', stepId);
     document.getElementById(`step-${stepId}`).style.display = 'block';
   }
 
+/**
+ * Hides a specific step in the setup process.
+ *
+ * @function
+ * @name hideStep
+ * @param {string} stepId - The ID of the step to be hidden.
+ * @description This function hides a specific step by setting its
+ * display style to 'none'. The stepId parameter should correspond to
+ * the ID of the HTML element representing the step.
+ */
   function hideStep(stepId) {
     document.getElementById(`step-${stepId}`).style.display = 'none';
   }
 
-  function updateProgressIndicator() {
+/**
+ * Updates the progress indicator in the UI.
+ *
+ * @function
+ * @name updateProgressIndicator
+ * @description This function updates the visual progress indicator
+ * to reflect the current step in the setup process. It adds the 'active'
+ * class to the dot representing the current step and removes it from all
+ * other dots.
+ */
+function updateProgressIndicator() {
     const dots = document.querySelectorAll('.step-dot');
     dots.forEach((dot, index) => {
       dot.classList.toggle('active', index === currentStep);
     });
   }
 
-  function selectEnvironment(env) {
+/**
+ * Selects an environment (demo or live) and updates the UI accordingly.
+ *
+ * @function
+ * @param {('demo'|'live')} env - The environment to be selected. Must be either 'demo' or 'live'.
+ * @global
+ * @description This function performs the following actions:
+ * 1. Updates the global selectedEnvironment variable with the chosen environment (demo or live).
+ * 2. Removes the border from all environment cards.
+ * 3. Adds a border to the selected environment card.
+ *
+ * @example
+ * // When the user clicks on the demo environment card
+ * selectEnvironment('demo');
+ *
+ * // When the user clicks on the live environment card
+ * selectEnvironment('live');
+ */
+ function selectEnvironment(env) {
+    // Update the global selected environment
     selectedEnvironment = env;
+
+    // Remove border from all environment cards
     document.querySelectorAll('.environment-card').forEach(card => {
       card.style.border = 'none';
     });
-    event.currentTarget.style.border = '2px solid #26a69a';
-  }
 
-  function testConnection() {
+    // Add border to the selected environment card
+    event.currentTarget.style.border = '2px solid #26a69a';
+}
+
+/**
+ * Tests the connection to the Trading212 API using the provided API key.
+ *
+ * @function
+ * @name testConnection
+ * @description This function performs the following actions:
+ * 1. Retrieves the API key entered by the user.
+ * 2. Updates the UI to show that the connection is being tested.
+ * 3. Calls a server-side function to validate the API key and save the configuration.
+ * 4. Handles the result of the connection test, updating the UI accordingly.
+ *
+ * @global
+ * @param {string} selectedEnvironment - The globally selected environment (demo or live).
+ *
+ * @example
+ * // This function is typically called when the user clicks a "Test Connection" button
+ * testConnection();
+ */
+function testConnection() {
+  // Retrieve the API key from the input field
     const apiKey = document.getElementById('apiKey').value;
+
+  // Get the element where the connection status will be displayed
     const statusDiv = document.getElementById('connection-status');
-    
+
+  // Update the UI to indicate that the connection is being tested
     statusDiv.innerHTML = '<p class="blue-text">Testing connection...</p>';
-    
+
+  // Call the server-side function to test the connection and save the configuration
     google.script.run
       .withSuccessHandler(function(result) {
+      // This function is called if the server-side function executes successfully
         if (result.success) {
+        // If the connection was successful, update the UI
           statusDiv.innerHTML = '<p class="green-text">Connection successful!</p>';
-          // Save API key and environment for later use
-          window.apiKey = apiKey;
         } else {
+        // If the connection failed, display the error message
           statusDiv.innerHTML = `<p class="red-text">Connection failed: ${result.error}</p>`;
         }
       })
       .withFailureHandler(function(error) {
+      // This function is called if the server-side function throws an error
         statusDiv.innerHTML = `<p class="red-text">Error: ${error.message}</p>`;
       })
       .saveApiConfig(apiKey, selectedEnvironment);
@@ -81,7 +205,7 @@
 /**
  * Displays the modal for fetching Trading212 data.
  * This function is called when the user chooses to fetch data after completing the setup process.
- * 
+ *
  * @function
  * @name showFetchDataModal
  * @description Opens a new modal window with options for fetching different types of Trading212 data.
@@ -93,7 +217,7 @@ function showFetchDataModal() {
 /**
  * Initiates the process of fetching selected Trading212 data.
  * This function is called when the user clicks the "Fetch Selected Data" button in the fetch data modal.
- * 
+ *
  * @function
  * @name fetchSelectedData
  * @description Collects the selected data options from the form, validates the selection,
@@ -111,40 +235,108 @@ function showFetchDataModal() {
   }
   console.log(selectedOptions);
 
-  google.script.run
-    .withSuccessHandler(onFetchSuccess)
-    .withFailureHandler(onFetchError)
-    .fetchSelectedTrading212Data(selectedOptions);
-}
+  // Show progress section
+  const progressSection = document.getElementById('fetch-progress');
+    progressSection.classList.remove('hidden');
+
+    // Create progress items
+    const progressList = document.getElementById('progress-list');
+    progressList.innerHTML = '';
+    selectedOptions.forEach(option => {
+      const li = document.createElement('li');
+      li.className = 'collection-item';
+      li.innerHTML = `
+        <div class="progress-item">
+          <span>${option}</span>
+          <div class="progress">
+            <div class="indeterminate"></div>
+          </div>
+        </div>
+      `;
+      progressList.appendChild(li);
+    });
+
+    // Call server-side function for each option
+    selectedOptions.forEach(option => {
+        console.log(`Fetching ${option}...`);  // Add logging
+        google.script.run
+          .withSuccessHandler(result => {
+            console.log(`Success callback for ${option}`);  // Add logging
+            onFetchSuccess(option, result);
+          })
+          .withFailureHandler(error => {
+            console.error(`Failure callback for ${option}`);  // Add logging
+            onFetchError(option, error);
+          })
+          .fetchSelectedTrading212Data([option]);
+      });
+    }
 
 /**
  * Handles successful completion of data fetching.
- * 
+ *
  * @function
  * @name onFetchSuccess
  * @param {*} result - The result returned from the server-side fetch function.
  * @description Displays a success message to the user and closes the fetch data modal.
  */
-function onFetchSuccess(result) {
-  alert('Data fetched successfully!');
-  closeFetchDataModal();
+ function onFetchSuccess(option, result) {
+  console.log(`onFetchSuccess called for ${option}`);  // Add logging
+  updateProgressItem(option, 'complete');
+  console.log(`Fetched ${option} successfully:`, result);
 }
 
 /**
  * Handles errors that occur during data fetching.
- * 
+ *
  * @function
  * @name onFetchError
  * @param {Error} error - The error object returned from the server-side fetch function.
  * @description Displays an error message to the user with details about the fetch failure.
  */
-function onFetchError(error) {
-  alert('Error fetching data: ' + error);
+ function onFetchError(option, error) {
+  console.error(`onFetchError called for ${option}`);  // Add logging
+  updateProgressItem(option, 'error');
+  console.error(`Error fetching ${option}:`, error);
 }
+
+
+function updateProgressItem(option, status) {
+  console.log(`Updating progress for ${option} to ${status}`);  // Add logging
+  const progressItem = Array.from(document.querySelectorAll('#progress-list li')).find(li => li.textContent.includes(option));
+  if (progressItem) {
+    const progress = progressItem.querySelector('.progress');
+    if (progress) {
+      progress.innerHTML = status === 'complete'
+        ? '<div class="determinate" style="width: 100%"></div>'
+        : '<div class="determinate red" style="width: 100%"></div>';
+
+      const statusIcon = document.createElement('i');
+      statusIcon.className = `material-icons right ${status === 'complete' ? 'green-text' : 'red-text'}`;
+      statusIcon.textContent = status === 'complete' ? 'check_circle' : 'error';
+      const progressItemDiv = progressItem.querySelector('.progress-item');
+      if (progressItemDiv) {
+        progressItemDiv.appendChild(statusIcon);
+      } else {
+        console.error('Could not find .progress-item');  // Add error logging
+      }
+    } else {
+      console.error('Could not find .progress');  // Add error logging
+    }
+  } else {
+    console.error(`Could not find progress item for ${option}`);  // Add error logging
+  }
+}
+
+// Add this utility function to make the :contains selector work
+jQuery.expr[':'].contains = function(a, i, m) {
+  return jQuery(a).text().toUpperCase()
+      .indexOf(m[3].toUpperCase()) >= 0;
+};
 
 /**
  * Closes the current modal.
- * 
+ *
  * @function
  * @name closeModal
  * @description Closes the current modal window, returning the user to the previous view.

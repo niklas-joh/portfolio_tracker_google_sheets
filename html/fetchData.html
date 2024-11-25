@@ -5,6 +5,7 @@
   <?!= include('css/styles'); ?>
 </head>
 <body>
+  <div id="step-selectData" class="step active">
   <div class="fetch-data-container">
     <p>Select the data you'd like to retrieve from your Trading212 account:</p>
 
@@ -12,37 +13,37 @@
       <p>
         <label>
           <input type="checkbox" class="filled-in" name="fetchOption" value="pies" />
-          <span>Investment Pies</span>
+          <span class="black-text">Investment Pies</span>
         </label>
       </p>
       <p>
         <label>
           <input type="checkbox" class="filled-in" name="fetchOption" value="accountInfo" />
-          <span>Account Information</span>
+          <span class="black-text">Account Information</span>
         </label>
       </p>
       <p>
         <label>
           <input type="checkbox" class="filled-in" name="fetchOption" value="accountCash" />
-          <span>Account Cash</span>
+          <span class="black-text">Account Cash</span>
         </label>
       </p>
       <p>
         <label>
           <input type="checkbox" class="filled-in" name="fetchOption" value="transactions" />
-          <span>Transactions</span>
+          <span class="black-text">Transactions</span>
         </label>
       </p>
       <p>
         <label>
           <input type="checkbox" class="filled-in" name="fetchOption" value="orderHistory" />
-          <span>Order History</span>
+          <span class="black-text">Order History</span>
         </label>
       </p>
       <p>
         <label>
           <input type="checkbox" class="filled-in" name="fetchOption" value="dividends" />
-          <span>Dividends</span>
+          <span class="black-text">Dividends</span>
         </label>
       </p>
     </form>
@@ -51,9 +52,16 @@
       <button class="waves-effect waves-light btn" onclick="closeModal()">
         Cancel
       </button>
-      <button class="waves-effect waves-light btn" onclick="fetchSelectedData()">
+      <button class="waves-effect waves-light btn" onclick="fetchSelectedData(); nextStep()">
         Fetch Selected Data
       </button>
+    </div>
+    </div>
+    <div id="step-fetchingData" class="step">
+      <div id="fetch-progress" class="hidden">
+        <h5>Fetching Data:</h5>
+        <ul id="progress-list" class="collection"></ul>
+    </div>
     </div>
   </div>
   <?!= include('js/scripts'); ?>

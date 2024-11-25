@@ -216,29 +216,32 @@ function fetchDividends(params = {}) {
 * fetchSelectedTrading212Data(['pies', 'accountInfo', 'transactions']);
 */
 function fetchSelectedTrading212Data(selectedOptions) {
-const fetchFunctions = {
-  pies: fetchPies,
-  accountInfo: fetchAccountInfo,
-  accountCash: fetchAccountCash,
-  transactions: fetchTransactions,
-  orderHistory: fetchOrderHistory,
-  dividends: fetchDividends
-};
+  const fetchFunctions = {
+    pies: fetchPies,
+    accountInfo: fetchAccountInfo,
+    accountCash: fetchAccountCash,
+    transactions: fetchTransactions,
+    orderHistory: fetchOrderHistory,
+    dividends: fetchDividends
+  };
 
-// Iterate through each selected option
-for (const option of selectedOptions) {
-  // Check if a fetch function exists for the current option
-  if (fetchFunctions[option]) {
-    try {
-      // Execute the fetch function for the current option
-      fetchFunctions[option]();
-    } catch (error) {
-      // If an error occurs during fetch, log it using the Logger
-      Logger.log(`Error fetching ${option}: ${error}`);
+  // Iterate through each selected option
+  const option = selectedOptions[0];
+    // Check if a fetch function exists for the current option
+    if (fetchFunctions[option]) {
+      try {
+        // Execute the fetch function for the current option
+        const result = fetchFunctions[option]();
+        console.log(`Fetched ${option}:`, result);  // Add logging
+        return result;
+      } catch (error) {
+        // If an error occurs during fetch, log it using the Logger
+        console.error(`Error fetching ${option}:`, error);  // Add error logging
+        throw error;
+      }
+    }
+    else {
+      console.error(`Invalid option: ${option}`);  // Add error logging
+      throw new Error(`Invalid option: ${option}`);
     }
   }
-  // If no fetch function exists for the option, it's silently skipped
-}
-
-return 'Data fetching complete';
-}
