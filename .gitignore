@@ -75,3 +75,7 @@ appsscript.json
 
 # Ignore .env.example.staging files
 .env.example.staging
+
+# ignore .vscode folder
+.vscode/
+../.vscode/
