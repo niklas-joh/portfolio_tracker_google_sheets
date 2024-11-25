@@ -79,7 +79,7 @@
  */
   function showStep(stepId) {
     console.log('Hiding step:', stepId);
-    document.getElementById(`step-${stepId}`).style.display = 'block';
+    document.getElementById(stepId).style.display = 'block';
   }
 
 /**
@@ -92,9 +92,14 @@
  * display style to 'none'. The stepId parameter should correspond to
  * the ID of the HTML element representing the step.
  */
-  function hideStep(stepId) {
-    document.getElementById(`step-${stepId}`).style.display = 'none';
+ function hideStep(stepId) {
+  const stepElement = document.getElementById(stepId);
+  if (stepElement) {
+    stepElement.style.display = 'none';
+  } else {
+    console.error('Step element not found:', `${stepId}`);
   }
+}
 
 /**
  * Updates the progress indicator in the UI.

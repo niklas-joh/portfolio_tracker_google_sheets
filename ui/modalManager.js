@@ -1,35 +1,4 @@
 /**
- * Modal Manager class to handle different modal states and transitions
- */
-class ModalManager {
-    constructor() {
-      this.currentStep = 0;
-      this.steps = [
-        'welcome',
-        'environment-selection',
-        'api-setup',
-        'sheet-setup',
-        'completion'
-      ];
-    }
-  
-    nextStep() {
-      if (this.currentStep < this.steps.length - 1) {
-        this.currentStep++;
-        return this.steps[this.currentStep];
-      }
-      return null;
-    }
-  
-    previousStep() {
-      if (this.currentStep > 0) {
-        this.currentStep--;
-        return this.steps[this.currentStep];
-      }
-      return null;
-    }
-  }
-/**
  * Shows a modal dialog with the specified template and title
  * @param {string} templateFile - The name of the HTML template file
  * @param {string} title - The title of the modal
