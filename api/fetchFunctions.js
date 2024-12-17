@@ -147,8 +147,8 @@ function fetchAccountCash() {
 function fetchTransactions(params = {}) {
   // Declare parameters as a variable
   const queryParams = {
-    cursorID: params.cursor || 'string',    // Default to 'string'    
-    limit: params.limit || 50,              // Max 50, API documentation defaults to 20
+    cursorID: params.cursor || 'string',  // Default to 'string'
+    limit: params.limit || 50,            // Max 50, API documentation defaults to 20
   };
 
    // Call the generic fetchDataAndWriteToSheet function with the query parameters
@@ -217,9 +217,9 @@ function fetchDividends(params = {}) {
 */
 function fetchSelectedTrading212Data(selectedOptions) {
   const fetchFunctions = {
-    pies: fetchPies,
-    accountInfo: fetchAccountInfo,
-    accountCash: fetchAccountCash,
+    Pies: fetchPies,
+    'Account Info': fetchAccountInfo,
+    'Cash Balance': fetchAccountCash,
     transactions: fetchTransactions,
     orderHistory: fetchOrderHistory,
     dividends: fetchDividends

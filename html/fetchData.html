@@ -9,8 +9,6 @@
     <div class="step-indicator">
       <div class="step-dot active"></div>
       <div class="step-dot"></div>
-      <div class="step-dot"></div>
-      <div class="step-dot"></div>
     </div>
     <div id="step-selectData" class="step active">
       <div class="fetch-data-container">
@@ -19,19 +17,19 @@
         <form id="fetch-data-form">
           <p>
             <label>
-              <input type="checkbox" class="filled-in" name="fetchOption" value="pies" />
+              <input type="checkbox" class="filled-in" name="fetchOption" value="Pies" />
               <span class="black-text">Investment Pies</span>
             </label>
           </p>
           <p>
             <label>
-              <input type="checkbox" class="filled-in" name="fetchOption" value="accountInfo" />
+              <input type="checkbox" class="filled-in" name="fetchOption" value="Account Info" />
               <span class="black-text">Account Information</span>
             </label>
           </p>
           <p>
             <label>
-              <input type="checkbox" class="filled-in" name="fetchOption" value="accountCash" />
+              <input type="checkbox" class="filled-in" name="fetchOption" value="Cash Balance" />
               <span class="black-text">Account Cash</span>
             </label>
           </p>
@@ -68,22 +66,22 @@
     <div id="step-fetchingData" class="step">
       <div id="fetch-progress" class="hidden">
         <h5>Fetching Data:</h5>
-          <ul id="progress-list" class="collection"></ul>
-          <li>
-            <div class="progress-item row valign-wrapper">
-              <div class="col s6 m8">
-                <span>${option}</span>
-              </div>
-              <div class="col s5 m3">
-                <div class="progress">
-                  <div class="indeterminate"></div>
+          <ul id="progress-list" class="collection">
+            <li class="collection-item">
+              <div class="progress-item row">
+                <div class="col s10 m11">
+                  <div class="valign-wrapper">
+                    <div class="progress" style="width: 100%;">
+                      <div class="indeterminate"></div>
+                    </div>
+                  </div>
+                </div>
+                <div class="col s2 m1 right-align">
+                  <i class="material-icons green-text">check_circle</i>
                 </div>
               </div>
-              <div class="col s1 m1 right-align">
-                <i class="material-icons" style="display: none;"></i>
-              </div>
-            </div>
-          </li>
+            </li>
+          </ul>
       </div>
       <div class="button-container">
         <button class="waves-effect waves-light btn" onclick="closeModal()">

@@ -6,6 +6,7 @@ function saveApiConfig(apiKey, environment) {
   console.log('saveApiConfig called with environment:', environment);
   
   try {
+    const API_DOMAIN = environment === 'live' ? API_DOMAIN_LIVE : API_DOMAIN_DEMO;
     const baseUrl = `${API_DOMAIN}${API_VERSION}`;
     const endpoint = API_RESOURCES.ACCOUNT_INFO.endpoint;
     const url = `${baseUrl}${endpoint}`;
@@ -31,6 +32,8 @@ function saveApiConfig(apiKey, environment) {
     if (responseCode === 200) {
       // Save credentials only after successful test
       saveCredentials(apiKey, environment);
+      // Update the stored environment
+      PropertiesService.getUserProperties().setProperty('SELECTED_ENVIRONMENT', environment);  
       console.log('API connection successful, credentials saved');
       return { success: true };
     } else if (responseCode === 429) {

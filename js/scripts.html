@@ -319,27 +319,29 @@ function showFetchDataModal() {
 
 
 function updateProgressItem(option, status) {
-  console.log(`Updating progress for ${option} to ${status}`);
+  console.log(`Updating progress for ${option} to ${status}`);  // Add logging
   const progressItem = Array.from(document.querySelectorAll('#progress-list li')).find(li => li.textContent.includes(option));
   if (progressItem) {
     const progress = progressItem.querySelector('.progress');
-    const statusIcon = progressItem.querySelector('.material-icons');
-    
-    if (progress && statusIcon) {
-      // Update progress bar
+    if (progress) {
       progress.innerHTML = status === 'complete'
         ? '<div class="determinate" style="width: 100%"></div>'
         : '<div class="determinate red" style="width: 100%"></div>';
 
-      // Update status icon
+      const statusIcon = document.createElement('i');
+      statusIcon.className = `material-icons right ${status === 'complete' ? 'green-text' : 'red-text'}`;
       statusIcon.textContent = status === 'complete' ? 'check_circle' : 'error';
-      statusIcon.className = `material-icons ${status === 'complete' ? 'green-text' : 'red-text'}`;
-      statusIcon.style.display = 'inline-block';
+      const progressItemDiv = progressItem.querySelector('.progress-item');
+      if (progressItemDiv) {
+        progressItemDiv.appendChild(statusIcon);
+      } else {
+        console.error('Could not find .progress-item');  // Add error logging
+      }
     } else {
-      console.error('Could not find .progress or .material-icons');
+      console.error('Could not find .progress');  // Add error logging
     }
   } else {
-    console.error(`Could not find progress item for ${option}`);
+    console.error(`Could not find progress item for ${option}`);  // Add error logging
   }
 }
 
