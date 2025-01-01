@@ -2,7 +2,7 @@
 <script>
   let currentStep = 0;
   let steps = [];  
-  let selectedEnvironment = 'demo';
+  let selectedEnvironment = '';
 
 // Function to initialize steps dynamically
   function initializeSteps() {
@@ -58,6 +58,11 @@
     } else {
       console.log('No more steps available');
     }
+   
+    if (currentStep === 'step-environment') {
+      selectEnvironment(); // Initialize the environment dropdown
+      setupApiStep();
+  }
   }
 
 /**
@@ -148,18 +153,33 @@ function updateProgressIndicator() {
  * // When the user clicks on the live environment card
  * selectEnvironment('live');
  */
- function selectEnvironment(env) {
-    // Update the global selected environment
-    selectedEnvironment = env;
 
-    // Remove border from all environment cards
-    document.querySelectorAll('.environment-card').forEach(card => {
-      card.style.border = 'none';
-    });
-
-    // Add border to the selected environment card
-    event.currentTarget.style.border = '2px solid #26a69a';
+function selectEnvironment() {
+  const select = document.getElementById('environment-select');
+  
+  // Initialize the dropdown
+  M.FormSelect.init(select);
+  
+  select.addEventListener('change', function() {
+    selectedEnvironment = this.value;
+    updateEnvironmentDescription(selectedEnvironment);
+    document.querySelector('#next-button').disabled = false;
+  });
 }
+
+function setupApiStep() {
+  if (selectedEnvironment) {
+    google.script.run.withSuccessHandler(populateApiKey).getApiKey(selectedEnvironment);
+  }
+}
+
+function populateApiKey(apiKey) {
+  if (apiKey) {
+    document.getElementById('apiKey').value = apiKey;
+    document.querySelector('label[for="apiKey"]').classList.add('active');
+  }
+}
+
 
 /**
  * Tests the connection to the Trading212 API using the provided API key.

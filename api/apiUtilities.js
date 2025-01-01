@@ -83,6 +83,21 @@ function saveCredentials(apiKey, environment) {
     sheet.getRange('B2:B3').setValues([[apiKey], [environment]]);
   }
 }
+
+/**
+ * Retrieves the API key for the given environment
+ */
+function getApiKey(environment) {
+  const userProperties = PropertiesService.getUserProperties();
+  const apiKey = userProperties.getProperty('API_KEY');
+  const savedEnvironment = userProperties.getProperty('SELECTED_ENVIRONMENT');
+  
+  if (apiKey && savedEnvironment === environment) {
+    return apiKey;
+  }
+  
+  return '';
+}
 /**
 * ===================== Utility Functions ========================
 * 
