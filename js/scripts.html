@@ -44,26 +44,30 @@
  * and updates the progress indicator. The function only proceeds if there are
  * more steps available.
  */
-  function nextStep() {
-    console.log('nextStep called. Current step:', currentStep);
-    console.log('Steps array:', steps);
-    
-    if (currentStep < steps.length - 1) {
-      console.log('Hiding step:', steps[currentStep]);
-      hideStep(steps[currentStep]);
-      currentStep++;
-      console.log('Showing next step:', steps[currentStep]);
-      showStep(steps[currentStep]);
-      updateProgressIndicator();
-    } else {
-      console.log('No more steps available');
+ async function nextStep() {
+  console.log('nextStep called. Current step:', currentStep);
+  console.log('Steps array:', steps);
+
+  // Check if we're on the environment step
+  if (steps[currentStep] === 'step-environment') {
+    const canProceed = await handleNextStep();
+    if (!canProceed) {
+      console.log('Environment step processing failed or no environment selected');
+      return; // Don't proceed to next step
     }
-   
-    if (currentStep === 'step-environment') {
-      selectEnvironment(); // Initialize the environment dropdown
-      setupApiStep();
   }
+  
+  if (currentStep < steps.length - 1) {
+    console.log('Hiding step:', steps[currentStep]);
+    hideStep(steps[currentStep]);
+    currentStep++;
+    console.log('Showing next step:', steps[currentStep]);
+    showStep(steps[currentStep]);
+    updateProgressIndicator();
+  } else {
+    console.log('No more steps available');
   }
+}
 
 /**
  * Moves back to the previous step in the setup process.
@@ -154,34 +158,60 @@ function updateProgressIndicator() {
  * selectEnvironment('live');
  */
 
-function selectEnvironment() {
-  const select = document.getElementById('environment-select');
-  
-  // Initialize the dropdown
-  M.FormSelect.init(select);
-  
-  select.addEventListener('change', function() {
-    selectedEnvironment = this.value;
-    updateEnvironmentDescription(selectedEnvironment);
-    document.querySelector('#next-button').disabled = false;
-  });
-}
-
-function setupApiStep() {
-  if (selectedEnvironment) {
-    google.script.run.withSuccessHandler(populateApiKey).getApiKey(selectedEnvironment);
+// environmentHandler.js
+class EnvironmentHandler {
+  constructor() {
+    this.initializeListeners();
   }
-}
 
-function populateApiKey(apiKey) {
-  if (apiKey) {
-    document.getElementById('apiKey').value = apiKey;
-    document.querySelector('label[for="apiKey"]').classList.add('active');
+  initializeListeners() {
+    // Store selected environment when dropdown changes
+    const environmentSelect = document.getElementById('environment-select');
+    if (environmentSelect) {
+      environmentSelect.addEventListener('change', (e) => {
+        this.selectedEnvironment = e.target.value;
+      });
+    }
   }
-}
 
+  async handleEnvironmentNext() {
+    if (this.selectedEnvironment) {
+      try {
+        // Call server-side function and get API key
+        const apiKey = await this.getApiKey(this.selectedEnvironment);
+        if (apiKey) {
+          this.populateApiKey(apiKey);
+        }
+        // Always return true to allow moving to the next step
+        return true;
+      } catch (error) {
+        console.error('Error processing environment selection:', error);
+        // In case of an error, we still allow moving to the next step
+        return true;
+      }
+    }
+    return false; // Prevent next step if no environment selected or error occurred
+  }
 
-/**
+  async getApiKey(environment) {
+    // Call the server-side function (google.script.run in Apps Script)
+    return new Promise((resolve, reject) => {
+      google.script.run
+        .withSuccessHandler(resolve)
+        .withFailureHandler(reject)
+        .getApiKey(environment);
+    });
+  }
+
+  populateApiKey(apiKey) {
+    const apiKeyInput = document.getElementById('apiKey');
+    if (apiKeyInput) {
+      apiKeyInput.value = apiKey;
+      console.log('API key populated:', apiKey);
+      console.log('Environment Selected: ', this.selectedEnvironment);
+    }
+  }
+  /**
  * Tests the connection to the Trading212 API using the provided API key.
  *
  * @function
@@ -199,7 +229,7 @@ function populateApiKey(apiKey) {
  * // This function is typically called when the user clicks a "Test Connection" button
  * testConnection();
  */
-function testConnection() {
+ testConnection() {
   // Retrieve the API key from the input field
     const apiKey = document.getElementById('apiKey').value;
 
@@ -208,6 +238,10 @@ function testConnection() {
 
   // Update the UI to indicate that the connection is being tested
     statusDiv.innerHTML = '<p class="blue-text">Testing connection...</p>';
+
+  // Log the apiKey and selectedEnvironment to the console
+    console.log('API Key:', apiKey);
+    console.log('Selected Environment:', this.selectedEnvironment);
 
   // Call the server-side function to test the connection and save the configuration
     google.script.run
@@ -225,8 +259,21 @@ function testConnection() {
       // This function is called if the server-side function throws an error
         statusDiv.innerHTML = `<p class="red-text">Error: ${error.message}</p>`;
       })
-      .saveApiConfig(apiKey, selectedEnvironment);
+      .saveApiConfig(apiKey, this.selectedEnvironment);
   }
+  
+}
+
+// Initialize handler
+const environmentHandler = new EnvironmentHandler();
+environmentHandler.initializeListeners();
+
+// Function to be called by nextStep()
+function handleNextStep() {
+  return environmentHandler.handleEnvironmentNext();
+}
+
+
 
   function completeSetup() {
     google.script.host.close();
@@ -237,7 +284,31 @@ function testConnection() {
     showStep(steps[currentStep]);
     updateProgressIndicator();
     M.updateTextFields();
+    initializeMaterializeForms();
   });
+
+/**
+ * Initializes Materialize CSS form elements.
+ * 
+ * @function
+ * @name initializeMaterializeForms
+ * @description This function initializes all select elements on the page using Materialize CSS.
+ *              It should be called after the DOM is fully loaded to ensure proper initialization.
+ * 
+ * @example
+ * // Call this function when the document is ready
+ * document.addEventListener('DOMContentLoaded', initializeMaterializeForms);
+ * 
+ * @returns {void}
+ * 
+ * @requires materialize.js - The Materialize CSS JavaScript library must be loaded before calling this function.
+ * 
+ * @see {@link https://materializecss.com/select.html|Materialize CSS Select Documentation}
+ */
+function initializeMaterializeForms() {
+  var selectElements = document.querySelectorAll('select');
+  M.FormSelect.init(selectElements);
+}
 
 /**
  * Displays the modal for fetching Trading212 data.
