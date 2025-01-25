@@ -75,13 +75,6 @@ function saveCredentials(apiKey, environment) {
     'API_KEY': apiKey,
     'SELECTED_ENVIRONMENT': environment
   });
-  
-  const sheet = SpreadsheetApp.getActiveSpreadsheet()
-    .getSheetByName(API_RESOURCES.ACCOUNT_INFO.sheetName);
-    
-  if (sheet) {
-    sheet.getRange('B2:B3').setValues([[apiKey], [environment]]);
-  }
 }
 
 /**
