@@ -161,15 +161,30 @@ function updateProgressIndicator() {
 // environmentHandler.js
 class EnvironmentHandler {
   constructor() {
+    // initialize selected environmentEnvironment from the dropwdown
+    const environmentSelect = document.getElementById('environment-select');
+    this.selectedEnvironment = environmentSelect ? environmentSelect.value : 'demo';
     this.initializeListeners();
   }
 
   initializeListeners() {
     // Store selected environment when dropdown changes
     const environmentSelect = document.getElementById('environment-select');
+    
     if (environmentSelect) {
-      environmentSelect.addEventListener('change', (e) => {
+      // Load saved environment from properties service
+      google.script.run
+       .withSuccessHandler((savedEnvironment) => {
+          if (savedEnvironment) {
+            environmentSelect.value = savedEnvironment;
+            this.selectedEnvironment = savedEnvironment;
+          }
+        })
+        .getSavedEnvironment();
+      
+        environmentSelect.addEventListener('change', (e) => {
         this.selectedEnvironment = e.target.value;
+        console.log('Environment changed to:', this.selectedEnvironment);
       });
     }
   }
@@ -235,6 +250,9 @@ class EnvironmentHandler {
 
   // Get the element where the connection status will be displayed
     const statusDiv = document.getElementById('connection-status');
+
+  // Get the selected environment from the global variable, falling back to the dropdown value if not set
+  const environment = this.selectedEnvironment || document.getElementById('environment').value;
 
   // Update the UI to indicate that the connection is being tested
     statusDiv.innerHTML = '<p class="blue-text">Testing connection...</p>';

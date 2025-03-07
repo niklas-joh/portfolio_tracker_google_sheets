@@ -35,8 +35,8 @@ function fetchDataAndWriteToSheet(endpoint, sheetName, params = {}, startRow = 2
   
   // Start fetching data
   fetchAndHandleData(url, sheetName, startRow, endpoint);
-  const formatter = new SheetFormattingManager();
-  formatter.formatSheet(sheetName);
+  //const formatter = new SheetFormattingManager();
+  //formatter.formatSheet(sheetName);
 }
 
 /**

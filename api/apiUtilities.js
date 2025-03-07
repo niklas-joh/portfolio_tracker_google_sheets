@@ -5,6 +5,12 @@
 function saveApiConfig(apiKey, environment) {
   console.log('saveApiConfig called with environment:', environment);
   
+    // If environment is undefined or invalid, get the saved value or default to 'demo'
+    if (!environment || (environment !== 'demo' && environment !== 'live')) {
+      environment = PropertiesService.getUserProperties().getProperty('SELECTED_ENVIRONMENT') || 'demo';
+      console.log('Using fallback environment:', environment);
+    }
+
   try {
     const API_DOMAIN = environment === 'live' ? API_DOMAIN_LIVE : API_DOMAIN_DEMO;
     const baseUrl = `${API_DOMAIN}${API_VERSION}`;
@@ -90,6 +96,24 @@ function getApiKey(environment) {
   }
   
   return '';
+}
+/**
+* @function getSavedEnvironment
+* @memberof module:apiUtilities
+* @description Retrieves the saved environment from the user properties.
+* This is useful for maintaining the selected environment across sessions.
+* @example
+* const savedEnvironment = getSavedEnvironment();
+* if (savedEnvironment) {
+*   console.log('Saved environment:', savedEnvironment);
+* } else {
+*   console.log('No saved environment found.');
+* }
+* @returns {string} The saved environment or null if not set
+* @see {@link https://developers.google.com/apps-script/reference/properties/properties-service#getuserproperties|PropertiesService.getUserProperties}*/
+
+fucntion getSavedEnvironment() {
+  return PropertiesService.getUserProperties().getProperty('SELECTED_ENVIRONMENT');
 }
 /**
 * ===================== Utility Functions ========================
@@ -243,10 +267,10 @@ try {
 * @returns {string|null} The stored API key, or null if not available.
 */
 function getAuthKey() {
-var apiKey = PropertiesService.getUserProperties().getProperty('API_KEY');
-if (!apiKey) {
-  Logger.log('API Key is not set. Please use the "Trading212 > Set API Key" menu to enter your API key.');
-  // Optionally, you could throw an error or notify the user through other means
-}
-return apiKey;
+  var apiKey = PropertiesService.getUserProperties().getProperty('API_KEY');
+  if (!apiKey) {
+    Logger.log('API Key is not set. Please use the "Trading212 > Set API Key" menu to enter your API key.');
+    // Optionally, you could throw an error or notify the user through other means
+  }
+  return apiKey;
 }
