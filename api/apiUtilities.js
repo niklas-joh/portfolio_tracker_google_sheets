@@ -112,7 +112,7 @@ function getApiKey(environment) {
 * @returns {string} The saved environment or null if not set
 * @see {@link https://developers.google.com/apps-script/reference/properties/properties-service#getuserproperties|PropertiesService.getUserProperties}*/
 
-fucntion getSavedEnvironment() {
+function getSavedEnvironment() {
   return PropertiesService.getUserProperties().getProperty('SELECTED_ENVIRONMENT');
 }
 /**
