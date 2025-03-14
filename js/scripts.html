@@ -246,13 +246,17 @@ class EnvironmentHandler {
  */
  testConnection() {
   // Retrieve the API key from the input field
-    const apiKey = document.getElementById('apiKey').value;
-
+  const apiKey = document.getElementById('apiKey').value;
+  
   // Get the element where the connection status will be displayed
-    const statusDiv = document.getElementById('connection-status');
+  const statusDiv = document.getElementById('connection-status'); 
 
   // Get the selected environment from the global variable, falling back to the dropdown value if not set
   const environment = this.selectedEnvironment || document.getElementById('environment').value;
+  
+  // Get the "Next" button element on the API configuration step
+  const nextButton = document.getElementsByClassName('btn-next')[1];
+  nextButton.disabled = true; // Disable the "Next" button until the connection is successfully tested
 
   // Update the UI to indicate that the connection is being tested
     statusDiv.innerHTML = '<p class="blue-text">Testing connection...</p>';
@@ -268,14 +272,17 @@ class EnvironmentHandler {
         if (result.success) {
         // If the connection was successful, update the UI
           statusDiv.innerHTML = '<p class="green-text">Connection successful!</p>';
+          nextButton.disabled = false; // Enable the "Next" button
         } else {
         // If the connection failed, display the error message
           statusDiv.innerHTML = `<p class="red-text">Connection failed: ${result.error}</p>`;
+          nextButton.disabled = true; // Disable the "Next" button
         }
       })
       .withFailureHandler(function(error) {
       // This function is called if the server-side function throws an error
         statusDiv.innerHTML = `<p class="red-text">Error: ${error.message}</p>`;
+        nextButton.disabled = true; // Disable the "Next" button
       })
       .saveApiConfig(apiKey, this.selectedEnvironment);
   }
