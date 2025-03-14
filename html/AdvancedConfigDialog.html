@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <style>
+      body { font-family: Arial, sans-serif; margin: 0; padding: 10px; }
+      .form-group { margin-bottom: 10px; }
+      label { display: block; margin-bottom: 5px; }
+      select, input, textarea { width: 100%; padding: 5px; }
+      button { padding: 8px 12px; background-color: #4285f4; color: white; border: none; cursor: pointer; margin-left: 5px; }
+      .header { margin-bottom: 15px; }
+      .footer { margin-top: 15px; text-align: right; }
+      table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+      th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+      th { background-color: #f2f2f2; }
+      .tab-container { margin-top: 20px; }
+      .tab-buttons { display: flex; margin-bottom: 15px; border-bottom: 1px solid #ddd; }
+      .tab-button { padding: 10px 15px; cursor: pointer; background-color: #f5f5f5; border: 1px solid #ddd; border-bottom: none; margin-right: 5px; }
+      .tab-button.active { background-color: white; border-bottom: 1px solid white; margin-bottom: -1px; }
+      .tab-content { display: none; padding: 15px; border: 1px solid #ddd; border-top: none; }
+      .tab-content.active { display: block; }
+      .add-section { margin-top: 20px; padding-top: 10px; border-top: 1px solid #ddd; }
+      .loading { text-align: center; padding: 20px; }
+      .alert { padding: 10px; background-color: #f44336; color: white; margin-bottom: 15px; }
+      .success { padding: 10px; background-color: #4CAF50; color: white; margin-bottom: 15px; }
+    </style>
+  </head>
+  <body>
+    <div class="header">
+      <h2>Advanced Configuration</h2>
+      <p>Manage all configuration settings.</p>
+    </div>
+    
+    <div class="tab-container">
+      <div class="tab-buttons">
+        <div class="tab-button active" onclick="showTab('settings')">Settings</div>
+        <div class="tab-button" onclick="showTab('export')">Export/Import</div>
+      </div>
+      
+      <div id="settings-tab" class="tab-content active">
+        <div class="form-group">
+          <label for="categorySelect">Select Category:</label>
+          <select id="categorySelect" onchange="loadCategory()">
+            <? for (let i = 0; i < categories.length; i++) { ?>
+              <option value="<?= categories[i] ?>"><?= categories[i] ?></option>
+            <? } ?>
+          </select>
+        </div>
+        
+        <div id="categoryContent" class="loading">
+          <p>Loading settings...</p>
+        </div>
+      </div>
+      
+      <div id="export-tab" class="tab-content">
+        <div class="form-group">
+          <label for="exportImportJson">Export/Import JSON:</label>
+          <textarea id="exportImportJson" rows="15"></textarea>
+        </div>
+        <div class="footer">
+          <button type="button" onclick="exportConfig()">Export All</button>
+          <button type="button" onclick="importConfig()">Import</button>
+        </div>
+      </div>
+    </div>
+    
+    <script>
+      // Show the selected tab
+      function showTab(tabName) {
+        // Hide all tab contents
+        const tabContents = document.getElementsByClassName('tab-content');
+        for (let i = 0; i < tabContents.length; i++) {
+          tabContents[i].classList.remove('active');
+        }
+        
+        // Deactivate all tab buttons
+        const tabButtons = document.getElementsByClassName('tab-button');
+        for (let i = 0; i < tabButtons.length; i++) {
+          tabButtons[i].classList.remove('active');
+        }
+        
+        // Show the selected tab content and activate the button
+        document.getElementById(tabName + '-tab').classList.add('active');
+        document.querySelector(`.tab-button[onclick="showTab('${tabName}')"]`).classList.add('active');
+      }
+      
+      // Load a category's settings
+      function loadCategory() {
+        const category = document.getElementById('categorySelect').value;
+        const contentDiv = document.getElementById('categoryContent');
+        
+        // Show loading message
+        contentDiv.innerHTML = '<div class="loading">Loading settings...</div>';
+        
+        google.script.run
+          .withSuccessHandler(displayCategorySettings)
+          .withFailureHandler(onFailure)
+          .getCategorySettings(category);
+      }
+      
+      // Display a category's settings
+      function displayCategorySettings(settings) {
+        const contentDiv = document.getElementById('categoryContent');
+        
+        if (!settings || Object.keys(settings).length === 0) {
+          contentDiv.innerHTML = '<p>No settings found for this category.</p>';
+          return;
+        }
+        
+        let html = '<table><tr><th>Key</th><th>Value</th><th>Type</th><th>Actions</th></tr>';
+        
+        for (const key in settings) {
+          html += '<tr>';
+          html += `<td>${key}</td>`;
+          html += `<td><input type="text" id="value_${key}" value="${settings[key].value}"></td>`;
+          html += `<td>${settings[key].type}</td>`;
+          html += `<td><button onclick="saveSettingValue('${key}')">Save</button></td>`;
+          html += '</tr>';
+        }
+        
+        html += '</table>';
+        
+        // Add new setting form
+        html += '<div class="add-section">';
+        html += '<h3>Add New Setting</h3>';
+        html += '<div class="form-group">';
+        html += '<label for="newKey">Key:</label>';
+        html += '<input type="text" id="newKey">';
+        html += '</div>';
+        html += '<div class="form-group">';
+        html += '<label for="newValue">Value:</label>';
+        html += '<input type="text" id="newValue">';
+        html += '</div>';
+        html += '<div class="form-group">';
+        html += '<label for="newType">Type:</label>';
+        html += '<select id="newType">';
+        html += '<option value="string">string</option>';
+        html += '<option value="number">number</option>';
+        html += '<option value="boolean">boolean</option>';
+        html += '<option value="json">json</option>';
+        html += '<option value="date">date</option>';
+        html += '<option value="array">array</option>';
+        html += '</select>';
+        html += '</div>';
+        html += '<div class="form-group">';
+        html += '<label for="newDescription">Description:</label>';
+        html += '<input type="text" id="newDescription">';
+        html += '</div>';
+        html += '<button onclick="addNewSetting()">Add Setting</button>';
+        html += '</div>';
+        
+        contentDiv.innerHTML = html;
+      }
+      
+      // Save a setting value
+      function saveSettingValue(key) {
+        const category = document.getElementById('categorySelect').value;
+        const value = document.getElementById(`value_${key}`).value;
+        
+        google.script.run
+          .withSuccessHandler(() => {
+            showMessage('success', `Setting "${key}" saved.`);
+          })
+          .withFailureHandler(onFailure)
+          .saveSettingValue(category, key, value);
+      }
+      
+      // Add a new setting
+      function addNewSetting() {
+        const category = document.getElementById('categorySelect').value;
+        const key = document.getElementById('newKey').value;
+        const value = document.getElementById('newValue').value;
+        const type = document.getElementById('newType').value;
+        const description = document.getElementById('newDescription').value;
+        
+        if (!key || !value) {
+          showMessage('alert', 'Please enter both key and value for the new setting.');
+          return;
+        }
+        
+        google.script.run
+          .withSuccessHandler(() => {
+            showMessage('success', `Setting "${key}" added.`);
+            loadCategory(); // Reload the category
+          })
+          .withFailureHandler(onFailure)
+          .addNewSetting(category, key, value, type, description);
+      }
+      
+      // Export all configuration
+      function exportConfig() {
+        google.script.run
+          .withSuccessHandler(json => {
+            document.getElementById('exportImportJson').value = json;
+            showMessage('success', 'Configuration exported successfully!');
+          })
+          .withFailureHandler(onFailure)
+          .exportAllConfig();
+      }
+      
+      // Import configuration
+      function importConfig() {
+        const json = document.getElementById('exportImportJson').value;
+        
+        if (!json) {
+          showMessage('alert', 'Please enter JSON to import.');
+          return;
+        }
+        
+        try {
+          // Validate JSON format
+          JSON.parse(json);
+          
+          google.script.run
+            .withSuccessHandler(() => {
+              showMessage('success', 'Configuration imported successfully!');
+              loadCategory(); // Reload the current category
+            })
+            .withFailureHandler(onFailure)
+            .importConfig(json);
+        } catch (e) {
+          showMessage('alert', 'Invalid JSON format: ' + e.message);
+        }
+      }
+      
+      // Show a message
+      function showMessage(type, message) {
+        // Remove existing messages
+        const existingMessages = document.querySelectorAll('.alert, .success');
+        existingMessages.forEach(element => element.remove());
+        
+        // Create new message
+        const messageElement = document.createElement('div');
+        messageElement.className = type;
+        messageElement.textContent = message;
+        
+        // Add to body
+        document.body.insertBefore(messageElement, document.body.firstChild);
+        
+        // Auto-remove after 3 seconds
+        setTimeout(() => {
+          messageElement.remove();
+        }, 3000);
+      }
+      
+      // Failure handler
+      function onFailure(error) {
+        showMessage('alert', 'Error: ' + error);
+      }
+      
+      // Load the first category on page load
+      document.addEventListener('DOMContentLoaded', loadCategory);
+    </script>
+  </body>
+</html>

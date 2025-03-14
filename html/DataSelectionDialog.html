@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <style>
+      body { font-family: Arial, sans-serif; margin: 0; padding: 10px; }
+      .form-group { margin-bottom: 10px; }
+      label { display: block; margin-bottom: 5px; }
+      select, input { width: 100%; padding: 5px; }
+      button { padding: 8px 12px; background-color: #4285f4; color: white; border: none; cursor: pointer; }
+      .header { margin-bottom: 15px; }
+      .footer { margin-top: 15px; text-align: right; }
+    </style>
+  </head>
+  <body>
+    <div class="header">
+      <h2>Fetch Trading212 Data</h2>
+      <p>Select which data to fetch from Trading212.</p>
+    </div>
+    
+    <form id="dataForm">
+      <div class="form-group">
+        <label for="dataType">Data Type:</label>
+        <select id="dataType" name="dataType">
+          <option value="Pies">Pies</option>
+          <option value="Account Info">Account Info</option>
+          <option value="Cash Balance">Cash Balance</option>
+          <option value="transactions">Transactions</option>
+          <option value="orderHistory">Order History</option>
+          <option value="dividends">Dividends</option>
+        </select>
+      </div>
+      
+      <div class="form-group" id="limitGroup">
+        <label for="limit">Limit (max items):</label>
+        <input type="number" id="limit" name="limit" value="50" min="1" max="100">
+      </div>
+      
+      <div class="footer">
+        <button type="button" onclick="fetchData()">Fetch Data</button>
+      </div>
+    </form>
+    
+    <script>
+      // Fetch the selected data
+      function fetchData() {
+        const dataType = document.getElementById('dataType').value;
+        const limit = document.getElementById('limit').value;
+        
+        // Show loading message
+        document.body.innerHTML = '<div style="text-align: center; margin-top: 50px;"><h3>Fetching data...</h3><p>This may take a moment.</p></div>';
+        
+        google.script.run
+          .withSuccessHandler(onSuccess)
+          .withFailureHandler(onFailure)
+          .fetchSelectedTrading212Data([dataType, { limit: parseInt(limit) }]);
+      }
+      
+      // Success handler
+      function onSuccess(result) {
+        document.body.innerHTML = '<div style="text-align: center; margin-top: 50px;"><h3>Data Fetched Successfully!</h3><p>The data has been updated in the spreadsheet.</p><button onclick="google.script.host.close()">Close</button></div>';
+      }
+      
+      // Failure handler
+      function onFailure(error) {
+        document.body.innerHTML = '<div style="text-align: center; margin-top: 50px;"><h3>Error</h3><p>' + error + '</p><button onclick="google.script.host.close()">Close</button></div>';
+      }
+    </script>
+  </body>
+</html>

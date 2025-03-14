@@ -1,0 +1,261 @@
+<!-- Common JavaScript functions that can be included in all HTML files -->
+<script>
+    /**
+     * Shows a loading spinner.
+     * @param {string} containerId - The ID of the container element.
+     * @param {string} [message='Loading...'] - The loading message.
+     */
+    function showLoading(containerId, message = 'Loading...') {
+      const container = document.getElementById(containerId);
+      if (!container) return;
+      
+      container.innerHTML = `
+        <div class="loading">
+          <div class="spinner"></div>
+          <p>${message}</p>
+        </div>
+      `;
+    }
+    
+    /**
+     * Shows a message in a container.
+     * @param {string} containerId - The ID of the container element.
+     * @param {string} message - The message to display.
+     * @param {string} [type='info'] - The message type ('info', 'success', 'warning', 'alert').
+     * @param {number} [autoHide=0] - Auto-hide after milliseconds (0 to not auto-hide).
+     */
+    function showMessage(containerId, message, type = 'info', autoHide = 0) {
+      const container = document.getElementById(containerId);
+      if (!container) return;
+      
+      const messageId = 'message_' + Math.random().toString(36).substr(2, 9);
+      
+      container.innerHTML = `
+        <div id="${messageId}" class="${type}">
+          ${message}
+        </div>
+      `;
+      
+      if (autoHide > 0) {
+        setTimeout(() => {
+          const messageElement = document.getElementById(messageId);
+          if (messageElement) {
+            messageElement.style.opacity = '0';
+            messageElement.style.transition = 'opacity 0.5s';
+            
+            setTimeout(() => {
+              if (messageElement.parentNode) {
+                messageElement.parentNode.removeChild(messageElement);
+              }
+            }, 500);
+          }
+        }, autoHide);
+      }
+    }
+    
+    /**
+     * Validates a form.
+     * @param {string} formId - The ID of the form element.
+     * @param {Object} rules - Validation rules for each field.
+     * @returns {boolean} True if valid, false otherwise.
+     */
+    function validateForm(formId, rules) {
+      const form = document.getElementById(formId);
+      if (!form) return false;
+      
+      let isValid = true;
+      
+      // Clear previous error messages
+      const errorMessages = form.querySelectorAll('.error-message');
+      errorMessages.forEach(element => element.remove());
+      
+      // Check each field
+      for (const fieldName in rules) {
+        const field = form.elements[fieldName];
+        if (!field) continue;
+        
+        const fieldRules = rules[fieldName];
+        
+        // Remove any existing error styling
+        field.classList.remove('error');
+        
+        // Required validation
+        if (fieldRules.required && !field.value.trim()) {
+          isValid = false;
+          addErrorMessage(field, fieldRules.required === true ? 'This field is required.' : fieldRules.required);
+        }
+        
+        // Minimum length validation
+        if (fieldRules.minLength && field.value.length < fieldRules.minLength) {
+          isValid = false;
+          addErrorMessage(field, `Minimum length is ${fieldRules.minLength} characters.`);
+        }
+        
+        // Maximum length validation
+        if (fieldRules.maxLength && field.value.length > fieldRules.maxLength) {
+          isValid = false;
+          addErrorMessage(field, `Maximum length is ${fieldRules.maxLength} characters.`);
+        }
+        
+        // Pattern validation
+        if (fieldRules.pattern && !new RegExp(fieldRules.pattern).test(field.value)) {
+          isValid = false;
+          addErrorMessage(field, fieldRules.patternMessage || 'Invalid format.');
+        }
+        
+        // Custom validation
+        if (fieldRules.custom && typeof fieldRules.custom === 'function') {
+          const customResult = fieldRules.custom(field.value);
+          if (customResult !== true) {
+            isValid = false;
+            addErrorMessage(field, customResult || 'Invalid value.');
+          }
+        }
+      }
+      
+      return isValid;
+    }
+    
+    /**
+     * Adds an error message to a form field.
+     * @param {HTMLElement} field - The form field.
+     * @param {string} message - The error message.
+     */
+    function addErrorMessage(field, message) {
+      field.classList.add('error');
+      
+      const errorElement = document.createElement('div');
+      errorElement.className = 'error-message';
+      errorElement.style.color = '#dc3545';
+      errorElement.style.fontSize = '12px';
+      errorElement.style.marginTop = '5px';
+      errorElement.textContent = message;
+      
+      field.parentNode.appendChild(errorElement);
+    }
+    
+    /**
+     * Serializes a form to an object.
+     * @param {string} formId - The ID of the form element.
+     * @returns {Object} The form data as an object.
+     */
+    function serializeForm(formId) {
+      const form = document.getElementById(formId);
+      if (!form) return {};
+      
+      const formData = {};
+      const elements = form.elements;
+      
+      for (let i = 0; i < elements.length; i++) {
+        const element = elements[i];
+        
+        if (!element.name) continue;
+        
+        if (element.type === 'checkbox') {
+          formData[element.name] = element.checked;
+        } else if (element.type === 'radio') {
+          if (element.checked) {
+            formData[element.name] = element.value;
+          }
+        } else if (element.type !== 'button' && element.type !== 'submit' && element.type !== 'reset') {
+          formData[element.name] = element.value;
+        }
+      }
+      
+      return formData;
+    }
+    
+    /**
+     * Populates a form with data.
+     * @param {string} formId - The ID of the form element.
+     * @param {Object} data - The data to populate the form with.
+     */
+    function populateForm(formId, data) {
+      const form = document.getElementById(formId);
+      if (!form) return;
+      
+      const elements = form.elements;
+      
+      for (let i = 0; i < elements.length; i++) {
+        const element = elements[i];
+        
+        if (!element.name || !(element.name in data)) continue;
+        
+        if (element.type === 'checkbox') {
+          element.checked = Boolean(data[element.name]);
+        } else if (element.type === 'radio') {
+          element.checked = element.value === String(data[element.name]);
+        } else if (element.type !== 'button' && element.type !== 'submit' && element.type !== 'reset') {
+          element.value = data[element.name];
+        }
+      }
+    }
+    
+    /**
+     * Creates a table from data.
+     * @param {Array} data - The data array.
+     * @param {Array} columns - The column definitions.
+     * @returns {string} The HTML string for the table.
+     */
+    function createTable(data, columns) {
+      if (!data || !data.length) {
+        return '<p>No data available.</p>';
+      }
+      
+      let html = '<table>';
+      
+      // Add header row
+      html += '<thead><tr>';
+      columns.forEach(column => {
+        html += `<th>${column.header}</th>`;
+      });
+      html += '</tr></thead>';
+      
+      // Add body rows
+      html += '<tbody>';
+      data.forEach(row => {
+        html += '<tr>';
+        columns.forEach(column => {
+          const value = column.field ? row[column.field] : '';
+          const formattedValue = column.formatter ? column.formatter(value, row) : value;
+          html += `<td>${formattedValue}</td>`;
+        });
+        html += '</tr>';
+      });
+      html += '</tbody>';
+      
+      html += '</table>';
+      
+      return html;
+    }
+  </script>
+  
+  <!-- Additional styles for script functionality -->
+  <style>
+    /* Error styling */
+    input.error, select.error, textarea.error {
+      border-color: #dc3545;
+    }
+    
+    /* Table styling */
+    table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+    th, td { padding: 8px; text-align: left; border: 1px solid #ddd; }
+    th { background-color: #f5f5f5; font-weight: 500; }
+    tr:hover { background-color: #f9f9f9; }
+    
+    /* Loading spinner */
+    .loading { text-align: center; padding: 20px; }
+    .spinner {
+      display: inline-block;
+      width: 40px;
+      height: 40px;
+      border: 3px solid rgba(0, 0, 0, 0.1);
+      border-radius: 50%;
+      border-top-color: #4285f4;
+      animation: spin 1s ease-in-out infinite;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>

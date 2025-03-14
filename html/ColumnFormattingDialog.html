@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <?!= include('html/ErrorHandler') ?>
+    <?!= include('html/CommonStyles') ?>
+    <style>
+      .format-preview {
+        padding: 10px;
+        border: 1px solid #ddd;
+        background-color: #f9f9f9;
+        margin-top: 15px;
+        display: none;
+      }
+      
+      .format-type-description {
+        margin-top: 5px;
+        font-size: 12px;
+        color: #666;
+      }
+      
+      .custom-format-hint {
+        font-size: 12px;
+        color: #666;
+        margin-top: 5px;
+      }
+      
+      .hint-list {
+        font-size: 12px;
+        margin-top: 10px;
+      }
+      
+      .hint-list li {
+        margin-bottom: 5px;
+      }
+      
+      .column-select-container {
+        margin-bottom: 20px;
+        padding-bottom: 15px;
+        border-bottom: 1px solid #eee;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="header">
+      <h2>Column Formatting</h2>
+      <p>Configure the formatting for columns in sheet "<?= sheetName ?>".</p>
+    </div>
+    
+    <div class="column-select-container">
+      <div class="form-group">
+        <label for="columnName">Select Column:</label>
+        <select id="columnName" name="columnName" required>
+          <? for (let i = 0; i < columns.length; i++) { ?>
+            <option value="<?= columns[i] ?>" <?= columns[i] === selectedColumn ? 'selected' : '' ?>><?= columns[i] ?></option>
+          <? } ?>
+        </select>
+      </div>
+    </div>
+    
+    <form id="formattingForm">
+      <div class="form-group">
+        <label for="formatType">Format Type:</label>
+        <select id="formatType" name="formatType">
+          <option value="text">Text</option>
+          <option value="date">Date</option>
+          <option value="currency">Currency</option>
+          <option value="number">Number</option>
+          <option value="percentage">Percentage</option>
+          <option value="custom">Custom</option>
+        </select>
+        <div id="formatTypeDescription" class="format-type-description">
+          Plain text without special formatting.
+        </div>
+      </div>
+      
+      <div id="dateFormatGroup" class="form-group" style="display: none;">
+        <label for="dateFormat">Date Format:</label>
+        <select id="dateFormat" name="dateFormat">
+          <option value="MM/dd/yyyy">MM/dd/yyyy (01/31/2023)</option>
+          <option value="dd/MM/yyyy">dd/MM/yyyy (31/01/2023)</option>
+          <option value="yyyy-MM-dd">yyyy-MM-dd (2023-01-31)</option>
+          <option value="MMMM d, yyyy">MMMM d, yyyy (January 31, 2023)</option>
+          <option value="d-MMM-yyyy">d-MMM-yyyy (31-Jan-2023)</option>
+          <option value="MM/dd/yyyy hh:mm:ss">MM/dd/yyyy hh:mm:ss (01/31/2023 14:30:00)</option>
+        </select>
+      </div>
+      
+      <div id="currencyFormatGroup" class="form-group" style="display: none;">
+        <label for="currencyFormat">Currency Format:</label>
+        <select id="currencyFormat" name="currencyFormat">
+          <option value='"$"#,##0.00'>$1,234.56</option>
+          <option value='"€"#,##0.00'>€1,234.56</option>
+          <option value='"£"#,##0.00'>£1,234.56</option>
+          <option value='"¥"#,##0'>¥1,235</option>
+          <option value='[$€-x]#,##0.00'>€1,234.56 (Excel compatible)</option>
+          <option value='_($* #,##0.00_)'>$1,234.56 (Accounting format)</option>
+        </select>
+      </div>
+      
+      <div id="numberFormatGroup" class="form-group" style="display: none;">
+        <label for="numberFormat">Number Format:</label>
+        <select id="numberFormat" name="numberFormat">
+          <option value="#,##0">1,235 (No decimal places)</option>
+          <option value="#,##0.0">1,234.6 (1 decimal place)</option>
+          <option value="#,##0.00">1,234.56 (2 decimal places)</option>
+          <option value="#,##0.000">1,234.567 (3 decimal places)</option>
+          <option value="#,##0.0000">1,234.5678 (4 decimal places)</option>
+        </select>
+      </div>
+      
+      <div id="percentageFormatGroup" class="form-group" style="display: none;">
+        <label for="percentageFormat">Percentage Format:</label>
+        <select id="percentageFormat" name="percentageFormat">
+          <option value="0%">12% (No decimal places)</option>
+          <option value="0.0%">12.3% (1 decimal place)</option>
+          <option value="0.00%">12.34% (2 decimal places)</option>
+          <option value="0.000%">12.345% (3 decimal places)</option>
+        </select>
+      </div>
+      
+      <div id="customFormatGroup" class="form-group" style="display: none;">
+        <label for="customFormat">Custom Format:</label>
+        <input type="text" id="customFormat" name="customFormat" placeholder="e.g., #,##0.00">
+        <div class="custom-format-hint">
+          Enter a custom number format pattern. 
+          <button type="button" class="secondary" onclick="toggleHints()">Show Format Hints</button>
+        </div>
+        <ul id="formatHints" class="hint-list" style="display: none;">
+          <li><strong>0</strong> - Digit placeholder (always shows a digit)</li>
+          <li><strong>#</strong> - Digit placeholder (shows only if needed)</li>
+          <li><strong>.</strong> - Decimal point</li>
+          <li><strong>,</strong> - Thousands separator</li>
+          <li><strong>%</strong> - Percentage formatting (multiplies by 100)</li>
+          <li><strong>@</strong> - Text placeholder</li>
+          <li><strong>"text"</strong> - Add literal text to the format</li>
+          <li><strong>[color]</strong> - Set color (e.g., [Red], [Blue])</li>
+          <li><strong>_</strong> - Skip width of the next character</li>
+          <li><strong>*</strong> - Repeat the next character</li>
+        </ul>
+      </div>
+      
+      <div id="formatPreview" class="format-preview">
+        <strong>Preview:</strong> <span id="previewText">Sample value</span>
+      </div>
+      
+      <div class="footer">
+        <button type="button" onclick="resetToDefault()">Reset to Default</button>
+        <button type="button" onclick="applyFormat()">Apply Format</button>
+      </div>
+    </form>
+    
+    <script>
+      // Show the appropriate format group based on format type selection
+      document.getElementById('formatType').addEventListener('change', function() {
+        // Hide all format groups
+        document.getElementById('dateFormatGroup').style.display = 'none';
+        document.getElementById('currencyFormatGroup').style.display = 'none';
+        document.getElementById('numberFormatGroup').style.display = 'none';
+        document.getElementById('percentageFormatGroup').style.display = 'none';
+        document.getElementById('customFormatGroup').style.display = 'none';
+        
+        // Show the selected format group
+        const formatType = this.value;
+        switch (formatType) {
+          case 'date':
+            document.getElementById('dateFormatGroup').style.display = 'block';
+            document.getElementById('formatTypeDescription').textContent = 'Format date values with various patterns.';
+            updatePreview('date');
+            break;
+          case 'currency':
+            document.getElementById('currencyFormatGroup').style.display = 'block';
+            document.getElementById('formatTypeDescription').textContent = 'Format monetary values with currency symbols.';
+            updatePreview('currency');
+            break;
+          case 'number':
+            document.getElementById('numberFormatGroup').style.display = 'block';
+            document.getElementById('formatTypeDescription').textContent = 'Format numeric values with variable decimal places.';
+            updatePreview('number');
+            break;
+          case 'percentage':
+            document.getElementById('percentageFormatGroup').style.display = 'block';
+            document.getElementById('formatTypeDescription').textContent = 'Format values as percentages (multiplied by 100).';
+            updatePreview('percentage');
+            break;
+          case 'custom':
+            document.getElementById('customFormatGroup').style.display = 'block';
+            document.getElementById('formatTypeDescription').textContent = 'Create a custom format using Google Sheets format patterns.';
+            updatePreview('custom');
+            break;
+          default:
+            document.getElementById('formatTypeDescription').textContent = 'Plain text without special formatting.';
+            hidePreview();
+            break;
+        }
+      });
+      
+      // Update preview based on format selections
+      function updatePreview(type) {
+        const previewElement = document.getElementById('previewText');
+        const formatPreview = document.getElementById('formatPreview');
+        formatPreview.style.display = 'block';
+        
+        switch (type) {
+          case 'date':
+            previewElement.textContent = 'January 31, 2023';
+            break;
+          case 'currency':
+            const currencySelect = document.getElementById('currencyFormat');
+            const currencyFormat = currencySelect.options[currencySelect.selectedIndex].text;
+            previewElement.textContent = currencyFormat;
+            break;
+          case 'number':
+            const numberSelect = document.getElementById('numberFormat');
+            const numberFormat = numberSelect.options[numberSelect.selectedIndex].text;
+            previewElement.textContent = numberFormat;
+            break;
+          case 'percentage':
+            const percentageSelect = document.getElementById('percentageFormat');
+            const percentageFormat = percentageSelect.options[percentageSelect.selectedIndex].text;
+            previewElement.textContent = percentageFormat;
+            break;
+          case 'custom':
+            const customFormat = document.getElementById('customFormat').value;
+            previewElement.textContent = customFormat || 'Enter a custom format pattern';
+            break;
+          default:
+            hidePreview();
+            break;
+        }
+      }
+      
+      // Hide the preview section
+      function hidePreview() {
+        document.getElementById('formatPreview').style.display = 'none';
+      }
+      
+      // Add event listeners for format selects
+      document.getElementById('dateFormat').addEventListener('change', function() {
+        updatePreview('date');
+      });
+      
+      document.getElementById('currencyFormat').addEventListener('change', function() {
+        updatePreview('currency');
+      });
+      
+      document.getElementById('numberFormat').addEventListener('change', function() {
+        updatePreview('number');
+      });
+      
+      document.getElementById('percentageFormat').addEventListener('change', function() {
+        updatePreview('percentage');
+      });
+      
+      document.getElementById('customFormat').addEventListener('input', function() {
+        updatePreview('custom');
+      });
+      
+      // Toggle format hints visibility
+      function toggleHints() {
+        const hints = document.getElementById('formatHints');
+        if (hints.style.display === 'none') {
+          hints.style.display = 'block';
+        } else {
+          hints.style.display = 'none';
+        }
+      }
+      
+      // Apply the selected format
+      function applyFormat() {
+        const columnName = document.getElementById('columnName').value;
+        const formatType = document.getElementById('formatType').value;
+        let formatValue = '';
+        
+        switch (formatType) {
+          case 'date':
+            formatValue = document.getElementById('dateFormat').value;
+            break;
+          case 'currency':
+            formatValue = document.getElementById('currencyFormat').value;
+            break;
+          case 'number':
+            formatValue = document.getElementById('numberFormat').value;
+            break;
+          case 'percentage':
+            formatValue = document.getElementById('percentageFormat').value;
+            break;
+          case 'custom':
+            formatValue = document.getElementById('customFormat').value;
+            break;
+          default:
+            formatValue = '@'; // Text format
+            break;
+        }
+        
+        // Show loading message
+        document.body.innerHTML = '<div style="text-align: center; margin-top: 50px;"><h3>Applying format...</h3><p>This may take a moment.</p></div>';
+        
+        google.script.run
+          .withSuccessHandler(onSuccess)
+          .withFailureHandler(onFailure)
+          .applyColumnFormat(columnName, formatType, formatValue);
+      }
+      
+      // Reset to default format
+      function resetToDefault() {
+        const columnName = document.getElementById('columnName').value;
+        
+        // Show loading message
+        document.body.innerHTML = '<div style="text-align: center; margin-top: 50px;"><h3>Resetting format...</h3><p>This may take a moment.</p></div>';
+        
+        google.script.run
+          .withSuccessHandler(onSuccess)
+          .withFailureHandler(onFailure)
+          .resetColumnFormat(columnName);
+      }
+      
+      // Success handler
+      function onSuccess(result) {
+        document.body.innerHTML = '<div style="text-align: center; margin-top: 50px;"><h3>Format Applied Successfully!</h3><p>The column formatting has been updated.</p><button onclick="google.script.host.close()">Close</button></div>';
+      }
+      
+      // Failure handler
+      function onFailure(error) {
+        document.body.innerHTML = '<div style="text-align: center; margin-top: 50px;"><h3>Error</h3><p>' + error + '</p><button onclick="google.script.host.close()">Close</button></div>';
+      }
+      
+      // Initialize the format type description on page load
+      document.addEventListener('DOMContentLoaded', function() {
+        // Trigger the change event to show the appropriate format group
+        const formatTypeSelect = document.getElementById('formatType');
+        const event = new Event('change');
+        formatTypeSelect.dispatchEvent(event);
+      });
+    </script>
+  </body>
+</html>

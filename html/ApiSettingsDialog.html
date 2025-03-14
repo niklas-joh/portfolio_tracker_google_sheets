@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <?!= include('html/ErrorHandler') ?>
+    <style>
+      body { font-family: Arial, sans-serif; margin: 0; padding: 10px; }
+      .form-group { margin-bottom: 10px; }
+      label { display: block; margin-bottom: 5px; }
+      select, input { width: 100%; padding: 5px; }
+      button { padding: 8px 12px; background-color: #4285f4; color: white; border: none; cursor: pointer; }
+      .header { margin-bottom: 15px; }
+      .footer { margin-top: 15px; text-align: right; }
+    </style>
+  </head>
+  <body>
+    <div class="header">
+      <h2>API Settings</h2>
+      <p>Configure your Trading212 API connection.</p>
+    </div>
+    
+    <form id="apiForm">
+      <div class="form-group">
+        <label for="environment">Environment:</label>
+        <select id="environment" name="environment">
+          <option value="demo" <?= safeEquals(environment, 'demo') ? 'selected' : '' ?>>Demo</option>
+          <option value="live" <?= safeEquals(environment, 'live') ? 'selected' : '' ?>>Live</option>
+        </select>
+      </div>
+      
+      <div class="form-group">
+        <label for="apiKey">API Key:</label>
+        <input type="password" id="apiKey" name="apiKey" value="<?= apiKey ?>">
+      </div>
+      
+      <div class="form-group">
+        <label for="rateLimitStrategy">Rate Limit Strategy:</label>
+        <select id="rateLimitStrategy" name="rateLimitStrategy">
+          <option value="conservative" <?= safeEquals(rateLimitStrategy, 'conservative') ? 'selected' : '' ?>>Conservative (Slower, Safer)</option>
+          <option value="aggressive" <?= safeEquals(rateLimitStrategy, 'aggressive') ? 'selected' : '' ?>>Aggressive (Faster, Riskier)</option>
+        </select>
+      </div>
+      
+      <div class="footer">
+        <button type="button" onclick="saveSettings()">Save Settings</button>
+      </div>
+    </form>
+    
+    <script>
+      // Save the API settings
+      function saveSettings() {
+        const environment = document.getElementById('environment').value;
+        const apiKey = document.getElementById('apiKey').value;
+        const rateLimitStrategy = document.getElementById('rateLimitStrategy').value;
+        
+        google.script.run
+          .withSuccessHandler(onSuccess)
+          .withFailureHandler(onFailure)
+          .saveApiSettings(environment, apiKey, rateLimitStrategy);
+      }
+      
+      // Success handler
+      function onSuccess(result) {
+        alert('API settings saved successfully!');
+        google.script.host.close();
+      }
+      
+      // Failure handler
+      function onFailure(error) {
+        alert('Error: ' + error);
+      }
+    </script>
+  </body>
+</html>

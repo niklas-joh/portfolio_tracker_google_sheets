@@ -1,0 +1,106 @@
+<!-- Error handling and debugging utility that can be included in HTML files -->
+<script>
+    /**
+     * Global error handling function for client-side errors in HTML dialogs.
+     * Logs errors and displays a user-friendly message.
+     */
+    window.onerror = function(message, source, lineno, colno, error) {
+      try {
+        // Log the error to the console
+        console.error(`Error: ${message}\nSource: ${source}\nLine: ${lineno}, Column: ${colno}`);
+        
+        // Create error info for display
+        const errorDetails = {
+          message: message,
+          source: source,
+          line: lineno,
+          column: colno,
+          stack: error ? error.stack : 'No stack trace available',
+          userAgent: navigator.userAgent,
+          time: new Date().toISOString()
+        };
+        
+        // Log to server-side logger if possible
+        try {
+          google.script.run.logClientError(JSON.stringify(errorDetails));
+        } catch(e) {
+          console.error('Could not log error to server:', e);
+        }
+        
+        // Show a user-friendly error message
+        const errorContainer = document.createElement('div');
+        errorContainer.style.position = 'fixed';
+        errorContainer.style.top = '10px';
+        errorContainer.style.left = '10px';
+        errorContainer.style.right = '10px';
+        errorContainer.style.padding = '10px';
+        errorContainer.style.backgroundColor = '#f8d7da';
+        errorContainer.style.color = '#721c24';
+        errorContainer.style.border = '1px solid #f5c6cb';
+        errorContainer.style.borderRadius = '3px';
+        errorContainer.style.zIndex = '9999';
+        
+        errorContainer.innerHTML = `
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <strong>An error occurred:</strong> ${message}
+            </div>
+            <div>
+              <button onclick="this.parentNode.parentNode.parentNode.remove()" style="background: none; border: none; cursor: pointer; font-weight: bold;">×</button>
+            </div>
+          </div>
+          <div style="margin-top: 5px; font-size: 12px;">
+            Line: ${lineno}, Column: ${colno}
+          </div>
+          <div style="margin-top: 10px;">
+            <button onclick="showDetails(this)" style="background: none; border: none; color: #721c24; text-decoration: underline; cursor: pointer; padding: 0;">
+              Show Details
+            </button>
+            <div id="errorDetails" style="display: none; margin-top: 5px; padding: 5px; background-color: #fff; border: 1px solid #ddd; font-family: monospace; font-size: 11px; white-space: pre-wrap;">
+              ${JSON.stringify(errorDetails, null, 2)}
+            </div>
+          </div>
+        `;
+        
+        document.body.appendChild(errorContainer);
+        
+        // Function to toggle error details
+        window.showDetails = function(button) {
+          const details = button.parentNode.querySelector('#errorDetails');
+          if (details.style.display === 'none') {
+            details.style.display = 'block';
+            button.textContent = 'Hide Details';
+          } else {
+            details.style.display = 'none';
+            button.textContent = 'Show Details';
+          }
+        };
+        
+        // Prevent default browser error handling
+        return true;
+      } catch (e) {
+        // If our error handler fails, don't make things worse
+        console.error('Error in error handler:', e);
+        return false;
+      }
+    };
+  
+    /**
+     * Safe type checking utility for template values
+     * Prevents 'toLowerCase is not a function' and similar errors
+     */
+    window.safeString = function(value, defaultValue = '') {
+      if (value === null || value === undefined) {
+        return defaultValue;
+      }
+      return String(value);
+    };
+    
+    /**
+     * Safe comparison utility for template values
+     * Example: <?= safeEquals(environment, 'demo') ? 'selected' : '' ?>
+     */
+    window.safeEquals = function(value1, value2) {
+      return safeString(value1) === safeString(value2);
+    };
+  </script>

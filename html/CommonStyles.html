@@ -1,0 +1,204 @@
+<!-- Common styles that can be included in all HTML files -->
+<style>
+    /* Base styles */
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      margin: 0;
+      padding: 0;
+      color: #333;
+      font-size: 14px;
+      line-height: 1.4;
+      background-color: #fff;
+    }
+    
+    /* Layout */
+    .container {
+      padding: 15px;
+    }
+    
+    /* Typography */
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 0;
+      margin-bottom: 10px;
+      font-weight: 500;
+      line-height: 1.2;
+    }
+    
+    h1 { font-size: 24px; }
+    h2 { font-size: 20px; }
+    h3 { font-size: 18px; }
+    h4 { font-size: 16px; }
+    
+    p {
+      margin-top: 0;
+      margin-bottom: 10px;
+    }
+    
+    /* Form elements */
+    .form-group {
+      margin-bottom: 15px;
+    }
+    
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: 500;
+    }
+    
+    input, select, textarea {
+      display: block;
+      width: 100%;
+      padding: 8px;
+      font-size: 14px;
+      line-height: 1.4;
+      color: #333;
+      background-color: #fff;
+      border: 1px solid #ddd;
+      border-radius: 3px;
+      box-sizing: border-box;
+    }
+    
+    input:focus, select:focus, textarea:focus {
+      border-color: #4285f4;
+      outline: 0;
+    }
+    
+    /* Buttons */
+    button {
+      display: inline-block;
+      font-weight: 400;
+      text-align: center;
+      white-space: nowrap;
+      vertical-align: middle;
+      user-select: none;
+      padding: 8px 12px;
+      font-size: 14px;
+      line-height: 1.4;
+      border-radius: 3px;
+      color: #fff;
+      background-color: #4285f4;
+      border: 1px solid transparent;
+      cursor: pointer;
+      margin-left: 5px;
+    }
+    
+    button:hover {
+      background-color: #3279e0;
+    }
+    
+    button:focus {
+      outline: 0;
+      box-shadow: 0 0 0 3px rgba(66, 133, 244, 0.3);
+    }
+    
+    button.secondary {
+      color: #333;
+      background-color: #f5f5f5;
+      border-color: #ddd;
+    }
+    
+    button.secondary:hover {
+      background-color: #e5e5e5;
+    }
+    
+    /* Tables */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 20px;
+    }
+    
+    th, td {
+      padding: 8px;
+      text-align: left;
+      border: 1px solid #ddd;
+    }
+    
+    th {
+      background-color: #f5f5f5;
+      font-weight: 500;
+    }
+    
+    tr:hover {
+      background-color: #f9f9f9;
+    }
+    
+    /* Utility classes */
+    .text-center { text-align: center; }
+    .text-right { text-align: right; }
+    .text-muted { color: #777; }
+    
+    .margin-top { margin-top: 15px; }
+    .margin-bottom { margin-bottom: 15px; }
+    
+    .padding { padding: 15px; }
+    
+    .border { border: 1px solid #ddd; }
+    .border-top { border-top: 1px solid #ddd; }
+    .border-bottom { border-bottom: 1px solid #ddd; }
+    
+    .bg-light { background-color: #f5f5f5; }
+    
+    /* Header and footer */
+    .header {
+      margin-bottom: 20px;
+    }
+    
+    .footer {
+      margin-top: 20px;
+      text-align: right;
+      padding-top: 15px;
+      border-top: 1px solid #ddd;
+    }
+    
+    /* Messages */
+    .alert, .success, .info, .warning {
+      padding: 10px;
+      margin-bottom: 15px;
+      border-radius: 3px;
+    }
+    
+    .alert {
+      color: #721c24;
+      background-color: #f8d7da;
+      border: 1px solid #f5c6cb;
+    }
+    
+    .success {
+      color: #155724;
+      background-color: #d4edda;
+      border: 1px solid #c3e6cb;
+    }
+    
+    .info {
+      color: #0c5460;
+      background-color: #d1ecf1;
+      border: 1px solid #bee5eb;
+    }
+    
+    .warning {
+      color: #856404;
+      background-color: #fff3cd;
+      border: 1px solid #ffeeba;
+    }
+    
+    /* Loading indicator */
+    .loading {
+      text-align: center;
+      padding: 20px;
+    }
+    
+    .spinner {
+      display: inline-block;
+      width: 40px;
+      height: 40px;
+      border: 3px solid rgba(0, 0, 0, 0.1);
+      border-radius: 50%;
+      border-top-color: #4285f4;
+      animation: spin 1s ease-in-out infinite;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>

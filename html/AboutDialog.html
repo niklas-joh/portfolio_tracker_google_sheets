@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <?!= include('html/ErrorHandler') ?>
+    <?!= include('html/CommonStyles') ?>
+    <style>
+      .about-container {
+        text-align: center;
+        padding: 20px;
+      }
+      
+      .logo {
+        width: 60px;
+        height: 60px;
+        margin-bottom: 15px;
+      }
+      
+      .app-title {
+        font-size: 22px;
+        font-weight: bold;
+        margin-bottom: 5px;
+      }
+      
+      .version {
+        color: #666;
+        margin-bottom: 20px;
+        font-size: 14px;
+      }
+      
+      .description {
+        margin-bottom: 25px;
+        font-size: 15px;
+        max-width: 350px;
+        margin-left: auto;
+        margin-right: auto;
+      }
+      
+      .info-section {
+        background-color: #f5f5f5;
+        border-radius: 5px;
+        padding: 15px;
+        margin-bottom: 20px;
+        text-align: left;
+      }
+      
+      .info-item {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 8px;
+      }
+      
+      .info-label {
+        font-weight: 500;
+      }
+      
+      .footer {
+        margin-top: 20px;
+      }
+      
+      .credits {
+        font-size: 12px;
+        color: #777;
+        margin-top: 15px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="about-container">
+      <img src="https://www.gstatic.com/images/branding/product/1x/apps_script_48dp.png" alt="Logo" class="logo">
+      
+      <div class="app-title">Trading212 Integration</div>
+      <div class="version">Version 1.0.0</div>
+      
+      <div class="description">
+        A Google Sheets integration for Trading212 API that lets you fetch and analyze your trading data.
+      </div>
+      
+      <div class="info-section">
+        <div class="info-item">
+          <span class="info-label">Installed:</span>
+          <span><?= formatDate(installDate, 'short', 'Unknown') ?></span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Last API Update:</span>
+          <span><?= formatDate(lastModified, 'short', 'Never') ?></span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Environment:</span>
+          <span id="environmentSpan">Loading...</span>
+        </div>
+      </div>
+      
+      <div class="footer">
+        <button onclick="google.script.host.close()">Close</button>
+      </div>
+      
+      <div class="credits">
+        Built with Google Apps Script<br>
+        © <?= new Date().getFullYear() ?> Trading212 Integration
+      </div>
+    </div>
+    
+    <script>
+      // Get the current environment setting
+      google.script.run
+        .withSuccessHandler(function(environment) {
+          document.getElementById('environmentSpan').innerText = environment || 'demo';
+        })
+        .withFailureHandler(function(error) {
+          document.getElementById('environmentSpan').innerText = 'Unknown';
+          console.error('Failed to get environment:', error);
+        })
+        .getEnvironmentSetting();
+    </script>
+  </body>
+</html>

@@ -1,0 +1,96 @@
+/**
+ * ===================== HTML Utilities ========================
+ * 
+ * This file contains utility functions for working with HTML templates
+ * and includes in Google Apps Script.
+ */
+
+/**
+ * Includes an HTML file in another HTML file.
+ * This function is called from HTML files using <?!= include('html/filename') ?>.
+ * 
+ * @param {string} filename - The name of the HTML file to include (without .html extension).
+ * @returns {string} The content of the HTML file.
+ */
+function include(filename) {
+  return HtmlService.createHtmlOutputFromFile(filename).getContent();
+}
+
+/**
+ * Creates a common header HTML that can be included in multiple dialogs.
+ * 
+ * @param {string} title - The title to display in the header.
+ * @param {string} [description=''] - Optional description text for the header.
+ * @returns {string} The HTML string for the header.
+ */
+function createHeader(title, description = '') {
+  return `
+    <div class="header">
+      <h2>${title}</h2>
+      ${description ? `<p>${description}</p>` : ''}
+    </div>
+  `;
+}
+
+/**
+ * Creates a common footer HTML that can be included in multiple dialogs.
+ * 
+ * @param {string[]} buttons - Array of button definitions, each with label and onclick handlers.
+ * @returns {string} The HTML string for the footer.
+ */
+function createFooter(buttons) {
+  var buttonHtml = '';
+  
+  for (var i = 0; i < buttons.length; i++) {
+    var button = buttons[i];
+    buttonHtml += '<button type="button" onclick="' + button.onclick + '">' + button.label + '</button>';
+  }
+  
+  return '
+    <div class="footer">
+      ' + buttonHtml + '
+    </div>
+  ';
+}
+
+/**
+ * Creates a common style block that can be included in multiple dialogs.
+ * 
+ * @param {boolean} [includeAdvanced=false] - Whether to include advanced styling.
+ * @returns {string} The HTML string for the style block.
+ */
+function createStyleBlock(includeAdvanced = false) {
+  let basicStyles = `
+    <style>
+      body { font-family: Arial, sans-serif; margin: 0; padding: 10px; }
+      .form-group { margin-bottom: 10px; }
+      label { display: block; margin-bottom: 5px; }
+      select, input, textarea { width: 100%; padding: 5px; }
+      button { padding: 8px 12px; background-color: #4285f4; color: white; border: none; cursor: pointer; margin-left: 5px; }
+      .header { margin-bottom: 15px; }
+      .footer { margin-top: 15px; text-align: right; }
+    </style>
+  `;
+  
+  if (!includeAdvanced) {
+    return basicStyles;
+  }
+  
+  return basicStyles + `
+    <style>
+      table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+      th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+      th { background-color: #f2f2f2; }
+      .tab-container { margin-top: 20px; }
+      .tab-buttons { display: flex; margin-bottom: 15px; border-bottom: 1px solid #ddd; }
+      .tab-button { padding: 10px 15px; cursor: pointer; background-color: #f5f5f5; border: 1px solid #ddd; border-bottom: none; margin-right: 5px; }
+      .tab-button.active { background-color: white; border-bottom: 1px solid white; margin-bottom: -1px; }
+      .tab-content { display: none; padding: 15px; border: 1px solid #ddd; border-top: none; }
+      .tab-content.active { display: block; }
+      .add-section { margin-top: 20px; padding-top: 10px; border-top: 1px solid #ddd; }
+      .loading { text-align: center; padding: 20px; }
+      .alert { padding: 10px; background-color: #f44336; color: white; margin-bottom: 15px; }
+      .success { padding: 10px; background-color: #4CAF50; color: white; margin-bottom: 15px; }
+    </style>
+  `;
+}

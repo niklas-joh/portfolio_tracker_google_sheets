@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <style>
+      body { font-family: Arial, sans-serif; margin: 0; padding: 10px; }
+      .form-group { margin-bottom: 10px; }
+      label { display: block; margin-bottom: 5px; }
+      select, input { width: 100%; padding: 5px; }
+      button { padding: 8px 12px; background-color: #4285f4; color: white; border: none; cursor: pointer; margin-left: 5px; }
+      .header { margin-bottom: 15px; }
+      .footer { margin-top: 15px; text-align: right; }
+      .mapping-row { margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #eee; }
+      .add-new-section { margin-top: 20px; padding-top: 10px; border-top: 2px solid #ddd; }
+      .buttons-container { display: flex; justify-content: flex-end; }
+    </style>
+  </head>
+  <body>
+    <div class="header">
+      <h2>Sheet Mappings</h2>
+      <p>Configure which sheets are used for different data types.</p>
+    </div>
+    
+    <form id="mappingsForm">
+      <div id="mappings-container">
+        <? for (const key in mappings) { ?>
+          <div class="mapping-row" id="row-<?= key ?>">
+            <div class="form-group">
+              <label for="<?= key ?>"><?= key ?>:</label>
+              <input type="text" id="<?= key ?>" name="<?= key ?>" value="<?= mappings[key] ?>">
+            </div>
+          </div>
+        <? } ?>
+      </div>
+      
+      <div class="add-new-section">
+        <h3>Add New Mapping</h3>
+        <div class="form-group">
+          <label for="newMappingKey">Key:</label>
+          <input type="text" id="newMappingKey" name="newMappingKey" placeholder="Key (e.g., NEW_DATA_SHEET)">
+        </div>
+        <div class="form-group">
+          <label for="newMappingValue">Sheet Name:</label>
+          <input type="text" id="newMappingValue" name="newMappingValue" placeholder="Sheet Name">
+        </div>
+        <div class="buttons-container">
+          <button type="button" onclick="addMapping()">Add Mapping</button>
+        </div>
+      </div>
+      
+      <div class="footer">
+        <button type="button" onclick="saveMappings()">Save All Mappings</button>
+      </div>
+    </form>
+    
+    <script>
+      // Add a new mapping
+      function addMapping() {
+        const key = document.getElementById('newMappingKey').value;
+        const value = document.getElementById('newMappingValue').value;
+        
+        if (!key || !value) {
+          alert('Please enter both key and value for the new mapping.');
+          return;
+        }
+        
+        // Create a new mapping row
+        const container = document.getElementById('mappings-container');
+        const newRow = document.createElement('div');
+        newRow.className = 'mapping-row';
+        newRow.id = 'row-' + key;
+        
+        newRow.innerHTML = `
+          <div class="form-group">
+            <label for="${key}">${key}:</label>
+            <input type="text" id="${key}" name="${key}" value="${value}">
+          </div>
+        `;
+        
+        container.appendChild(newRow);
+        
+        // Clear the inputs
+        document.getElementById('newMappingKey').value = '';
+        document.getElementById('newMappingValue').value = '';
+      }
+      
+      // Save all mappings
+      function saveMappings() {
+        const form = document.getElementById('mappingsForm');
+        const inputs = form.querySelectorAll('#mappings-container input');
+        
+        const mappings = {};
+        inputs.forEach(input => {
+          const key = input.id;
+          const value = input.value;
+          
+          if (key && value) {
+            mappings[key] = value;
+          }
+        });
+        
+        google.script.run
+          .withSuccessHandler(onSuccess)
+          .withFailureHandler(onFailure)
+          .saveSheetMappings(mappings);
+      }
+      
+      // Success handler
+      function onSuccess(result) {
+        alert('Sheet mappings saved successfully!');
+        google.script.host.close();
+      }
+      
+      // Failure handler
+      function onFailure(error) {
+        alert('Error: ' + error);
+      }
+    </script>
+  </body>
+</html>
