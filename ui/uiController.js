@@ -230,3 +230,10 @@ function showTrackingReport() {
 function showAboutDialog() {
   UI.showAboutDialog();
 }
+
+/**
+ * Shows the column formatting dialog.
+ */
+function showColumnFormattingDialog() {
+  UI.showColumnFormattingDialog();
+}
