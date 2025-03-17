@@ -329,31 +329,39 @@ class SheetTracker {
     }
   }
   
-  /**
-   * Shows the tracking report in a dialog.
-   */
-  function showTrackingReport() {
-    try {
-      const configManager = new ConfigManager();
-      const sheetTracker = new SheetTracker(configManager);
-      
-      const report = sheetTracker.generateTrackingReport();
-      
-      const htmlOutput = HtmlService.createHtmlOutput(`
-        <style>
-          body { font-family: monospace; white-space: pre; }
-        </style>
-        <div>${report.replace(/\n/g, '<br>')}</div>
-      `)
-        .setWidth(600)
-        .setHeight(400);
-      
-      SpreadsheetApp.getUi().showModalDialog(htmlOutput, 'Sheet Tracking Report');
-    } catch (e) {
-      Logger.log(`Error showing tracking report: ${e}`);
-      SpreadsheetApp.getUi().alert(`Error: ${e.message}`);
-    }
-  }
+/**
+ * Shows the Tracking Report Dialog to the user.
+ */
+function showTrackingReportDialog() {
+  // Initialize the ConfigManager instance
+  const configManager = new ConfigManager();
+  
+  // Initialize SheetTracker with the configManager
+  const sheetTracker = new SheetTracker(configManager);
+  
+  // Prepare dummy data for the dialog
+  // In a real implementation, you'd call actual methods on sheetTracker
+  const trackingData = {
+    sheetsTrackedCount: 5,
+    lastUpdateTime: new Date().toLocaleString(),
+    freshnessStatus: "status-recent",
+    freshnessLabel: "Up to date",
+    sheetTracking: [],
+    columnTracking: [],
+    sheetNames: [],
+    settings: {
+      autoUpdateFrequency: 'none',
+      trackingDetail: 'standard',
+      createTrackingSheet: false,
+      enableNotifications: false
+    },
+    chartData: {}
+  };
+  
+  // Show the dialog
+  const ui = new UIController();
+  ui.showDialog('html/TrackingReportDialog', 'Trading212 Data Tracking Report', trackingData, 800, 600);
+}
   
   /**
    * Updates the tracking sheet.

@@ -156,15 +156,21 @@ class UIController {
    * Shows the tracking report in a dialog.
    */
   showTrackingReport() {
-    const sheetTracker = new SheetTracker(this.configManager);
-    const report = sheetTracker.generateTrackingReport();
-    
-    // Pass the report to the template
-    const templateData = {
-      report: report
+    const sheetTracker = new SheetTracker(configManager);
+    const trackingData = {
+      sheetsTrackedCount: sheetTracker.getTrackedSheetCount(),
+      lastUpdateTime: sheetTracker.getLastUpdateTime(),
+      freshnessStatus: sheetTracker.getFreshnessStatus(),
+      freshnessLabel: sheetTracker.getFreshnessLabel(),
+      sheetTracking: sheetTracker.getSheetTrackingData(),
+      columnTracking: sheetTracker.getColumnTrackingData(),
+      sheetNames: sheetTracker.getTrackedSheetNames(),
+      settings: sheetTracker.getTrackingSettings(),
+      chartData: sheetTracker.getUpdateFrequencyCounts()
     };
     
-    this.showDialog('html/TrackingReportDialog', 'Sheet Tracking Report', templateData, 600, 400);
+    const ui = new UIController();
+    ui.showDialog('html/TrackingReportDialog', 'Trading212 Data Tracking Report', trackingData, 800, 600);
   }
 
   /**

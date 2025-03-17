@@ -19,7 +19,7 @@ function onOpen() {
             .addItem('Advanced Configuration', 'showAdvancedConfigDialog'))
         .addSubMenu(ui.createMenu('Tracking')
             .addItem('Track Current Sheet', 'trackCurrentSheet')
-            .addItem('View Tracking Report', 'showTrackingReport')
+            .addItem('View Tracking Report', 'showTrackingReportDialog')
             .addItem('Update Tracking Sheet', 'updateTrackingSheet'))
         .addSeparator()
         .addItem('About', 'showAboutDialog')

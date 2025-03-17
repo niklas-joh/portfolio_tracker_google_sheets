@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <!-- Include common styles -->
+    <?!= include('html/CommonStyles') ?>
+    <style>
+      .tracking-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 20px;
+      }
+      
+      .tracking-table th, .tracking-table td {
+        border: 1px solid #ddd;
+        padding: 8px;
+        text-align: left;
+      }
+      
+      .tracking-table th {
+        background-color: #f2f2f2;
+      }
+      
+      .tracking-table tr:nth-child(even) {
+        background-color: #f9f9f9;
+      }
+      
+      .last-updated {
+        font-style: italic;
+        color: #666;
+        font-size: 0.9em;
+        margin-bottom: 15px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <!-- Header section -->
+      <div class="header">
+        <h2><i class="fas fa-chart-line"></i> Trading212 Data Tracking Report</h2>
+        <p class="subtitle">Monitor sheet updates and data fetching activity</p>
+      </div>
+      
+      <div class="content">
+        <p class="last-updated">Report generated: <?= new Date().toLocaleString() ?></p>
+        
+        <h3>Active Sheets</h3>
+        <table class="tracking-table">
+          <thead>
+            <tr>
+              <th>Sheet Name</th>
+              <th>API Resource</th>
+              <th>Last Fetch</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- This will use existing API_RESOURCES from your project -->
+            <? Object.keys(API_RESOURCES).forEach(function(key) { ?>
+              <tr>
+                <td><?= API_RESOURCES[key].sheetName || 'N/A' ?></td>
+                <td><?= API_RESOURCES[key].endpoint || 'N/A' ?></td>
+                <td><?= 'Not tracked yet' ?></td>
+              </tr>
+            <? }); ?>
+          </tbody>
+        </table>
+        
+        <div class="action-container">
+          <button class="action-button" onclick="refreshData()">
+            <i class="fas fa-sync-alt"></i> Refresh Data Now
+          </button>
+        </div>
+      </div>
+      
+      <!-- Footer with action buttons -->
+      <div class="footer">
+        <button class="cancel-button" onclick="google.script.host.close()">Close</button>
+      </div>
+    </div>
+    
+    <!-- Include common scripts -->
+    <?!= include('html/CommonScripts') ?>
+    
+    <script>
+      // Refresh data
+      function refreshData() {
+        google.script.run
+          .withSuccessHandler(onRefreshSuccess)
+          .withFailureHandler(onRefreshError)
+          .fetchSelectedTrading212Data(['Account Info']);
+          
+        // Show loading message
+        document.querySelector('.action-button').innerHTML = 
+          '<i class="fas fa-spinner fa-spin"></i> Refreshing...';
+        document.querySelector('.action-button').disabled = true;
+      }
+      
+      function onRefreshSuccess(result) {
+        // Reset button
+        document.querySelector('.action-button').innerHTML = 
+          '<i class="fas fa-sync-alt"></i> Refresh Data Now';
+        document.querySelector('.action-button').disabled = false;
+        
+        // Show success message
+        alert('Data refreshed successfully!');
+      }
+      
+      function onRefreshError(error) {
+        // Reset button
+        document.querySelector('.action-button').innerHTML = 
+          '<i class="fas fa-sync-alt"></i> Refresh Data Now';
+        document.querySelector('.action-button').disabled = false;
+        
+        // Show error message
+        alert('Error refreshing data: ' + error);
+      }
+    </script>
+  </body>
+</html>
