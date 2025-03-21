@@ -16,7 +16,7 @@
  * 3. Customize format patterns in the FormatConfigurations sheet
  * 4. Assign format categories in the ColumnFormatMapping sheet
  * 
- * @author Your Name
+ * @author Niklas Johansson
  * @version 1.0
  */
 
@@ -133,9 +133,7 @@ function createFormatConfigurationsSheet(ss) {
   }
   
   // Make it look nicer
-  sheet.getRange('A1:E1').setFontWeight('bold');
-  sheet.getRange('A1:E1').setBackground('#f3f3f3');
-  sheet.autoResizeColumns(1, 5);
+  formatSheet(sheet); 
   
   // Add instructions at the bottom
   sheet.getRange(formats.length + 3, 1).setValue('Instructions:');
@@ -634,4 +632,29 @@ function populateColumnMappingWithExisting(sheet, currentMappings) {
   sheet.getRange(rowIndex + 3, 1).setValue('1. Update the Format Category column to change formatting for a column.');
   sheet.getRange(rowIndex + 4, 1).setValue('2. Changes will automatically be applied to all sheets.');
   sheet.getRange(rowIndex + 5, 1).setValue('3. Run "Refresh Column Mapping" from the menu if you add new sheets or columns.');
+}
+
+function formatSheet(sheetName) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  if (!ss) {
+    return;
+  }
+  
+  const sheet = ss.getSheetByName(sheetName);
+  if (!sheet) {
+    return;
+  }
+
+  const lastColumn = sheet.getLastColumn();
+  const headerRange = sheet.getRange(1, 1, 1, lastColumn);
+  
+  // Make headers bold and add background
+  headerRange.setFontWeight('bold');
+  headerRange.setBackground('#f3f3f3');
+
+  // Freeze the first row
+  sheet.setFrozenRows(1);
+  
+  // Auto-resize all columns
+  sheet.autoResizeColumns(1, lastColumn);
 }
