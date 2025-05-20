@@ -59,3 +59,29 @@ function fetchAndWriteAllData() {
 3. Test automatic data refresh functionality
 4. Verify trigger status checking
 5. Test notification system for automatic refreshes
+
+# Subtasks:
+## 1. Implement Time-Based Trigger System [pending]
+### Dependencies: None
+### Description: Create the core functionality for time-based triggers that will initiate data refresh operations
+### Details:
+Develop functions to create time-based triggers using Google Apps Script's ScriptApp service. Implement logic to schedule triggers at specific intervals (hourly, daily, weekly). Create helper functions to handle trigger execution and proper error handling. Ensure triggers are properly scoped to the data refresh operations.
+
+## 2. Develop Trigger Management Functions [pending]
+### Dependencies: 14.1
+### Description: Build functions to create, delete, and modify existing triggers
+### Details:
+Create functions to list all active triggers. Implement methods to delete specific triggers by ID. Develop functionality to modify trigger timing and settings. Add validation to prevent duplicate triggers. Document the trigger management API for future reference.
+
+## 3. Create UI for Refresh Configuration [pending]
+### Dependencies: 14.2
+### Description: Design and implement a user interface for configuring data refresh settings
+### Details:
+Design a sidebar or dialog UI using HTML Service or Card Service. Implement form controls for setting refresh frequency and timing. Create UI elements to display currently active triggers. Add buttons to create, edit, or delete triggers. Ensure the UI is intuitive and provides clear feedback on actions.
+
+## 4. Implement Notification System [pending]
+### Dependencies: 14.1, 14.3
+### Description: Create a notification system to alert users about refresh status and outcomes
+### Details:
+Develop email notification functionality for successful/failed refreshes. Implement in-app notifications using toast messages or alerts. Create a log of refresh activities accessible to users. Add configuration options for users to customize notification preferences. Ensure notifications include relevant details about the refresh operation.
+

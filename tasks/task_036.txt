@@ -37,3 +37,23 @@ async function fetchPies(options = {}) {
 
 # Test Strategy:
 
+
+# Subtasks:
+## 1. Create Documentation Style Guide [pending]
+### Dependencies: None
+### Description: Develop a comprehensive JSDoc style guide for the project that defines standards for all code documentation
+### Details:
+Create a documentation style guide that includes: formatting rules, required tags (@param, @returns, etc.), examples of properly documented code, naming conventions, and documentation depth requirements for different code elements. This guide should be stored in a central location accessible to all developers.
+
+## 2. Implement Core Module and Class Documentation [pending]
+### Dependencies: 36.1
+### Description: Apply the documentation style guide to all core modules and classes in the codebase
+### Details:
+Add or update JSDoc comments for all core modules and classes following the established style guide. Include detailed descriptions of module/class purpose, usage examples, and any important implementation details. Focus on high-level documentation that explains the role of each component in the system.
+
+## 3. Implement Function and Method Documentation [pending]
+### Dependencies: 36.1, 36.2
+### Description: Document all functions and methods throughout the codebase according to the style guide
+### Details:
+Add or update JSDoc comments for all functions and methods, ensuring proper documentation of parameters, return values, exceptions, and edge cases. Include examples where appropriate, especially for complex functions. Ensure consistency with the documentation style guide and maintain alignment with the higher-level documentation created for modules and classes.
+

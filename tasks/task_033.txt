@@ -59,3 +59,35 @@ class TestRunner {
 
 # Test Strategy:
 
+
+# Subtasks:
+## 1. Design Test Runner Framework [pending]
+### Dependencies: None
+### Description: Create the core test runner framework that will execute test cases and report results
+### Details:
+Design and implement a lightweight test runner that works within Google Apps Script constraints. Include functionality for test discovery, execution flow, and result reporting. Consider the unique execution environment of Apps Script and design accordingly to handle asynchronous operations and script timeouts.
+
+## 2. Implement Assertion Utilities [pending]
+### Dependencies: 33.1
+### Description: Develop a comprehensive set of assertion functions for test validation
+### Details:
+Create assertion utilities that support common test scenarios: equality checks, type validation, array/object comparisons, and exception handling. Ensure clear error messages that help identify test failures quickly. Design the API to be intuitive for developers writing tests.
+
+## 3. Establish Test Organization Structure [pending]
+### Dependencies: 33.1
+### Description: Define conventions for organizing tests and create folder/file structure
+### Details:
+Create a consistent organization system for test files, including naming conventions, folder structure, and test grouping strategies. Document these conventions for the team. Consider how to separate unit tests from integration tests and how to organize tests to mirror the application structure.
+
+## 4. Implement Initial Test Suite for Core Functionality [pending]
+### Dependencies: 33.1, 33.2, 33.3
+### Description: Write the first set of unit tests covering critical core functionality
+### Details:
+Develop an initial set of tests for the most critical parts of the application. Focus on core utility functions, data processing logic, and any complex algorithms. Aim for high coverage of essential functionality to establish a baseline for future development.
+
+## 5. Set Up Test Execution Automation [pending]
+### Dependencies: 33.1, 33.4
+### Description: Create automation for running tests during development and in CI/CD pipelines
+### Details:
+Implement automation scripts to run tests easily during development and as part of deployment processes. Include options for running specific test suites or individual tests. Create reporting mechanisms to track test coverage and results over time. Consider integration with existing CI/CD tools if applicable.
+

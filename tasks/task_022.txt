@@ -39,3 +39,35 @@ class Trading212ApiClient {
 
 # Test Strategy:
 
+
+# Subtasks:
+## 1. Design API client class structure [pending]
+### Dependencies: None
+### Description: Create the architecture and class hierarchy for the unified API client
+### Details:
+Define the core API client class with appropriate interfaces, abstract classes, and inheritance patterns. Include method signatures for common operations, error handling strategies, and configuration options. Create UML diagrams to visualize the class relationships. Consider extensibility for future API endpoints and backward compatibility requirements.
+
+## 2. Implement request handling functionality [pending]
+### Dependencies: 22.1
+### Description: Build the core request/response handling mechanisms in the API client
+### Details:
+Implement methods for different HTTP verbs (GET, POST, PUT, DELETE), request serialization, response deserialization, and error handling. Include support for different content types, query parameters, request headers, and response parsing. Implement retry logic for failed requests and timeout handling. Add comprehensive logging for debugging purposes.
+
+## 3. Integrate authentication mechanisms [pending]
+### Dependencies: 22.2
+### Description: Add support for various authentication methods in the API client
+### Details:
+Implement authentication strategies including API keys, OAuth, JWT, and session-based authentication. Create interceptors or middleware to automatically apply authentication to requests. Handle token refresh, expiration, and storage. Implement secure credential management and ensure authentication errors are properly handled and reported.
+
+## 4. Implement rate limiting functionality [pending]
+### Dependencies: 22.2
+### Description: Add rate limiting support to prevent API quota exhaustion
+### Details:
+Create rate limiting mechanisms that respect API provider limits. Implement request queuing, throttling, and backoff strategies. Add monitoring for remaining quota and rate limit headers. Implement circuit breakers to prevent cascading failures during rate limit exhaustion. Ensure the client can handle 429 responses appropriately with automatic retries after the specified cooldown period.
+
+## 5. Migrate existing API calls to the new client [pending]
+### Dependencies: 22.1, 22.2, 22.3, 22.4
+### Description: Update all existing API interactions to use the new unified client
+### Details:
+Identify all existing API calls throughout the codebase. Create a migration plan with priority order. Refactor each API call to use the new client while maintaining existing functionality. Write tests to ensure behavior remains consistent. Update documentation to reflect the new API client usage patterns. Monitor performance and error rates after migration to ensure improvement.
+

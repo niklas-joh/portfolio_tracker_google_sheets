@@ -40,3 +40,23 @@ class ValidationError extends Error {
 
 # Test Strategy:
 
+
+# Subtasks:
+## 1. Design and implement base error class [pending]
+### Dependencies: None
+### Description: Create a foundational error class that extends the native Error class to serve as the parent for all custom error types
+### Details:
+Implement a BaseError class that extends Error with properties for statusCode, isOperational flag, and any other common error attributes. Include proper constructor to handle error messages, error codes, and stack traces. Document the class with JSDoc comments explaining its purpose and usage.
+
+## 2. Implement specific error subclasses [pending]
+### Dependencies: 31.1
+### Description: Create specific error subclasses that extend the base error class for different error scenarios
+### Details:
+Implement error subclasses such as ValidationError, AuthenticationError, AuthorizationError, NotFoundError, DatabaseError, etc. Each subclass should have appropriate default status codes and properties relevant to its error type. Include constructors that properly call the parent class constructor and set type-specific properties.
+
+## 3. Integrate custom errors with error handler [pending]
+### Dependencies: 31.1, 31.2
+### Description: Connect the custom error classes with the application's error handling middleware
+### Details:
+Update the error handling middleware to properly identify and process the custom error types. Implement logic to distinguish between operational errors (expected errors) and programming errors (unexpected errors). Ensure proper error responses are sent based on error type, including appropriate status codes and error messages. Add test cases to verify error handling works correctly.
+

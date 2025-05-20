@@ -31,3 +31,35 @@ class ApiClient {
 
 # Test Strategy:
 
+
+# Subtasks:
+## 1. Design singleton pattern for core service classes [pending]
+### Dependencies: None
+### Description: Create the basic structure for implementing the singleton pattern in core service classes
+### Details:
+1. Identify all core service classes that need to be singletons
+2. Modify each class to have a private constructor
+3. Add a private static instance variable to each class
+4. Create a public static getInstance() method for each class
+5. Document the singleton implementation with appropriate comments
+
+## 2. Implement instance management and initialization logic [pending]
+### Dependencies: 18.1
+### Description: Develop the logic for managing singleton instances and handling initialization
+### Details:
+1. Implement thread-safe instance creation (using double-checked locking or other appropriate method)
+2. Add lazy initialization to defer object creation until needed
+3. Handle any required initialization parameters for service instances
+4. Implement proper resource cleanup if needed (e.g., in case of application shutdown)
+5. Add error handling for initialization failures
+
+## 3. Integrate singleton services with existing code [pending]
+### Dependencies: 18.2
+### Description: Update existing code to use the singleton pattern for accessing service instances
+### Details:
+1. Identify all locations in the codebase that create or use service instances
+2. Replace direct instantiation with calls to getInstance()
+3. Update any dependency injection configurations if applicable
+4. Write unit tests to verify singleton behavior
+5. Perform integration testing to ensure services function correctly with the new pattern
+

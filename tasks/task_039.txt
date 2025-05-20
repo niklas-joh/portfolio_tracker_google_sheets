@@ -47,3 +47,41 @@ function createPortfolioPerformanceChart(sheetName, performanceData) {
 
 # Test Strategy:
 
+
+# Subtasks:
+## 1. Chart Generation Framework Design [pending]
+### Dependencies: None
+### Description: Design and implement a reusable chart generation framework that will serve as the foundation for all visualizations
+### Details:
+Create a modular framework that handles data processing, chart configuration, and rendering. Define standard interfaces for different chart types. Implement utility functions for data transformation and formatting. Ensure compatibility with Google Sheets' chart capabilities and APIs. Document the framework architecture and usage guidelines.
+
+## 2. Portfolio Performance Visualization [pending]
+### Dependencies: 39.1
+### Description: Implement visualizations for tracking portfolio performance over time
+### Details:
+Create line charts showing portfolio value over time. Implement comparison charts against benchmarks. Add performance metrics visualization (e.g., CAGR, Sharpe ratio). Include interactive elements for time period selection. Ensure proper handling of currency conversions and adjustments for deposits/withdrawals.
+
+## 3. Asset Allocation Visualization [pending]
+### Dependencies: 39.1
+### Description: Develop visualizations showing the breakdown of assets in the portfolio
+### Details:
+Create pie/donut charts for asset class allocation. Implement treemap visualizations for hierarchical asset breakdowns. Add bar charts for sector/industry allocation. Include geographic distribution maps if applicable. Ensure visualizations update dynamically as portfolio changes.
+
+## 4. Transaction History Visualization [pending]
+### Dependencies: 39.1
+### Description: Implement visualizations for transaction history and patterns
+### Details:
+Create timeline visualizations of buy/sell transactions. Implement heatmaps showing transaction frequency. Add bar charts for transaction volume analysis. Include filtering capabilities by asset type, date range, and transaction type. Ensure proper handling of transaction categories and tagging.
+
+## 5. Dividend Visualization [pending]
+### Dependencies: 39.1
+### Description: Develop visualizations for dividend income and distribution
+### Details:
+Create bar charts showing dividend income over time. Implement visualizations for dividend yield by asset. Add projections for future dividend income. Include seasonal patterns visualization for dividend payments. Ensure proper handling of dividend reinvestment in calculations.
+
+## 6. Dashboard Integration [pending]
+### Dependencies: 39.2, 39.3, 39.4, 39.5
+### Description: Integrate all visualizations into a cohesive dashboard interface
+### Details:
+Design a unified dashboard layout. Implement navigation between different visualization sections. Add customization options for user preferences. Ensure responsive design for different screen sizes. Create print/export functionality for reports. Test dashboard performance with large datasets.
+

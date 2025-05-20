@@ -36,3 +36,23 @@ const API_CONFIG = {
 
 # Test Strategy:
 
+
+# Subtasks:
+## 1. Design API Configuration Structure [pending]
+### Dependencies: None
+### Description: Create a standardized structure for centralized API configuration
+### Details:
+Define a clear, maintainable structure for API configuration that includes endpoints, authentication methods, headers, and other common parameters. Consider using a hierarchical structure that groups related APIs. Document the structure with examples for team reference.
+
+## 2. Extract Existing API Configuration [pending]
+### Dependencies: 21.1
+### Description: Identify and extract all API configuration from current codebase
+### Details:
+Scan the codebase to identify all instances of API configuration. Extract endpoint URLs, headers, authentication details, and other configuration parameters. Consolidate these into the new centralized structure defined in the previous subtask. Document any inconsistencies found during extraction.
+
+## 3. Integrate with API Client Code [pending]
+### Dependencies: 21.1, 21.2
+### Description: Update API client code to use the centralized configuration
+### Details:
+Modify existing API client code to reference the centralized configuration instead of hardcoded values. Create helper functions or methods to easily access the configuration. Test all API calls to ensure they work correctly with the new configuration approach. Update documentation to reflect the new pattern for API configuration usage.
+

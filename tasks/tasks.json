@@ -179,7 +179,56 @@
         11
       ],
       "status": "pending",
-      "subtasks": []
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Implement Centralized Error Handler",
+          "description": "Create a centralized error handling module that captures, processes, and standardizes errors throughout the application",
+          "dependencies": [],
+          "details": "Develop a centralized error handler class that can: 1) Capture errors from different parts of the application, 2) Standardize error format with severity levels, timestamps, and context information, 3) Provide methods for error classification (user errors vs. system errors), 4) Include stack trace information for debugging, 5) Implement error filtering capabilities",
+          "status": "pending"
+        },
+        {
+          "id": 2,
+          "title": "Integrate UI Error Message System",
+          "description": "Create a user-friendly error notification system in the UI that displays appropriate error messages based on error type",
+          "dependencies": [
+            1
+          ],
+          "details": "Build UI components for error display including: 1) Toast notifications for non-critical errors, 2) Modal dialogs for critical errors requiring user action, 3) Inline field validation error messages, 4) Error message customization based on error type and severity, 5) Implement retry mechanisms where appropriate",
+          "status": "pending"
+        },
+        {
+          "id": 3,
+          "title": "Create Error Log Sheet Management",
+          "description": "Implement a spreadsheet-based logging system that records all errors with relevant details for troubleshooting",
+          "dependencies": [
+            1
+          ],
+          "details": "Develop a logging system that: 1) Creates or accesses a dedicated error log sheet, 2) Records detailed error information including timestamp, error message, severity, user information, and context, 3) Implements row limiting to prevent sheet overflow, 4) Adds formatting for better readability, 5) Includes filtering capabilities within the sheet",
+          "status": "pending"
+        },
+        {
+          "id": 4,
+          "title": "Implement Error Log Clearing Functionality",
+          "description": "Create functionality to clear error logs with appropriate safeguards and confirmation mechanisms",
+          "dependencies": [
+            3
+          ],
+          "details": "Build log clearing features including: 1) UI controls to clear logs (buttons, menu items), 2) Confirmation dialogs before clearing logs, 3) Options for selective clearing (by date range, severity, etc.), 4) Backup mechanism before clearing, 5) Access controls to restrict who can clear logs",
+          "status": "pending"
+        },
+        {
+          "id": 5,
+          "title": "Develop Error Log Export Capabilities",
+          "description": "Create functionality to export error logs in various formats for external analysis and reporting",
+          "dependencies": [
+            3
+          ],
+          "details": "Implement export features including: 1) Export to CSV/Excel format, 2) PDF export option with formatting, 3) Email export functionality, 4) Filtering options before export (date range, error types), 5) Scheduled automatic exports for critical errors",
+          "status": "pending"
+        }
+      ]
     },
     {
       "id": 14,
@@ -193,7 +242,47 @@
         12
       ],
       "status": "pending",
-      "subtasks": []
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Implement Time-Based Trigger System",
+          "description": "Create the core functionality for time-based triggers that will initiate data refresh operations",
+          "dependencies": [],
+          "details": "Develop functions to create time-based triggers using Google Apps Script's ScriptApp service. Implement logic to schedule triggers at specific intervals (hourly, daily, weekly). Create helper functions to handle trigger execution and proper error handling. Ensure triggers are properly scoped to the data refresh operations.",
+          "status": "pending"
+        },
+        {
+          "id": 2,
+          "title": "Develop Trigger Management Functions",
+          "description": "Build functions to create, delete, and modify existing triggers",
+          "dependencies": [
+            1
+          ],
+          "details": "Create functions to list all active triggers. Implement methods to delete specific triggers by ID. Develop functionality to modify trigger timing and settings. Add validation to prevent duplicate triggers. Document the trigger management API for future reference.",
+          "status": "pending"
+        },
+        {
+          "id": 3,
+          "title": "Create UI for Refresh Configuration",
+          "description": "Design and implement a user interface for configuring data refresh settings",
+          "dependencies": [
+            2
+          ],
+          "details": "Design a sidebar or dialog UI using HTML Service or Card Service. Implement form controls for setting refresh frequency and timing. Create UI elements to display currently active triggers. Add buttons to create, edit, or delete triggers. Ensure the UI is intuitive and provides clear feedback on actions.",
+          "status": "pending"
+        },
+        {
+          "id": 4,
+          "title": "Implement Notification System",
+          "description": "Create a notification system to alert users about refresh status and outcomes",
+          "dependencies": [
+            1,
+            3
+          ],
+          "details": "Develop email notification functionality for successful/failed refreshes. Implement in-app notifications using toast messages or alerts. Create a log of refresh activities accessible to users. Add configuration options for users to customize notification preferences. Ensure notifications include relevant details about the refresh operation.",
+          "status": "pending"
+        }
+      ]
     },
     {
       "id": 15,
@@ -281,7 +370,80 @@
       "status": "pending",
       "dependencies": [],
       "priority": "high",
-      "subtasks": []
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Design and Create Folder Structure",
+          "description": "Define and implement the new folder structure for the modular architecture",
+          "dependencies": [],
+          "details": "Create the main module directories (api, data, ui, utils) with appropriate subdirectories. Document the purpose of each directory and establish naming conventions. Create placeholder README files in each directory explaining its purpose and usage guidelines.",
+          "status": "pending"
+        },
+        {
+          "id": 2,
+          "title": "Implement API Module",
+          "description": "Develop the API module with clear interfaces and documentation",
+          "dependencies": [
+            1
+          ],
+          "details": "Extract all API-related code into the new structure. Create interface definitions, implement service classes, and establish error handling patterns. Document all endpoints and their usage. Ensure backward compatibility with existing code during transition.",
+          "status": "pending"
+        },
+        {
+          "id": 3,
+          "title": "Implement Data Processing Module",
+          "description": "Develop the data processing module with models and transformers",
+          "dependencies": [
+            1
+          ],
+          "details": "Extract all data models, transformers, and processing logic into the data module. Implement clear interfaces between data layer and other modules. Create documentation for data flows and model relationships. Establish patterns for data validation and transformation.",
+          "status": "pending"
+        },
+        {
+          "id": 4,
+          "title": "Implement UI Module",
+          "description": "Refactor UI components into a modular structure with clear separation of concerns",
+          "dependencies": [
+            1,
+            3
+          ],
+          "details": "Reorganize UI components into logical groups. Implement component library with consistent patterns. Create clear interfaces between UI and data/API layers. Document component usage and establish style guidelines. Ensure responsive design principles are maintained.",
+          "status": "pending"
+        },
+        {
+          "id": 5,
+          "title": "Implement Utilities Module",
+          "description": "Create a shared utilities module for common functionality",
+          "dependencies": [
+            1
+          ],
+          "details": "Extract all utility functions into appropriate categories (string manipulation, date handling, etc.). Implement comprehensive unit tests for all utility functions. Create documentation with examples for each utility. Ensure utilities are pure functions where possible.",
+          "status": "pending"
+        },
+        {
+          "id": 6,
+          "title": "Refactor Application Entry Points",
+          "description": "Update main entry points to use the new modular architecture",
+          "dependencies": [
+            2,
+            3,
+            4,
+            5
+          ],
+          "details": "Refactor main application entry points to import and use the new modular structure. Implement dependency injection patterns if applicable. Update initialization sequence to respect module dependencies. Create comprehensive integration tests to verify correct operation.",
+          "status": "pending"
+        },
+        {
+          "id": 7,
+          "title": "Create and Execute Migration Plan",
+          "description": "Develop and implement a phased migration plan for existing code",
+          "dependencies": [
+            6
+          ],
+          "details": "Create a detailed migration plan with phases and milestones. Identify high-risk areas requiring special attention. Implement feature flags to enable gradual transition. Develop comprehensive testing strategy for each migration phase. Document legacy code patterns and their modern replacements.",
+          "status": "pending"
+        }
+      ]
     },
     {
       "id": 17,
@@ -294,7 +456,73 @@
         16
       ],
       "priority": "high",
-      "subtasks": []
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Design Core Service Classes",
+          "description": "Create a comprehensive design for core service classes that will form the foundation of the refactored architecture",
+          "dependencies": [],
+          "details": "Identify all core services in the current codebase. Create UML diagrams showing class relationships, inheritance hierarchies, and interfaces. Define clear responsibilities, methods, and properties for each service class. Ensure proper encapsulation and separation of concerns. Consider performance implications and potential optimization opportunities.",
+          "status": "pending"
+        },
+        {
+          "id": 2,
+          "title": "Implement Data Model Classes",
+          "description": "Convert existing data structures into proper class-based data models with appropriate methods and properties",
+          "dependencies": [
+            1
+          ],
+          "details": "Analyze current data structures and their usage patterns. Design data model classes with appropriate validation, serialization, and type safety. Implement getters/setters and data transformation methods. Ensure backward compatibility with existing code. Add unit tests for each data model class to verify behavior.",
+          "status": "pending"
+        },
+        {
+          "id": 3,
+          "title": "Convert UI Components to Classes",
+          "description": "Refactor UI components into class-based architecture with proper inheritance and composition",
+          "dependencies": [
+            1,
+            2
+          ],
+          "details": "Identify all UI components requiring conversion. Create base component classes and inheritance hierarchies. Implement lifecycle methods, event handling, and state management within the class structure. Ensure rendering logic is properly encapsulated. Test each component individually to verify visual and functional correctness.",
+          "status": "pending"
+        },
+        {
+          "id": 4,
+          "title": "Create Utility Classes",
+          "description": "Refactor utility functions into organized utility classes with static methods and proper namespacing",
+          "dependencies": [
+            1
+          ],
+          "details": "Categorize existing utility functions by domain and purpose. Design utility classes with logical grouping and clear naming conventions. Convert functions to static class methods with improved type safety. Add comprehensive JSDoc documentation. Create unit tests for all utility methods to ensure functionality is preserved.",
+          "status": "pending"
+        },
+        {
+          "id": 5,
+          "title": "Perform Integration Testing",
+          "description": "Conduct thorough integration testing to ensure all refactored classes work together correctly",
+          "dependencies": [
+            2,
+            3,
+            4
+          ],
+          "details": "Create integration test suites covering interactions between refactored components. Test all critical user flows and edge cases. Verify performance metrics against pre-refactoring baseline. Address any integration issues or regressions. Update existing automated tests to work with the new class structure.",
+          "status": "pending"
+        },
+        {
+          "id": 6,
+          "title": "Document Class Architecture",
+          "description": "Create comprehensive documentation for the new class-based architecture",
+          "dependencies": [
+            1,
+            2,
+            3,
+            4,
+            5
+          ],
+          "details": "Generate class diagrams showing the complete architecture. Document design patterns and architectural decisions. Create usage examples for key classes. Document extension points and customization options. Update developer onboarding materials with new architecture information. Include migration guides for any code that needs to be updated by other teams.",
+          "status": "pending"
+        }
+      ]
     },
     {
       "id": 18,
@@ -307,7 +535,36 @@
         17
       ],
       "priority": "medium",
-      "subtasks": []
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Design singleton pattern for core service classes",
+          "description": "Create the basic structure for implementing the singleton pattern in core service classes",
+          "dependencies": [],
+          "details": "1. Identify all core service classes that need to be singletons\n2. Modify each class to have a private constructor\n3. Add a private static instance variable to each class\n4. Create a public static getInstance() method for each class\n5. Document the singleton implementation with appropriate comments",
+          "status": "pending"
+        },
+        {
+          "id": 2,
+          "title": "Implement instance management and initialization logic",
+          "description": "Develop the logic for managing singleton instances and handling initialization",
+          "dependencies": [
+            1
+          ],
+          "details": "1. Implement thread-safe instance creation (using double-checked locking or other appropriate method)\n2. Add lazy initialization to defer object creation until needed\n3. Handle any required initialization parameters for service instances\n4. Implement proper resource cleanup if needed (e.g., in case of application shutdown)\n5. Add error handling for initialization failures",
+          "status": "pending"
+        },
+        {
+          "id": 3,
+          "title": "Integrate singleton services with existing code",
+          "description": "Update existing code to use the singleton pattern for accessing service instances",
+          "dependencies": [
+            2
+          ],
+          "details": "1. Identify all locations in the codebase that create or use service instances\n2. Replace direct instantiation with calls to getInstance()\n3. Update any dependency injection configurations if applicable\n4. Write unit tests to verify singleton behavior\n5. Perform integration testing to ensure services function correctly with the new pattern",
+          "status": "pending"
+        }
+      ]
     },
     {
       "id": 19,
@@ -320,7 +577,49 @@
         17
       ],
       "priority": "medium",
-      "subtasks": []
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Design Sheet Factory Class",
+          "description": "Create the SheetFactory class that will handle the creation of different sheet types",
+          "dependencies": [],
+          "details": "Design and implement the SheetFactory class with a createSheet method that accepts parameters to determine which type of sheet to create. Include appropriate interfaces or abstract classes as needed. Document the factory's public API and ensure it follows SOLID principles.",
+          "status": "pending"
+        },
+        {
+          "id": 2,
+          "title": "Implement Sheet Type Class Hierarchy",
+          "description": "Create the necessary sheet type classes with a common interface or base class",
+          "dependencies": [
+            1
+          ],
+          "details": "Define a common interface or abstract base class for all sheet types. Implement concrete sheet classes for each type of sheet needed. Ensure each sheet type implements the required methods and properties. Document the relationships between classes in the hierarchy.",
+          "status": "pending"
+        },
+        {
+          "id": 3,
+          "title": "Integrate Factory with Existing Code",
+          "description": "Refactor existing sheet creation code to use the new factory pattern",
+          "dependencies": [
+            1,
+            2
+          ],
+          "details": "Identify all locations in the codebase where sheets are currently created. Replace direct instantiation with calls to the SheetFactory. Update any dependent code that might be affected by the new sheet class hierarchy. Ensure backward compatibility where needed.",
+          "status": "pending"
+        },
+        {
+          "id": 4,
+          "title": "Test Factory Pattern Implementation",
+          "description": "Create unit and integration tests for the factory pattern functionality",
+          "dependencies": [
+            1,
+            2,
+            3
+          ],
+          "details": "Write unit tests for the SheetFactory class and each sheet type. Create integration tests to verify the factory works correctly with the rest of the application. Test edge cases and error handling. Verify that all existing functionality continues to work with the new implementation.",
+          "status": "pending"
+        }
+      ]
     },
     {
       "id": 20,
@@ -333,7 +632,56 @@
         17
       ],
       "priority": "medium",
-      "subtasks": []
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Design and implement the EventEmitter class",
+          "description": "Create a core EventEmitter class that will manage subscriptions and event dispatching",
+          "dependencies": [],
+          "details": "Implement a class that provides methods for subscribing to events (on/addEventListener), unsubscribing (off/removeEventListener), and emitting events (emit/dispatchEvent). Include support for event namespacing, multiple listeners per event, and proper memory management for removing listeners. Document the API with clear examples.",
+          "status": "pending"
+        },
+        {
+          "id": 2,
+          "title": "Implement Observable component base class",
+          "description": "Create a base class or mixin that UI components can extend to become observable",
+          "dependencies": [
+            1
+          ],
+          "details": "Build an Observable class or mixin that utilizes the EventEmitter to expose a consistent interface for UI components. Include methods for state changes that automatically trigger appropriate events. Define standard event types and naming conventions. Ensure proper inheritance patterns for existing component hierarchies.",
+          "status": "pending"
+        },
+        {
+          "id": 3,
+          "title": "Implement Observer pattern in UI components",
+          "description": "Modify UI components to observe and react to events from observable components",
+          "dependencies": [
+            2
+          ],
+          "details": "Update UI components to subscribe to events from observable components. Implement handler methods that update the UI in response to state changes. Ensure proper lifecycle management (subscribing when mounted, unsubscribing when unmounted). Create helper methods for common observation patterns.",
+          "status": "pending"
+        },
+        {
+          "id": 4,
+          "title": "Integrate with existing UI update code",
+          "description": "Refactor existing UI update mechanisms to use the new observer pattern",
+          "dependencies": [
+            3
+          ],
+          "details": "Identify all places in the codebase where direct UI updates occur. Replace imperative update calls with the observer pattern. Ensure backward compatibility during transition. Update documentation to reflect the new pattern. Verify that all UI components receive updates appropriately.",
+          "status": "pending"
+        },
+        {
+          "id": 5,
+          "title": "Test observer pattern implementation",
+          "description": "Create comprehensive tests for the observer pattern implementation",
+          "dependencies": [
+            4
+          ],
+          "details": "Write unit tests for the EventEmitter and Observable classes. Create integration tests for observer-observable component pairs. Test edge cases like multiple observers, observer removal, and complex event chains. Implement performance tests to ensure the pattern doesn't introduce significant overhead. Document testing approach and results.",
+          "status": "pending"
+        }
+      ]
     },
     {
       "id": 21,
@@ -346,7 +694,37 @@
         16
       ],
       "priority": "high",
-      "subtasks": []
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Design API Configuration Structure",
+          "description": "Create a standardized structure for centralized API configuration",
+          "dependencies": [],
+          "details": "Define a clear, maintainable structure for API configuration that includes endpoints, authentication methods, headers, and other common parameters. Consider using a hierarchical structure that groups related APIs. Document the structure with examples for team reference.",
+          "status": "pending"
+        },
+        {
+          "id": 2,
+          "title": "Extract Existing API Configuration",
+          "description": "Identify and extract all API configuration from current codebase",
+          "dependencies": [
+            1
+          ],
+          "details": "Scan the codebase to identify all instances of API configuration. Extract endpoint URLs, headers, authentication details, and other configuration parameters. Consolidate these into the new centralized structure defined in the previous subtask. Document any inconsistencies found during extraction.",
+          "status": "pending"
+        },
+        {
+          "id": 3,
+          "title": "Integrate with API Client Code",
+          "description": "Update API client code to use the centralized configuration",
+          "dependencies": [
+            1,
+            2
+          ],
+          "details": "Modify existing API client code to reference the centralized configuration instead of hardcoded values. Create helper functions or methods to easily access the configuration. Test all API calls to ensure they work correctly with the new configuration approach. Update documentation to reflect the new pattern for API configuration usage.",
+          "status": "pending"
+        }
+      ]
     },
     {
       "id": 22,
@@ -360,7 +738,59 @@
         21
       ],
       "priority": "high",
-      "subtasks": []
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Design API client class structure",
+          "description": "Create the architecture and class hierarchy for the unified API client",
+          "dependencies": [],
+          "details": "Define the core API client class with appropriate interfaces, abstract classes, and inheritance patterns. Include method signatures for common operations, error handling strategies, and configuration options. Create UML diagrams to visualize the class relationships. Consider extensibility for future API endpoints and backward compatibility requirements.",
+          "status": "pending"
+        },
+        {
+          "id": 2,
+          "title": "Implement request handling functionality",
+          "description": "Build the core request/response handling mechanisms in the API client",
+          "dependencies": [
+            1
+          ],
+          "details": "Implement methods for different HTTP verbs (GET, POST, PUT, DELETE), request serialization, response deserialization, and error handling. Include support for different content types, query parameters, request headers, and response parsing. Implement retry logic for failed requests and timeout handling. Add comprehensive logging for debugging purposes.",
+          "status": "pending"
+        },
+        {
+          "id": 3,
+          "title": "Integrate authentication mechanisms",
+          "description": "Add support for various authentication methods in the API client",
+          "dependencies": [
+            2
+          ],
+          "details": "Implement authentication strategies including API keys, OAuth, JWT, and session-based authentication. Create interceptors or middleware to automatically apply authentication to requests. Handle token refresh, expiration, and storage. Implement secure credential management and ensure authentication errors are properly handled and reported.",
+          "status": "pending"
+        },
+        {
+          "id": 4,
+          "title": "Implement rate limiting functionality",
+          "description": "Add rate limiting support to prevent API quota exhaustion",
+          "dependencies": [
+            2
+          ],
+          "details": "Create rate limiting mechanisms that respect API provider limits. Implement request queuing, throttling, and backoff strategies. Add monitoring for remaining quota and rate limit headers. Implement circuit breakers to prevent cascading failures during rate limit exhaustion. Ensure the client can handle 429 responses appropriately with automatic retries after the specified cooldown period.",
+          "status": "pending"
+        },
+        {
+          "id": 5,
+          "title": "Migrate existing API calls to the new client",
+          "description": "Update all existing API interactions to use the new unified client",
+          "dependencies": [
+            1,
+            2,
+            3,
+            4
+          ],
+          "details": "Identify all existing API calls throughout the codebase. Create a migration plan with priority order. Refactor each API call to use the new client while maintaining existing functionality. Write tests to ensure behavior remains consistent. Update documentation to reflect the new API client usage patterns. Monitor performance and error rates after migration to ensure improvement.",
+          "status": "pending"
+        }
+      ]
     },
     {
       "id": 23,
@@ -374,7 +804,49 @@
         21
       ],
       "priority": "high",
-      "subtasks": []
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Design Rate Limiter Class",
+          "description": "Create a rate limiter class with configurable request limits and time windows",
+          "dependencies": [],
+          "details": "Design and implement a RateLimiter class that tracks API requests and enforces configurable rate limits. Include methods to check if a request is allowed, track request timestamps, and calculate remaining quota. The class should support different time windows (per second, minute, hour) and maintain request history.",
+          "status": "pending"
+        },
+        {
+          "id": 2,
+          "title": "Implement Backoff Strategy",
+          "description": "Create algorithms for exponential and linear backoff with jitter",
+          "dependencies": [
+            1
+          ],
+          "details": "Implement backoff strategy algorithms including exponential backoff with configurable base and maximum delay, linear backoff, and random jitter to prevent thundering herd problems. Create a BackoffStrategy interface and concrete implementations for different backoff approaches. Include methods to calculate wait times based on retry attempts.",
+          "status": "pending"
+        },
+        {
+          "id": 3,
+          "title": "Develop Retry Mechanism",
+          "description": "Build a retry handler that works with the rate limiter and backoff strategy",
+          "dependencies": [
+            1,
+            2
+          ],
+          "details": "Create a RetryHandler class that integrates with the rate limiter and backoff strategy. Implement logic to detect rate limit errors (429 responses), network failures, and other retryable errors. Include configurable maximum retry attempts, timeout handling, and logging of retry attempts. The handler should apply appropriate backoff delays between retries.",
+          "status": "pending"
+        },
+        {
+          "id": 4,
+          "title": "Integrate with API Client",
+          "description": "Connect rate limiting components with the API client for seamless operation",
+          "dependencies": [
+            1,
+            2,
+            3
+          ],
+          "details": "Integrate the rate limiter, backoff strategy, and retry mechanism with the API client. Modify the API client to use these components for all requests. Implement proper error handling and response processing. Add configuration options to the API client for rate limits, retry attempts, and backoff strategies. Test the integrated solution with various API endpoints and rate limit scenarios.",
+          "status": "pending"
+        }
+      ]
     },
     {
       "id": 24,
@@ -387,7 +859,56 @@
         17
       ],
       "priority": "high",
-      "subtasks": []
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Design Base Model Class",
+          "description": "Create an abstract base model class that defines common properties and methods for all data entities",
+          "dependencies": [],
+          "details": "Implement a BaseModel class that includes: common attributes (ID, timestamps, etc.), serialization/deserialization methods, validation logic, and interfaces for data operations. Consider using inheritance patterns and define abstract methods that child classes must implement.",
+          "status": "pending"
+        },
+        {
+          "id": 2,
+          "title": "Implement Specific Model Classes",
+          "description": "Create concrete model classes for each data type that inherit from the base model",
+          "dependencies": [
+            1
+          ],
+          "details": "For each entity type from the API (e.g., User, Product, Order), create a specific model class that extends BaseModel. Define entity-specific properties, override necessary methods, and implement type-specific validation rules. Ensure proper typing and documentation for each class.",
+          "status": "pending"
+        },
+        {
+          "id": 3,
+          "title": "Develop Data Processing Methods",
+          "description": "Implement methods for data transformation, filtering, and aggregation in each model class",
+          "dependencies": [
+            2
+          ],
+          "details": "Add methods to handle data processing operations like filtering records, transforming data formats, calculating derived values, and aggregating information. Include utility methods for common operations and ensure consistent error handling across all processing methods.",
+          "status": "pending"
+        },
+        {
+          "id": 4,
+          "title": "Create Sheet Conversion Methods",
+          "description": "Implement methods to convert model data to and from spreadsheet formats",
+          "dependencies": [
+            3
+          ],
+          "details": "Add functionality to transform model instances to row/column format for spreadsheets and vice versa. Include header generation, data type conversion, formula handling, and methods to batch process multiple records. Ensure proper handling of special characters and formatting options.",
+          "status": "pending"
+        },
+        {
+          "id": 5,
+          "title": "Integrate with Existing Data Handling Code",
+          "description": "Connect the new model classes with existing data fetching and storage mechanisms",
+          "dependencies": [
+            4
+          ],
+          "details": "Refactor existing data handling code to use the new model classes. Update API service classes to return model instances, modify storage utilities to accept models, and ensure UI components can consume the model data. Write tests to verify proper integration and data flow through the system.",
+          "status": "pending"
+        }
+      ]
     },
     {
       "id": 25,
@@ -402,7 +923,72 @@
         24
       ],
       "priority": "high",
-      "subtasks": []
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Design Base Repository Interface and Class",
+          "description": "Create the foundation interface and abstract base class for the repository pattern",
+          "dependencies": [],
+          "details": "Define the IRepository interface with core CRUD methods. Implement a BaseRepository abstract class that will handle common functionality across all repositories. Include error handling, logging, and basic operation templates. Define the contract for data access operations that all specific repositories will implement.",
+          "status": "pending"
+        },
+        {
+          "id": 2,
+          "title": "Implement Specific Repository Classes",
+          "description": "Create concrete repository implementations for each data type in the application",
+          "dependencies": [
+            1
+          ],
+          "details": "For each entity type (e.g., User, Project, Task), create a dedicated repository class that extends the BaseRepository. Implement type-specific methods and override base methods as needed. Ensure each repository handles the unique requirements of its entity type while maintaining the consistent interface defined by the base repository.",
+          "status": "pending"
+        },
+        {
+          "id": 3,
+          "title": "Implement Data Fetching Methods",
+          "description": "Develop methods for retrieving data from various sources",
+          "dependencies": [
+            1,
+            2
+          ],
+          "details": "Implement GetById, GetAll, Find, and other query methods in each repository. Create specialized query methods for common access patterns. Handle pagination, filtering, and sorting. Ensure proper error handling and performance optimization for data retrieval operations.",
+          "status": "pending"
+        },
+        {
+          "id": 4,
+          "title": "Implement Data Saving Methods",
+          "description": "Develop methods for creating, updating, and deleting data",
+          "dependencies": [
+            1,
+            2
+          ],
+          "details": "Implement Create, Update, Delete, and SaveChanges methods in each repository. Ensure data validation before persistence. Implement transaction support for operations that affect multiple entities. Add optimistic concurrency control where appropriate to prevent data conflicts.",
+          "status": "pending"
+        },
+        {
+          "id": 5,
+          "title": "Integrate Caching Mechanism",
+          "description": "Add caching support to the repository pattern implementation",
+          "dependencies": [
+            3,
+            4
+          ],
+          "details": "Design and implement a caching strategy for frequently accessed data. Add cache invalidation logic for data modifications. Implement configurable cache duration and policies. Create a cache manager that can be injected into repositories. Ensure thread-safety for cache operations in a multi-user environment.",
+          "status": "pending"
+        },
+        {
+          "id": 6,
+          "title": "Migrate Existing Data Access Code",
+          "description": "Refactor current data access code to use the new repository pattern",
+          "dependencies": [
+            2,
+            3,
+            4,
+            5
+          ],
+          "details": "Identify all existing data access code throughout the application. Systematically replace direct data access with repository calls. Update dependency injection configuration to provide repositories. Write tests to verify the migration was successful. Document any API changes for other developers.",
+          "status": "pending"
+        }
+      ]
     },
     {
       "id": 26,
@@ -415,7 +1001,49 @@
         17
       ],
       "priority": "medium",
-      "subtasks": []
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Design and implement cache service class",
+          "description": "Create a cache service class with core functionality for storing and retrieving data",
+          "dependencies": [],
+          "details": "Design a flexible cache service class that supports different data types. Implement methods for get(), set(), has(), and delete() operations. Include support for serialization/deserialization of complex objects. Define appropriate interfaces and implement concrete cache provider (memory-based initially).",
+          "status": "pending"
+        },
+        {
+          "id": 2,
+          "title": "Implement TTL (Time-To-Live) mechanism",
+          "description": "Add expiration functionality to the cache service",
+          "dependencies": [
+            1
+          ],
+          "details": "Extend the cache service to support TTL for cached items. Implement timestamp tracking for each cached item. Create a mechanism to check expiration during retrieval. Add automatic cleanup of expired items (either on-demand or via background process). Include configurable default TTL values.",
+          "status": "pending"
+        },
+        {
+          "id": 3,
+          "title": "Develop cache invalidation methods",
+          "description": "Create strategies for invalidating cache entries based on different scenarios",
+          "dependencies": [
+            1,
+            2
+          ],
+          "details": "Implement pattern-based cache invalidation (e.g., by key prefix). Add support for bulk invalidation operations. Create event-based invalidation triggers for data changes. Develop cache dependencies to allow related items to be invalidated together. Include logging for cache invalidation events for debugging.",
+          "status": "pending"
+        },
+        {
+          "id": 4,
+          "title": "Integrate caching with repository classes",
+          "description": "Modify repository classes to utilize the cache service",
+          "dependencies": [
+            1,
+            2,
+            3
+          ],
+          "details": "Create a caching decorator or wrapper for repository classes. Implement cache-aside pattern (check cache first, then database). Add cache population on database reads. Ensure cache invalidation on writes/updates/deletes. Add configuration options to enable/disable caching per repository or method. Create unit tests to verify correct caching behavior.",
+          "status": "pending"
+        }
+      ]
     },
     {
       "id": 27,
@@ -429,7 +1057,60 @@
         20
       ],
       "priority": "medium",
-      "subtasks": []
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Design UI Controller Class Architecture",
+          "description": "Create the architecture for the UI controller class including interface definition, core methods, and integration points with the application.",
+          "dependencies": [],
+          "details": "Define the UI controller class structure with proper inheritance hierarchy. Identify all required public methods, private methods, and properties. Create UML diagrams showing relationships with other components. Document the controller's responsibilities and boundaries. Include initialization sequence and lifecycle management.",
+          "status": "pending"
+        },
+        {
+          "id": 2,
+          "title": "Implement Modal Dialog Management",
+          "description": "Develop the modal dialog management functionality within the UI controller to handle opening, closing, and state management of modal dialogs.",
+          "dependencies": [
+            1
+          ],
+          "details": "Create methods for opening and closing modal dialogs. Implement z-index management for multiple dialogs. Add support for modal backdrop handling. Develop dialog animation and transition effects. Create dialog state tracking system. Implement methods to handle dialog content loading and unloading.",
+          "status": "pending"
+        },
+        {
+          "id": 3,
+          "title": "Integrate Event Handling System",
+          "description": "Implement the event handling system in the UI controller to manage user interactions and UI events throughout the application.",
+          "dependencies": [
+            1
+          ],
+          "details": "Create event listener registration and management system. Implement event delegation patterns for efficiency. Develop custom event types for UI-specific interactions. Add support for keyboard shortcuts and accessibility events. Create documentation for event naming conventions and usage patterns. Implement event bubbling and capturing logic.",
+          "status": "pending"
+        },
+        {
+          "id": 4,
+          "title": "Develop UI State Management System",
+          "description": "Create a comprehensive state management system within the UI controller to track and update UI component states.",
+          "dependencies": [
+            1,
+            3
+          ],
+          "details": "Implement state object structure with proper immutability patterns. Create state change notification system. Develop methods for component state retrieval and updates. Add support for state history and undo/redo functionality. Implement state persistence for page reloads. Create debugging tools for state inspection.",
+          "status": "pending"
+        },
+        {
+          "id": 5,
+          "title": "Migrate Existing UI Code to New Controller",
+          "description": "Refactor and migrate existing UI code to use the new UI controller architecture.",
+          "dependencies": [
+            1,
+            2,
+            3,
+            4
+          ],
+          "details": "Identify all existing UI code that needs migration. Create migration plan with priority order. Refactor code to use new controller methods and patterns. Update event handlers to use new event system. Migrate state management to new state system. Perform regression testing on migrated components. Document any breaking changes and required updates for other developers.",
+          "status": "pending"
+        }
+      ]
     },
     {
       "id": 28,
@@ -443,7 +1124,37 @@
         27
       ],
       "priority": "medium",
-      "subtasks": []
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Design Loading Manager Class",
+          "description": "Create a class to manage loading states across the application",
+          "dependencies": [],
+          "details": "Design and implement a LoadingManager class that can track multiple loading operations simultaneously. Include methods for starting/stopping loading states with unique identifiers, checking if any loading is in progress, and maintaining a registry of active loading operations. Consider using a singleton pattern for global access.",
+          "status": "pending"
+        },
+        {
+          "id": 2,
+          "title": "Implement UI Update Methods",
+          "description": "Create methods to update UI elements based on loading states",
+          "dependencies": [
+            1
+          ],
+          "details": "Develop methods that connect the LoadingManager to UI elements. Include functionality to show/hide loading indicators, disable/enable interactive elements during loading, and provide visual feedback. Create both global loading indicators (e.g., overlay spinners) and component-specific loading states (e.g., button spinners). Ensure smooth transitions between states.",
+          "status": "pending"
+        },
+        {
+          "id": 3,
+          "title": "Integrate with Application Operations",
+          "description": "Connect loading manager with operations that require loading indicators",
+          "dependencies": [
+            1,
+            2
+          ],
+          "details": "Integrate the LoadingManager with API calls, data processing functions, and other operations that benefit from loading indicators. Create utility functions or decorators to easily wrap async operations with loading state management. Implement error handling to ensure loading states are properly cleared even when operations fail.",
+          "status": "pending"
+        }
+      ]
     },
     {
       "id": 29,
@@ -456,7 +1167,46 @@
         16
       ],
       "priority": "medium",
-      "subtasks": []
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Component Design and Architecture",
+          "description": "Define the overall architecture and design patterns for UI components",
+          "dependencies": [],
+          "details": "Create a comprehensive component architecture document that outlines component hierarchy, state management approach, and component interfaces. Include component lifecycle considerations, prop structures, and reusability patterns. Document naming conventions and folder structure for the component library.",
+          "status": "pending"
+        },
+        {
+          "id": 2,
+          "title": "Core UI Component Implementation",
+          "description": "Develop the essential UI components like buttons, indicators, form elements, etc.",
+          "dependencies": [
+            1
+          ],
+          "details": "Implement the core UI components following the established architecture. Create buttons (primary, secondary, icon buttons), form elements (inputs, checkboxes, radio buttons, dropdowns), indicators (loading spinners, progress bars), and other fundamental components. Ensure components are accessible and follow best practices for keyboard navigation and screen readers.",
+          "status": "pending"
+        },
+        {
+          "id": 3,
+          "title": "Component Styling and Theming",
+          "description": "Implement consistent styling and theming system for all components",
+          "dependencies": [
+            2
+          ],
+          "details": "Develop a theming system that allows for consistent styling across components. Create a design token system for colors, typography, spacing, and other visual properties. Implement light/dark mode support and ensure components respond appropriately to theme changes. Document the styling approach and provide examples of theme customization.",
+          "status": "pending"
+        },
+        {
+          "id": 4,
+          "title": "Integration with Existing UI Code",
+          "description": "Integrate the new component library with the existing UI codebase",
+          "dependencies": [
+            3
+          ],
+          "details": "Replace existing UI elements with the new component library systematically. Create migration guides for developers to adopt the new components. Implement any necessary adapter patterns to ensure backward compatibility. Test the integration thoroughly across different parts of the application to ensure visual consistency and functionality.",
+          "status": "pending"
+        }
+      ]
     },
     {
       "id": 30,
@@ -469,7 +1219,60 @@
         16
       ],
       "priority": "high",
-      "subtasks": []
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Design Error Handler Class Structure",
+          "description": "Create the core error handler class with appropriate methods and properties",
+          "dependencies": [],
+          "details": "Design a centralized ErrorHandler class with a clear interface. Include methods for handling different error severities, error registration, and error processing. Define the class structure, inheritance hierarchy if needed, and core interfaces. Consider making it a singleton or using dependency injection for global access.",
+          "status": "pending"
+        },
+        {
+          "id": 2,
+          "title": "Implement Error Type Classification Logic",
+          "description": "Develop logic to categorize errors by type, severity, and source",
+          "dependencies": [
+            1
+          ],
+          "details": "Create a classification system that categorizes errors by type (validation, network, database, etc.), severity (critical, warning, info), and source. Implement logic to determine error priority and required action based on classification. Include extensible mechanisms to add new error types in the future.",
+          "status": "pending"
+        },
+        {
+          "id": 3,
+          "title": "Develop Error Logging Implementation",
+          "description": "Create comprehensive logging functionality for all error types",
+          "dependencies": [
+            1,
+            2
+          ],
+          "details": "Implement logging mechanisms that record detailed error information including stack traces, context data, and classification details. Support multiple output destinations (console, file, external service). Include formatting options and ensure sensitive data is properly masked. Add rotation and retention policies for log files.",
+          "status": "pending"
+        },
+        {
+          "id": 4,
+          "title": "Design Error Recovery Strategies",
+          "description": "Implement recovery mechanisms for different error scenarios",
+          "dependencies": [
+            2
+          ],
+          "details": "Develop strategies for automatic recovery from non-critical errors. Implement retry mechanisms with exponential backoff for transient failures. Create fallback procedures for critical components. Design circuit breaker patterns to prevent cascading failures. Include mechanisms for graceful degradation when services are unavailable.",
+          "status": "pending"
+        },
+        {
+          "id": 5,
+          "title": "Integrate Error Handler with Application Code",
+          "description": "Connect the error handler to the application and document usage patterns",
+          "dependencies": [
+            1,
+            2,
+            3,
+            4
+          ],
+          "details": "Create integration points throughout the application to use the centralized error handler. Develop middleware or decorators for automatic error handling in key components. Write documentation and examples showing proper usage patterns. Implement global error catching for unhandled exceptions. Create unit tests demonstrating correct error handling behavior.",
+          "status": "pending"
+        }
+      ]
     },
     {
       "id": 31,
@@ -482,7 +1285,37 @@
         30
       ],
       "priority": "medium",
-      "subtasks": []
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Design and implement base error class",
+          "description": "Create a foundational error class that extends the native Error class to serve as the parent for all custom error types",
+          "dependencies": [],
+          "details": "Implement a BaseError class that extends Error with properties for statusCode, isOperational flag, and any other common error attributes. Include proper constructor to handle error messages, error codes, and stack traces. Document the class with JSDoc comments explaining its purpose and usage.",
+          "status": "pending"
+        },
+        {
+          "id": 2,
+          "title": "Implement specific error subclasses",
+          "description": "Create specific error subclasses that extend the base error class for different error scenarios",
+          "dependencies": [
+            1
+          ],
+          "details": "Implement error subclasses such as ValidationError, AuthenticationError, AuthorizationError, NotFoundError, DatabaseError, etc. Each subclass should have appropriate default status codes and properties relevant to its error type. Include constructors that properly call the parent class constructor and set type-specific properties.",
+          "status": "pending"
+        },
+        {
+          "id": 3,
+          "title": "Integrate custom errors with error handler",
+          "description": "Connect the custom error classes with the application's error handling middleware",
+          "dependencies": [
+            1,
+            2
+          ],
+          "details": "Update the error handling middleware to properly identify and process the custom error types. Implement logic to distinguish between operational errors (expected errors) and programming errors (unexpected errors). Ensure proper error responses are sent based on error type, including appropriate status codes and error messages. Add test cases to verify error handling works correctly.",
+          "status": "pending"
+        }
+      ]
     },
     {
       "id": 32,
@@ -496,7 +1329,48 @@
         31
       ],
       "priority": "medium",
-      "subtasks": []
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Design standardized try-catch pattern",
+          "description": "Create a consistent try-catch pattern template that can be used throughout the application",
+          "dependencies": [],
+          "details": "Define the structure of try-catch blocks including error classification, logging format, and recovery strategies. Create documentation with examples of the pattern usage in different scenarios. Consider different error types and appropriate handling strategies for each.",
+          "status": "pending"
+        },
+        {
+          "id": 2,
+          "title": "Develop helper functions for safe operations",
+          "description": "Create utility functions that wrap common operations in try-catch blocks",
+          "dependencies": [
+            1
+          ],
+          "details": "Implement helper functions for common operations like API calls, file operations, and data parsing. Each function should use the standardized try-catch pattern, handle specific error cases, and provide meaningful error messages. Include retry logic where appropriate.",
+          "status": "pending"
+        },
+        {
+          "id": 3,
+          "title": "Implement context gathering for error handling",
+          "description": "Create mechanisms to collect relevant context information when errors occur",
+          "dependencies": [
+            1
+          ],
+          "details": "Develop functions to gather contextual information such as user state, application state, and relevant data at the time of error. Implement a system to attach this context to error objects. Create a structured format for error reporting that includes this context.",
+          "status": "pending"
+        },
+        {
+          "id": 4,
+          "title": "Apply try-catch patterns in key application areas",
+          "description": "Identify and implement the standardized try-catch pattern in critical parts of the application",
+          "dependencies": [
+            1,
+            2,
+            3
+          ],
+          "details": "Identify critical areas of the application that require robust error handling. Implement the standardized try-catch pattern in these areas, using the helper functions and context gathering mechanisms. Focus on user-facing features, data processing functions, and integration points with external systems.",
+          "status": "pending"
+        }
+      ]
     },
     {
       "id": 33,
@@ -507,7 +1381,59 @@
       "status": "pending",
       "dependencies": [],
       "priority": "medium",
-      "subtasks": []
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Design Test Runner Framework",
+          "description": "Create the core test runner framework that will execute test cases and report results",
+          "dependencies": [],
+          "details": "Design and implement a lightweight test runner that works within Google Apps Script constraints. Include functionality for test discovery, execution flow, and result reporting. Consider the unique execution environment of Apps Script and design accordingly to handle asynchronous operations and script timeouts.",
+          "status": "pending"
+        },
+        {
+          "id": 2,
+          "title": "Implement Assertion Utilities",
+          "description": "Develop a comprehensive set of assertion functions for test validation",
+          "dependencies": [
+            1
+          ],
+          "details": "Create assertion utilities that support common test scenarios: equality checks, type validation, array/object comparisons, and exception handling. Ensure clear error messages that help identify test failures quickly. Design the API to be intuitive for developers writing tests.",
+          "status": "pending"
+        },
+        {
+          "id": 3,
+          "title": "Establish Test Organization Structure",
+          "description": "Define conventions for organizing tests and create folder/file structure",
+          "dependencies": [
+            1
+          ],
+          "details": "Create a consistent organization system for test files, including naming conventions, folder structure, and test grouping strategies. Document these conventions for the team. Consider how to separate unit tests from integration tests and how to organize tests to mirror the application structure.",
+          "status": "pending"
+        },
+        {
+          "id": 4,
+          "title": "Implement Initial Test Suite for Core Functionality",
+          "description": "Write the first set of unit tests covering critical core functionality",
+          "dependencies": [
+            1,
+            2,
+            3
+          ],
+          "details": "Develop an initial set of tests for the most critical parts of the application. Focus on core utility functions, data processing logic, and any complex algorithms. Aim for high coverage of essential functionality to establish a baseline for future development.",
+          "status": "pending"
+        },
+        {
+          "id": 5,
+          "title": "Set Up Test Execution Automation",
+          "description": "Create automation for running tests during development and in CI/CD pipelines",
+          "dependencies": [
+            1,
+            4
+          ],
+          "details": "Implement automation scripts to run tests easily during development and as part of deployment processes. Include options for running specific test suites or individual tests. Create reporting mechanisms to track test coverage and results over time. Consider integration with existing CI/CD tools if applicable.",
+          "status": "pending"
+        }
+      ]
     },
     {
       "id": 34,
@@ -520,7 +1446,47 @@
         33
       ],
       "priority": "medium",
-      "subtasks": []
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Define mock object design principles",
+          "description": "Establish the core principles and patterns for creating mock objects in the system",
+          "dependencies": [],
+          "details": "Create documentation outlining the mock object design principles including: isolation strategies, state vs. behavior verification approaches, deterministic behavior guidelines, error simulation capabilities, and consistency patterns across different mock implementations. Include examples of proper mock object usage and anti-patterns to avoid.",
+          "status": "pending"
+        },
+        {
+          "id": 2,
+          "title": "Implement core service mocks",
+          "description": "Create mock implementations for API client and sheet services",
+          "dependencies": [
+            1
+          ],
+          "details": "Develop mock implementations for the API client and sheet services following the established design principles. Include methods to simulate successful responses, error conditions, and network failures. Implement configuration options to control response timing, payload contents, and error scenarios. Ensure mocks maintain proper interface compatibility with real implementations.",
+          "status": "pending"
+        },
+        {
+          "id": 3,
+          "title": "Create mock data generation utilities",
+          "description": "Develop utilities to generate realistic test data for mock objects",
+          "dependencies": [
+            1
+          ],
+          "details": "Build a set of utilities to generate realistic test data for use with mock objects. Include functions for creating random but valid data structures, deterministic sequences, edge case values, and domain-specific test data. Implement factories for common data types and composable generators for complex object structures. Document usage patterns and integration with mock objects.",
+          "status": "pending"
+        },
+        {
+          "id": 4,
+          "title": "Integrate mocks with test framework",
+          "description": "Connect mock implementations with the existing test framework",
+          "dependencies": [
+            2,
+            3
+          ],
+          "details": "Integrate the mock objects and data generation utilities with the test framework. Create helper functions or fixtures to easily inject mocks into test cases. Implement automatic mock reset/cleanup between tests. Add support for recording mock interactions for verification. Document the integration approach and provide examples of complete test cases using the mock system.",
+          "status": "pending"
+        }
+      ]
     },
     {
       "id": 35,
@@ -534,7 +1500,59 @@
         34
       ],
       "priority": "medium",
-      "subtasks": []
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Design Integration Test Framework",
+          "description": "Create a comprehensive design for the integration test framework including test architecture, patterns, and tools selection.",
+          "dependencies": [],
+          "details": "Define the overall integration test architecture, select appropriate testing tools and libraries, establish patterns for test organization, determine how to handle test data, and create guidelines for writing integration tests. Document the framework design decisions and rationale.",
+          "status": "pending"
+        },
+        {
+          "id": 2,
+          "title": "Set Up Test Environment",
+          "description": "Configure and establish the test environment needed for running integration tests.",
+          "dependencies": [
+            1
+          ],
+          "details": "Set up test databases, configure test servers, create Docker containers if needed, establish CI/CD pipeline integration, implement environment variable management, and ensure proper isolation between test environments. Document the environment setup process.",
+          "status": "pending"
+        },
+        {
+          "id": 3,
+          "title": "Implement Core Workflow Tests",
+          "description": "Develop integration tests for core business workflows and processes.",
+          "dependencies": [
+            1,
+            2
+          ],
+          "details": "Identify critical business workflows, create test cases that verify end-to-end functionality, implement tests that cover the main user journeys, establish proper test data setup and teardown, and ensure tests validate the integration points between core components.",
+          "status": "pending"
+        },
+        {
+          "id": 4,
+          "title": "Implement API Integration Tests",
+          "description": "Create tests that verify the correct integration between API endpoints and backend services.",
+          "dependencies": [
+            1,
+            2
+          ],
+          "details": "Develop tests for API authentication, implement tests for all critical API endpoints, verify proper error handling and status codes, test API rate limiting and performance characteristics, and ensure data consistency across API calls.",
+          "status": "pending"
+        },
+        {
+          "id": 5,
+          "title": "Implement UI Integration Tests",
+          "description": "Develop tests that verify the integration between UI components and backend services.",
+          "dependencies": [
+            1,
+            2
+          ],
+          "details": "Set up UI testing tools (like Selenium, Cypress, or Playwright), implement tests for critical user interfaces, verify proper data display and form submissions, test UI workflows that span multiple pages or components, and ensure proper error handling and user feedback in the UI.",
+          "status": "pending"
+        }
+      ]
     },
     {
       "id": 36,
@@ -545,7 +1563,37 @@
       "status": "pending",
       "dependencies": [],
       "priority": "low",
-      "subtasks": []
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Create Documentation Style Guide",
+          "description": "Develop a comprehensive JSDoc style guide for the project that defines standards for all code documentation",
+          "dependencies": [],
+          "details": "Create a documentation style guide that includes: formatting rules, required tags (@param, @returns, etc.), examples of properly documented code, naming conventions, and documentation depth requirements for different code elements. This guide should be stored in a central location accessible to all developers.",
+          "status": "pending"
+        },
+        {
+          "id": 2,
+          "title": "Implement Core Module and Class Documentation",
+          "description": "Apply the documentation style guide to all core modules and classes in the codebase",
+          "dependencies": [
+            1
+          ],
+          "details": "Add or update JSDoc comments for all core modules and classes following the established style guide. Include detailed descriptions of module/class purpose, usage examples, and any important implementation details. Focus on high-level documentation that explains the role of each component in the system.",
+          "status": "pending"
+        },
+        {
+          "id": 3,
+          "title": "Implement Function and Method Documentation",
+          "description": "Document all functions and methods throughout the codebase according to the style guide",
+          "dependencies": [
+            1,
+            2
+          ],
+          "details": "Add or update JSDoc comments for all functions and methods, ensuring proper documentation of parameters, return values, exceptions, and edge cases. Include examples where appropriate, especially for complex functions. Ensure consistency with the documentation style guide and maintain alignment with the higher-level documentation created for modules and classes.",
+          "status": "pending"
+        }
+      ]
     },
     {
       "id": 37,
@@ -562,7 +1610,47 @@
         30
       ],
       "priority": "low",
-      "subtasks": []
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Create Architecture Documentation",
+          "description": "Document the high-level system architecture including system components, interactions, and design patterns",
+          "dependencies": [],
+          "details": "Include system diagrams, architectural decisions, technology stack overview, and system constraints. Document the overall structure, layers, and how different parts of the system interact with each other.",
+          "status": "pending"
+        },
+        {
+          "id": 2,
+          "title": "Develop Module and Component Documentation",
+          "description": "Create detailed documentation for each module and component in the system",
+          "dependencies": [
+            1
+          ],
+          "details": "Document the purpose, functionality, and implementation details of each module. Include class/component diagrams, code organization, and internal workflows. Cover both frontend and backend components with appropriate code examples.",
+          "status": "pending"
+        },
+        {
+          "id": 3,
+          "title": "Document APIs and Data Flows",
+          "description": "Create comprehensive documentation for all APIs and data flows within the system",
+          "dependencies": [
+            1,
+            2
+          ],
+          "details": "Document all API endpoints, request/response formats, authentication mechanisms, and error handling. Include data flow diagrams showing how information moves through the system. Document database schemas and any external service integrations.",
+          "status": "pending"
+        },
+        {
+          "id": 4,
+          "title": "Prepare Configuration and Deployment Documentation",
+          "description": "Document all configuration options and deployment procedures",
+          "dependencies": [
+            1
+          ],
+          "details": "Create documentation covering environment setup, configuration parameters, deployment pipelines, and infrastructure requirements. Include troubleshooting guides, monitoring setup, and maintenance procedures. Document scaling considerations and disaster recovery processes.",
+          "status": "pending"
+        }
+      ]
     },
     {
       "id": 38,
@@ -573,7 +1661,47 @@
       "status": "pending",
       "dependencies": [],
       "priority": "low",
-      "subtasks": []
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Create Installation and Setup Guide",
+          "description": "Develop a comprehensive guide for installing and setting up the software",
+          "dependencies": [],
+          "details": "Include system requirements, step-by-step installation instructions for different operating systems, configuration options, and initial setup procedures. Add screenshots where helpful and verify all steps work as documented.",
+          "status": "pending"
+        },
+        {
+          "id": 2,
+          "title": "Develop Feature Usage Documentation",
+          "description": "Document all features and their usage with examples",
+          "dependencies": [
+            1
+          ],
+          "details": "Create detailed documentation for each feature, including purpose, how to access it, configuration options, and practical usage examples. Include screenshots, use cases, and tips for optimal usage. Organize features logically by category.",
+          "status": "pending"
+        },
+        {
+          "id": 3,
+          "title": "Create Troubleshooting Guide",
+          "description": "Develop a guide addressing common issues and their solutions",
+          "dependencies": [
+            2
+          ],
+          "details": "Identify common problems users might encounter, document error messages, their causes, and step-by-step solutions. Include diagnostic procedures, logs to check, and when to contact support. Test solutions to ensure accuracy.",
+          "status": "pending"
+        },
+        {
+          "id": 4,
+          "title": "Compile FAQ and Best Practices",
+          "description": "Create a collection of frequently asked questions and recommended best practices",
+          "dependencies": [
+            2,
+            3
+          ],
+          "details": "Gather common questions from users or anticipated questions, provide clear answers. Document recommended workflows, optimization tips, and usage patterns that maximize value. Include real-world scenarios and performance considerations.",
+          "status": "pending"
+        }
+      ]
     },
     {
       "id": 39,
@@ -587,7 +1715,69 @@
         25
       ],
       "priority": "medium",
-      "subtasks": []
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Chart Generation Framework Design",
+          "description": "Design and implement a reusable chart generation framework that will serve as the foundation for all visualizations",
+          "dependencies": [],
+          "details": "Create a modular framework that handles data processing, chart configuration, and rendering. Define standard interfaces for different chart types. Implement utility functions for data transformation and formatting. Ensure compatibility with Google Sheets' chart capabilities and APIs. Document the framework architecture and usage guidelines.",
+          "status": "pending"
+        },
+        {
+          "id": 2,
+          "title": "Portfolio Performance Visualization",
+          "description": "Implement visualizations for tracking portfolio performance over time",
+          "dependencies": [
+            1
+          ],
+          "details": "Create line charts showing portfolio value over time. Implement comparison charts against benchmarks. Add performance metrics visualization (e.g., CAGR, Sharpe ratio). Include interactive elements for time period selection. Ensure proper handling of currency conversions and adjustments for deposits/withdrawals.",
+          "status": "pending"
+        },
+        {
+          "id": 3,
+          "title": "Asset Allocation Visualization",
+          "description": "Develop visualizations showing the breakdown of assets in the portfolio",
+          "dependencies": [
+            1
+          ],
+          "details": "Create pie/donut charts for asset class allocation. Implement treemap visualizations for hierarchical asset breakdowns. Add bar charts for sector/industry allocation. Include geographic distribution maps if applicable. Ensure visualizations update dynamically as portfolio changes.",
+          "status": "pending"
+        },
+        {
+          "id": 4,
+          "title": "Transaction History Visualization",
+          "description": "Implement visualizations for transaction history and patterns",
+          "dependencies": [
+            1
+          ],
+          "details": "Create timeline visualizations of buy/sell transactions. Implement heatmaps showing transaction frequency. Add bar charts for transaction volume analysis. Include filtering capabilities by asset type, date range, and transaction type. Ensure proper handling of transaction categories and tagging.",
+          "status": "pending"
+        },
+        {
+          "id": 5,
+          "title": "Dividend Visualization",
+          "description": "Develop visualizations for dividend income and distribution",
+          "dependencies": [
+            1
+          ],
+          "details": "Create bar charts showing dividend income over time. Implement visualizations for dividend yield by asset. Add projections for future dividend income. Include seasonal patterns visualization for dividend payments. Ensure proper handling of dividend reinvestment in calculations.",
+          "status": "pending"
+        },
+        {
+          "id": 6,
+          "title": "Dashboard Integration",
+          "description": "Integrate all visualizations into a cohesive dashboard interface",
+          "dependencies": [
+            2,
+            3,
+            4,
+            5
+          ],
+          "details": "Design a unified dashboard layout. Implement navigation between different visualization sections. Add customization options for user preferences. Ensure responsive design for different screen sizes. Create print/export functionality for reports. Test dashboard performance with large datasets.",
+          "status": "pending"
+        }
+      ]
     },
     {
       "id": 40,
@@ -600,7 +1790,57 @@
         25
       ],
       "priority": "medium",
-      "subtasks": []
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Design Trigger Management System",
+          "description": "Create a system to manage time-based triggers for scheduled refreshes",
+          "dependencies": [],
+          "details": "Design and implement a trigger management system that can schedule and execute data refreshes at specified intervals. Include support for one-time and recurring schedules (hourly, daily, weekly, monthly). Define the data model for storing trigger configurations and implement the core scheduling logic that will activate refreshes at the appropriate times.",
+          "status": "pending"
+        },
+        {
+          "id": 2,
+          "title": "Develop Refresh Configuration UI",
+          "description": "Create user interface components for configuring scheduled refreshes",
+          "dependencies": [
+            1
+          ],
+          "details": "Design and implement UI components that allow users to create, edit, and delete scheduled refreshes. Include options for setting refresh frequency, time windows, data sources to refresh, and notification preferences. Ensure the UI is intuitive and provides clear feedback on the configured schedule.",
+          "status": "pending"
+        },
+        {
+          "id": 3,
+          "title": "Implement Automated Refresh Execution",
+          "description": "Build the system that executes data refreshes based on configured schedules",
+          "dependencies": [
+            1
+          ],
+          "details": "Implement the execution engine that runs when a scheduled refresh is triggered. This should handle the actual data refresh process, including connecting to data sources, fetching updated data, and updating the application's data store. Include error handling, retry logic, and performance optimizations to ensure reliable execution.",
+          "status": "pending"
+        },
+        {
+          "id": 4,
+          "title": "Create Notification System for Refresh Status",
+          "description": "Develop a system to notify users about the status of scheduled refreshes",
+          "dependencies": [
+            3
+          ],
+          "details": "Implement a notification system that alerts users about the status of scheduled refreshes (started, completed, failed). Support multiple notification channels (in-app, email, push notifications) and allow users to configure their notification preferences. Include detailed information about refresh results, including any errors encountered.",
+          "status": "pending"
+        },
+        {
+          "id": 5,
+          "title": "Implement Refresh History Logging",
+          "description": "Create a system to log and display the history of scheduled refreshes",
+          "dependencies": [
+            3,
+            4
+          ],
+          "details": "Design and implement a logging system that records details about each refresh execution, including start time, end time, duration, status, and any errors. Create a UI to display refresh history with filtering and sorting options. Include metrics and statistics about refresh performance over time to help users optimize their refresh schedules.",
+          "status": "pending"
+        }
+      ]
     },
     {
       "id": 41,
@@ -614,7 +1854,84 @@
         25
       ],
       "priority": "medium",
-      "subtasks": []
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Implement Performance Metrics Calculation",
+          "description": "Develop algorithms to calculate key portfolio performance metrics including returns (absolute, relative, annualized), alpha, beta, Sharpe ratio, and Sortino ratio.",
+          "dependencies": [],
+          "details": "Create modular functions for each metric calculation. Ensure time-weighted return calculations account for cash flows. Implement rolling period calculations (1M, 3M, YTD, 1Y, 3Y, 5Y, Max). Include proper error handling for missing data points.",
+          "status": "pending"
+        },
+        {
+          "id": 2,
+          "title": "Develop Sector Allocation Analysis",
+          "description": "Create tools to analyze and visualize portfolio sector allocation, sector drift over time, and sector performance contribution.",
+          "dependencies": [
+            1
+          ],
+          "details": "Implement sector classification mapping system. Create visualization components for current allocation vs benchmark. Develop historical sector drift tracking. Calculate sector attribution analysis to identify performance drivers. Include over/underweight indicators.",
+          "status": "pending"
+        },
+        {
+          "id": 3,
+          "title": "Build Dividend Tracking and Forecasting System",
+          "description": "Implement functionality to track historical dividends and forecast future dividend income based on current holdings and historical patterns.",
+          "dependencies": [
+            1
+          ],
+          "details": "Create dividend calendar visualization. Implement dividend reinvestment simulation. Develop yield calculation and tracking over time. Build forecasting models using historical payout patterns and announced dividends. Include tax impact estimation.",
+          "status": "pending"
+        },
+        {
+          "id": 4,
+          "title": "Implement Risk Assessment Tools",
+          "description": "Develop comprehensive risk analysis tools including volatility metrics, drawdown analysis, VaR calculations, and stress testing capabilities.",
+          "dependencies": [
+            1
+          ],
+          "details": "Implement standard deviation, downside deviation, and maximum drawdown calculations. Create Monte Carlo simulation for portfolio projections. Develop Value at Risk (VaR) with multiple confidence intervals. Build stress testing framework for historical and hypothetical scenarios.",
+          "status": "pending"
+        },
+        {
+          "id": 5,
+          "title": "Create Benchmark Comparison System",
+          "description": "Implement tools to compare portfolio performance against multiple benchmarks with customizable time periods and visualization options.",
+          "dependencies": [
+            1,
+            4
+          ],
+          "details": "Develop benchmark data integration from multiple sources. Create relative performance charts with customizable time periods. Implement tracking error calculations. Build benchmark-relative risk metrics. Include custom benchmark creation functionality.",
+          "status": "pending"
+        },
+        {
+          "id": 6,
+          "title": "Develop Historical Performance Analysis",
+          "description": "Build tools for detailed historical performance analysis including rolling returns, drawdown periods, and performance attribution.",
+          "dependencies": [
+            1,
+            4,
+            5
+          ],
+          "details": "Implement rolling returns visualization for multiple time periods. Create drawdown analysis with recovery time tracking. Develop performance attribution by security, sector, and asset class. Build calendar year and monthly return tables. Include correlation analysis with market factors.",
+          "status": "pending"
+        },
+        {
+          "id": 7,
+          "title": "Integrate Analysis Dashboard",
+          "description": "Create a comprehensive dashboard integrating all analysis components with interactive visualizations and customizable reporting options.",
+          "dependencies": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "details": "Design intuitive UI layout with key metrics prominently displayed. Implement interactive charts with drill-down capabilities. Create customizable dashboard views for different user needs. Develop PDF/Excel report generation. Build alert system for key metric thresholds. Ensure responsive design for multiple devices.",
+          "status": "pending"
+        }
+      ]
     },
     {
       "id": 42,
@@ -628,7 +1945,57 @@
         29
       ],
       "priority": "medium",
-      "subtasks": []
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Implement Responsive Design Framework",
+          "description": "Select and implement a responsive design framework that will serve as the foundation for mobile compatibility.",
+          "dependencies": [],
+          "details": "Research and select an appropriate responsive framework (e.g., Bootstrap, Tailwind CSS). Implement the core responsive grid system. Set up viewport configurations and breakpoints for different device sizes. Create a responsive container structure that will adapt to various screen sizes.",
+          "status": "pending"
+        },
+        {
+          "id": 2,
+          "title": "Adapt UI Components for Mobile",
+          "description": "Modify existing UI components to be mobile-friendly with appropriate sizing and interaction patterns.",
+          "dependencies": [
+            1
+          ],
+          "details": "Resize buttons, form elements, and interactive components for touch targets. Implement collapsible menus and navigation for smaller screens. Adjust typography and spacing for readability on mobile devices. Replace hover interactions with mobile-appropriate alternatives.",
+          "status": "pending"
+        },
+        {
+          "id": 3,
+          "title": "Optimize Touch Interactions",
+          "description": "Enhance the application with touch-specific interactions and gestures for mobile users.",
+          "dependencies": [
+            2
+          ],
+          "details": "Implement swipe gestures for common actions. Add touch feedback (visual/haptic) for interactive elements. Ensure sufficient spacing between clickable elements to prevent touch errors. Replace drag-and-drop interactions with mobile-friendly alternatives where necessary.",
+          "status": "pending"
+        },
+        {
+          "id": 4,
+          "title": "Conduct Mobile Layout Testing",
+          "description": "Test the application on various mobile devices and screen sizes to ensure consistent layout and functionality.",
+          "dependencies": [
+            2,
+            3
+          ],
+          "details": "Create a test matrix covering different device types, screen sizes, and orientations. Test navigation flows and user journeys on mobile devices. Verify that all content is accessible on smaller screens. Document and fix any layout issues or breakpoints problems.",
+          "status": "pending"
+        },
+        {
+          "id": 5,
+          "title": "Optimize Performance for Mobile",
+          "description": "Improve application performance specifically for mobile devices with limited resources and potentially slower connections.",
+          "dependencies": [
+            4
+          ],
+          "details": "Optimize image loading and sizing for mobile screens. Implement lazy loading for content below the fold. Reduce JavaScript payload and execution time for mobile processors. Test and optimize load times on various connection speeds (3G, 4G, etc.). Consider implementing a Progressive Web App approach if appropriate.",
+          "status": "pending"
+        }
+      ]
     },
     {
       "id": 43,
@@ -641,7 +2008,59 @@
         25
       ],
       "priority": "medium",
-      "subtasks": []
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Design Export Format Handler Interface",
+          "description": "Create a flexible interface/abstract class that defines the contract for all export format handlers",
+          "dependencies": [],
+          "details": "Design a robust interface that allows for different export format implementations. Include methods for data transformation, formatting options, and file generation. Consider extensibility for future formats beyond CSV and PDF. Document the interface with clear specifications for implementers.",
+          "status": "pending"
+        },
+        {
+          "id": 2,
+          "title": "Implement CSV Export Functionality",
+          "description": "Develop the CSV export handler implementing the export format interface",
+          "dependencies": [
+            1
+          ],
+          "details": "Create a CSV export implementation that handles data serialization, proper escaping of special characters, column headers, and configurable delimiters. Include options for data filtering and column selection. Implement proper error handling for malformed data.",
+          "status": "pending"
+        },
+        {
+          "id": 3,
+          "title": "Implement PDF Export Functionality",
+          "description": "Develop the PDF export handler implementing the export format interface",
+          "dependencies": [
+            1
+          ],
+          "details": "Create a PDF export implementation that formats data appropriately for PDF documents. Research and integrate a suitable PDF generation library. Implement features for page headers/footers, pagination, and basic styling. Handle complex data types and potential rendering issues.",
+          "status": "pending"
+        },
+        {
+          "id": 4,
+          "title": "Develop Email Delivery System",
+          "description": "Create a system to deliver exported files via email",
+          "dependencies": [
+            2,
+            3
+          ],
+          "details": "Implement an email delivery service that can attach exported files (CSV, PDF) to emails. Include configurable email templates, recipient management, and scheduling capabilities. Ensure proper error handling and delivery status tracking. Consider rate limiting and retry logic for failed deliveries.",
+          "status": "pending"
+        },
+        {
+          "id": 5,
+          "title": "Build Custom Report Template System",
+          "description": "Create a template system allowing users to define custom export formats and layouts",
+          "dependencies": [
+            2,
+            3,
+            4
+          ],
+          "details": "Develop a flexible template system that allows users to define custom report layouts and content. Implement a template editor with preview functionality. Support variable substitution, conditional sections, and formatting options. Create a template storage and management system with version control capabilities.",
+          "status": "pending"
+        }
+      ]
     }
   ]
 }
