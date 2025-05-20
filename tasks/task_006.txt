@@ -1,0 +1,44 @@
+# Task ID: 6
+# Title: Implement Dividend Fetching
+# Status: done
+# Dependencies: 2
+# Priority: medium
+# Description: Create functions to fetch dividend information from the trading platform API.
+# Details:
+1. Implement function to fetch dividends:
+```javascript
+function fetchDividends(dateFrom = null, dateTo = null) {
+  try {
+    let endpoint = '/dividends';
+    const queryParams = [];
+    
+    if (dateFrom) {
+      queryParams.push(`dateFrom=${dateFrom}`);
+    }
+    
+    if (dateTo) {
+      queryParams.push(`dateTo=${dateTo}`);
+    }
+    
+    if (queryParams.length > 0) {
+      endpoint += '?' + queryParams.join('&');
+    }
+    
+    return makeApiRequest(endpoint);
+  } catch (error) {
+    Logger.log(`Failed to fetch dividends: ${error}`);
+    throw error;
+  }
+}
+```
+
+2. Process dividend data to flatten nested structures
+3. Add date formatting for dividend payment dates
+4. Calculate dividend yield if not provided by the API
+
+# Test Strategy:
+1. Test fetching dividends with different date ranges
+2. Verify handling of empty dividend sets
+3. Test with mock data to ensure proper processing of different dividend types
+4. Verify date formatting works correctly
+5. Test error handling for API failures

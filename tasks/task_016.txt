@@ -1,0 +1,37 @@
+# Task ID: 16
+# Title: Refactor: 1.1 Adopt a Consistent Modular Architecture
+# Status: pending
+# Dependencies: None
+# Priority: high
+# Description: Define and implement a clear folder structure with well-defined responsibilities as outlined in the refactoring plan. This aims to resolve issues of inconsistent code organization, mixed styles, unclear module boundaries, and duplicate functionality.
+# Details:
+Current Issues:
+- Inconsistent code organization with mixed styles (classes vs. standalone functions)
+- Unclear module boundaries and responsibilities
+- Duplicate functionality across files
+
+Recommended Changes:
+Adopt a Consistent Modular Architecture by creating a clear folder structure with well-defined responsibilities:
+```
+/
+├── api/                  # API interaction
+│   ├── client.js         # Core API client functionality
+│   ├── endpoints.js      # API endpoint definitions
+│   └── rateLimiter.js    # Rate limiting logic
+├── data/                 # Data processing
+│   ├── processors/       # Data transformation
+│   ├── cache.js          # Caching functionality
+│   └── sheetManager.js   # Sheet interactions
+├── ui/                   # User interface
+│   ├── components/       # Reusable UI components
+│   ├── modals/           # Modal dialogs
+│   └── menu.js           # Menu creation
+├── utils/                # Utilities
+│   ├── logging.js        # Logging functionality
+│   ├── error.js          # Error handling
+│   └── config.js         # Configuration management
+└── main.js               # Entry point
+```
+
+# Test Strategy:
+

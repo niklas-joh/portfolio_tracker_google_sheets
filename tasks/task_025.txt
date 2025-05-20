@@ -1,0 +1,52 @@
+# Task ID: 25
+# Title: Refactor: 4.2 Implement Repository Pattern for Data Access
+# Status: pending
+# Dependencies: 17, 18, 24
+# Priority: high
+# Description: Implement the Repository design pattern for data access and management. Create repository classes (e.g., BaseRepository, PiesRepository) to abstract data source interactions (API, sheets) and manage data models.
+# Details:
+Current Issues:
+- Complex data transformation logic
+- Inconsistent sheet updating approach
+
+Recommended Changes:
+Implement Repository Pattern for Data Access. Example:
+```javascript
+/**
+ * Base repository class for data access.
+ */
+class BaseRepository {
+  constructor(sheetName) {
+    this.sheetName = sheetName;
+    this.sheet = this.getOrCreateSheet();
+  }
+  
+  getOrCreateSheet() {
+    // Implementation...
+  }
+  
+  save(models) {
+    // Implementation...
+  }
+}
+
+/**
+ * Pies repository for pie data management.
+ */
+class PiesRepository extends BaseRepository {
+  async fetchAll() {
+    const apiClient = ApiClient.getInstance();
+    const data = await apiClient.get('equity/pies');
+    return data.items.map(item => new PieModel(item));
+  }
+  
+  saveAll(pies) {
+    const headers = ['ID', 'Name', 'Value', 'Items'];
+    const rows = pies.map(pie => pie.toSheetRow());
+    super.writeData(headers, rows);
+  }
+}
+```
+
+# Test Strategy:
+

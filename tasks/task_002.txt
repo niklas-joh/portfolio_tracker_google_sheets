@@ -1,0 +1,77 @@
+# Task ID: 2
+# Title: Implement API Utility Functions
+# Status: done
+# Dependencies: 1
+# Priority: high
+# Description: Create utility functions for making API requests to the trading platform with proper error handling and rate limiting.
+# Details:
+1. Implement a base API request function with error handling:
+```javascript
+function makeApiRequest(endpoint, method = 'GET', payload = null) {
+  const config = getApiConfig();
+  if (!config.apiKey) {
+    throw new Error('API key not configured');
+  }
+  
+  const baseUrl = config.environment === 'prod' 
+    ? 'https://api.trading212.com/v1' 
+    : 'https://demo.trading212.com/v1';
+    
+  const options = {
+    method: method,
+    headers: {
+      'Authorization': `Bearer ${config.apiKey}`,
+      'Content-Type': 'application/json'
+    },
+    muteHttpExceptions: true
+  };
+  
+  if (payload && (method === 'POST' || method === 'PUT')) {
+    options.payload = JSON.stringify(payload);
+  }
+  
+  // Implement caching for GET requests
+  const cacheKey = `${endpoint}_${method}`;
+  const cache = CacheService.getScriptCache();
+  const cachedResponse = method === 'GET' ? cache.get(cacheKey) : null;
+  
+  if (cachedResponse) {
+    return JSON.parse(cachedResponse);
+  }
+  
+  // Implement rate limiting
+  Utilities.sleep(200); // Simple rate limiting
+  
+  try {
+    const response = UrlFetchApp.fetch(`${baseUrl}${endpoint}`, options);
+    const responseCode = response.getResponseCode();
+    const responseText = response.getContentText();
+    
+    if (responseCode >= 200 && responseCode < 300) {
+      const responseData = JSON.parse(responseText);
+      
+      // Cache successful GET responses for 5 minutes
+      if (method === 'GET') {
+        cache.put(cacheKey, responseText, 300);
+      }
+      
+      return responseData;
+    } else {
+      throw new Error(`API Error (${responseCode}): ${responseText}`);
+    }
+  } catch (error) {
+    Logger.log(`API Request Failed: ${error.toString()}`);
+    throw error;
+  }
+}
+```
+2. Create specialized functions for different API endpoints
+3. Implement retry logic for failed requests
+4. Add proper logging for debugging purposes
+
+# Test Strategy:
+1. Test API connection with valid and invalid API keys
+2. Verify error handling works correctly for various error scenarios
+3. Test rate limiting by making multiple consecutive requests
+4. Verify caching works by checking response times for repeated requests
+5. Test with mock responses to simulate different API scenarios

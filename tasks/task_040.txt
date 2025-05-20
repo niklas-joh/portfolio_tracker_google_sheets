@@ -1,0 +1,60 @@
+# Task ID: 40
+# Title: Feature: 9.2 Scheduled Refreshes
+# Status: pending
+# Dependencies: 25
+# Priority: medium
+# Description: Add functionality to automatically refresh portfolio data on a configurable schedule (e.g., daily, hourly) using time-driven triggers. Implement optional email notifications for significant portfolio changes.
+# Details:
+New Features:
+Scheduled Refreshes
+- Add functionality to automatically refresh data on a schedule
+- Implement configurable refresh intervals (daily, hourly, etc.)
+- Add email notifications for significant portfolio changes
+
+Example implementation for scheduled refreshes:
+```javascript
+/**
+ * Sets up a time-driven trigger to refresh data on a schedule.
+ * 
+ * @param {string} frequency - The frequency of the refresh ('hourly', 'daily', 'weekly').
+ */
+function setupScheduledRefresh(frequency) {
+  // Delete any existing triggers
+  const triggers = ScriptApp.getProjectTriggers();
+  for (const trigger of triggers) {
+    if (trigger.getHandlerFunction() === 'refreshPortfolioData') {
+      ScriptApp.deleteTrigger(trigger);
+    }
+  }
+  
+  // Create new trigger based on frequency
+  switch (frequency) {
+    case 'hourly':
+      ScriptApp.newTrigger('refreshPortfolioData')
+        .timeBased()
+        .everyHours(1)
+        .create();
+      break;
+    case 'daily':
+      ScriptApp.newTrigger('refreshPortfolioData')
+        .timeBased()
+        .everyDays(1)
+        .atHour(6) // 6 AM
+        .create();
+      break;
+    case 'weekly':
+      ScriptApp.newTrigger('refreshPortfolioData')
+        .timeBased()
+        .onWeekDay(ScriptApp.WeekDay.MONDAY)
+        .atHour(6) // 6 AM
+        .create();
+      break;
+  }
+  
+  // Save the configuration
+  PropertiesService.getUserProperties().setProperty('REFRESH_FREQUENCY', frequency);
+}
+```
+
+# Test Strategy:
+

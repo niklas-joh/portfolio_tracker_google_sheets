@@ -1,0 +1,59 @@
+# Task ID: 43
+# Title: Feature: 9.5 Data Export Options
+# Status: pending
+# Dependencies: 25
+# Priority: medium
+# Description: Add functionality to export portfolio data in various formats (CSV, PDF) and implement options for email report delivery and custom report templates. This will provide users with more flexibility in accessing and sharing their data.
+# Details:
+New Features:
+Data Export Options
+- Add functionality to export portfolio data in various formats (CSV, PDF)
+- Create email report delivery options
+- Implement custom report templates
+
+Example implementation for CSV export:
+```javascript
+/**
+ * Exports portfolio data to CSV.
+ * 
+ * @param {string} sheetName - The name of the sheet to export.
+ * @returns {string} CSV data as a string.
+ */
+function exportSheetToCsv(sheetName) {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetName);
+  const data = sheet.getDataRange().getValues();
+  
+  // Convert to CSV
+  const csv = data.map(row => row.join(',')).join('\n');
+  
+  return csv;
+}
+
+/**
+ * Creates and emails a portfolio report.
+ * 
+ * @param {string} email - The email address to send the report to.
+ * @param {string} reportType - The type of report to generate ('summary', 'detailed').
+ */
+function emailPortfolioReport(email, reportType) {
+  // Generate report data
+  const reportData = generatePortfolioReport(reportType);
+  
+  // Export to CSV
+  const csv = exportSheetToCsv(reportData.sheetName);
+  
+  // Create blob
+  const blob = Utilities.newBlob(csv, 'text/csv', `Portfolio_Report_${new Date().toISOString().slice(0, 10)}.csv`);
+  
+  // Send email
+  MailApp.sendEmail({
+    to: email,
+    subject: 'Your Trading212 Portfolio Report',
+    body: 'Please find your portfolio report attached.',
+    attachments: [blob]
+  });
+}
+```
+
+# Test Strategy:
+

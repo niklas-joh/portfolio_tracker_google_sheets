@@ -1,0 +1,42 @@
+# Task ID: 12
+# Title: Implement Main Menu and Entry Points
+# Status: done
+# Dependencies: 10, 11
+# Priority: high
+# Description: Create the main menu and entry points for the Google Apps Script.
+# Details:
+1. Implement onOpen function to create custom menu:
+```javascript
+function onOpen() {
+  const ui = SpreadsheetApp.getUi();
+  ui.createMenu('Portfolio Tracker')
+    .addItem('Configure API', 'showApiConfigModal')
+    .addItem('Fetch Data', 'showDataFetchModal')
+    .addSeparator()
+    .addItem('About', 'showAboutDialog')
+    .addToUi();
+}
+```
+
+2. Implement about dialog:
+```javascript
+function showAboutDialog() {
+  const ui = SpreadsheetApp.getUi();
+  ui.alert(
+    'Portfolio Tracker',
+    'This Google Apps Script connects to your trading platform to fetch and display portfolio data.\n\n' +
+    'Version: 1.0.0\n' +
+    'Created by: Your Name\n\n' +
+    'To get started, configure your API key using the "Configure API" menu item.',
+    ui.ButtonSet.OK
+  );
+}
+```
+
+3. Add function to initialize the spreadsheet with default sheets if needed
+
+# Test Strategy:
+1. Test onOpen trigger to ensure menu is created
+2. Verify all menu items work correctly
+3. Test about dialog appearance
+4. Verify initialization of default sheets

@@ -1,0 +1,35 @@
+# Task ID: 19
+# Title: Refactor: 2.2 Use Factory Pattern for Sheet Creation
+# Status: pending
+# Dependencies: 17
+# Priority: medium
+# Description: Implement the Factory design pattern for creating different types of Google Sheets. This will centralize sheet creation logic and make it easier to add new sheet types.
+# Details:
+Current Issues:
+- Lack of consistent design patterns
+- Mixed approach to similar problems
+
+Recommended Changes:
+Use Factory Pattern for Sheet Creation. Example:
+```javascript
+/**
+ * Factory for creating different types of sheets.
+ */
+class SheetFactory {
+  static createSheet(type, name) {
+    switch (type) {
+      case 'account':
+        return new AccountSheet(name);
+      case 'transactions':
+        return new TransactionsSheet(name);
+      case 'pies':
+        return new PiesSheet(name);
+      default:
+        return new BaseSheet(name);
+    }
+  }
+}
+```
+
+# Test Strategy:
+

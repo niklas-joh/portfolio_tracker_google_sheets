@@ -1,0 +1,41 @@
+# Task ID: 22
+# Title: Refactor: 3.2 Create a Unified API Client
+# Status: pending
+# Dependencies: 17, 21
+# Priority: high
+# Description: Develop a unified API client class (e.g., Trading212ApiClient) to handle all interactions with the Trading212 API. This client should use the centralized API configuration and incorporate rate limiting.
+# Details:
+Current Issues:
+- Inconsistent API request handling
+- Duplicate API call functions
+
+Recommended Changes:
+Create a Unified API Client. Example:
+```javascript
+/**
+ * Unified API client for all Trading212 API interactions.
+ */
+class Trading212ApiClient {
+  constructor(environment = 'demo') {
+    this.domain = API_CONFIG.domains[environment];
+    this.baseUrl = `${this.domain}${API_CONFIG.version}`;
+    this.rateLimiter = new RateLimiter(API_CONFIG.rateLimits);
+  }
+  
+  async get(endpoint, params = {}) {
+    const url = this.buildUrl(endpoint, params);
+    const rateLimitStatus = this.rateLimiter.canProceed(endpoint);
+    
+    if (!rateLimitStatus.proceed) {
+      await new Promise(resolve => setTimeout(resolve, rateLimitStatus.waitTime));
+    }
+    
+    return this.fetchWithAuth(url);
+  }
+  
+  // Other methods...
+}
+```
+
+# Test Strategy:
+

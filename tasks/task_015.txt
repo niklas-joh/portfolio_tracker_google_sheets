@@ -1,0 +1,132 @@
+# Task ID: 15
+# Title: Implement Data Analysis and Summary Dashboard
+# Status: pending
+# Dependencies: 9
+# Priority: low
+# Description: Create a summary dashboard sheet with key portfolio metrics and charts.
+# Details:
+1. Implement function to create summary dashboard:
+```javascript
+function createSummaryDashboard() {
+  const sheet = getOrCreateSheet('Dashboard');
+  sheet.clear();
+  
+  // Set up dashboard layout
+  sheet.getRange('A1:C1').merge().setValue('PORTFOLIO SUMMARY').setFontWeight('bold').setHorizontalAlignment('center');
+  sheet.getRange('A1:C1').setBackground('#f3f3f3');
+  
+  // Account summary section
+  sheet.getRange('A3').setValue('Account Summary').setFontWeight('bold');
+  sheet.getRange('A4').setValue('Total Cash Balance:');
+  sheet.getRange('A5').setValue('Total Portfolio Value:');
+  sheet.getRange('A6').setValue('Total Profit/Loss:');
+  
+  // Transaction summary section
+  sheet.getRange('A8').setValue('Transaction Summary').setFontWeight('bold');
+  sheet.getRange('A9').setValue('Total Buy Transactions:');
+  sheet.getRange('A10').setValue('Total Sell Transactions:');
+  sheet.getRange('A11').setValue('Total Fees Paid:');
+  
+  // Dividend summary section
+  sheet.getRange('A13').setValue('Dividend Summary').setFontWeight('bold');
+  sheet.getRange('A14').setValue('Total Dividends Received:');
+  sheet.getRange('A15').setValue('Dividend Yield:');
+  
+  // Add formulas to calculate values from other sheets
+  updateDashboardValues();
+  
+  // Add charts
+  addPortfolioCharts(sheet);
+  
+  return sheet;
+}
+
+function updateDashboardValues() {
+  const sheet = getOrCreateSheet('Dashboard');
+  const cashBalanceSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Cash Balance');
+  const transactionsSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Transactions');
+  const dividendsSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Dividends');
+  
+  // Update cash balance if available
+  if (cashBalanceSheet && cashBalanceSheet.getLastRow() > 1) {
+    const cashRange = cashBalanceSheet.getRange(2, 4, cashBalanceSheet.getLastRow() - 1, 1);
+    sheet.getRange('B4').setFormula('=SUM(\'' + cashBalanceSheet.getName() + '\'!D2:D)');
+    sheet.getRange('B4').setNumberFormat('$#,##0.00');
+  }
+  
+  // Update transaction data if available
+  if (transactionsSheet && transactionsSheet.getLastRow() > 1) {
+    // Count buy transactions
+    sheet.getRange('B9').setFormula('=COUNTIFS(\'' + transactionsSheet.getName() + '\'!D:D,"BUY")');
+    
+    // Count sell transactions
+    sheet.getRange('B10').setFormula('=COUNTIFS(\'' + transactionsSheet.getName() + '\'!D:D,"SELL")');
+    
+    // Sum fees
+    sheet.getRange('B11').setFormula('=SUM(\'' + transactionsSheet.getName() + '\'!I:I)');
+    sheet.getRange('B11').setNumberFormat('$#,##0.00');
+  }
+  
+  // Update dividend data if available
+  if (dividendsSheet && dividendsSheet.getLastRow() > 1) {
+    // Sum dividends
+    sheet.getRange('B14').setFormula('=SUM(\'' + dividendsSheet.getName() + '\'!D:D)');
+    sheet.getRange('B14').setNumberFormat('$#,##0.00');
+  }
+}
+
+function addPortfolioCharts(sheet) {
+  // Implementation depends on available data and desired charts
+  // This would create charts based on transaction history, portfolio composition, etc.
+}
+```
+
+2. Implement functions to calculate key portfolio metrics
+3. Create charts for portfolio composition, performance over time, etc.
+4. Add refresh button to update dashboard data
+5. Implement conditional formatting for positive/negative values
+
+# Test Strategy:
+1. Test dashboard creation with various data scenarios
+2. Verify formulas correctly calculate values from other sheets
+3. Test chart creation and appearance
+4. Verify dashboard refresh functionality
+5. Test conditional formatting for different value ranges
+
+# Subtasks:
+## 1. Design dashboard layout and structure [pending]
+### Dependencies: None
+### Description: Create the overall layout and structure for the data analysis and summary dashboard
+### Details:
+Design a clean, intuitive dashboard layout with designated sections for account summary, transaction details, dividend analysis, and portfolio visualization. Create placeholders for all major components and establish a consistent visual style. Include navigation elements if needed and ensure the layout is scalable for future additions.
+
+## 2. Implement account summary calculations [pending]
+### Dependencies: 15.1
+### Description: Develop formulas and logic to calculate and display key account metrics
+### Details:
+Create formulas to calculate total account value, cash balance, invested amount, unrealized gains/losses, and overall performance metrics. Implement conditional formatting to highlight positive/negative changes. Ensure calculations pull data correctly from relevant sheets and handle edge cases like missing data.
+
+## 3. Create transaction summary metrics [pending]
+### Dependencies: 15.1
+### Description: Build transaction analysis section with key metrics and filtering capabilities
+### Details:
+Develop summary tables showing transaction counts by type, recent transactions, and transaction totals. Implement filtering options by date range, transaction type, and account. Create formulas to calculate transaction trends over time and highlight unusual activity. Ensure proper data connections to transaction source sheets.
+
+## 4. Develop dividend analysis features [pending]
+### Dependencies: 15.1, 15.2
+### Description: Implement dividend tracking, projection, and analysis components
+### Details:
+Create dividend calendar showing past and projected payments. Implement formulas to calculate dividend yield, growth rate, and annual income projections. Develop visualizations showing dividend income trends and distribution across holdings. Ensure accurate data pulling from dividend history sheets.
+
+## 5. Implement portfolio visualization charts [pending]
+### Dependencies: 15.1, 15.2
+### Description: Create interactive charts and graphs to visualize portfolio composition and performance
+### Details:
+Develop pie/donut charts showing asset allocation by sector, asset type, and geography. Create performance line charts showing portfolio value over time. Implement comparison charts for benchmarking against indices. Add interactive elements like tooltips and filtering options where possible.
+
+## 6. Create dashboard refresh/update mechanisms [pending]
+### Dependencies: 15.2, 15.3, 15.4, 15.5
+### Description: Implement functionality to keep dashboard data current and accurate
+### Details:
+Develop refresh buttons or automatic update triggers to recalculate all dashboard components. Implement timestamp indicators showing when data was last updated. Create error handling for missing or inconsistent data sources. Test update mechanisms under various scenarios to ensure reliability.
+

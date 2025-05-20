@@ -1,0 +1,75 @@
+# Task ID: 9
+# Title: Implement Data Writing Functions
+# Status: done
+# Dependencies: 3, 4, 5, 6, 7, 8
+# Priority: high
+# Description: Create functions to write fetched data to the appropriate sheets with proper formatting.
+# Details:
+1. Implement generic function to write data to a sheet:
+```javascript
+function writeDataToSheet(sheetName, data, headers, formatConfigs = []) {
+  if (!data || data.length === 0) {
+    Logger.log(`No data to write to ${sheetName}`);
+    return;
+  }
+  
+  const sheet = clearSheetData(sheetName);
+  setSheetHeaders(sheetName, headers);
+  
+  // Prepare rows for writing
+  const rows = data.map(item => {
+    return headers.map(header => {
+      const value = item[header] || '';
+      return value;
+    });
+  });
+  
+  // Write data
+  sheet.getRange(2, 1, rows.length, headers.length).setValues(rows);
+  
+  // Apply formatting
+  formatSheetColumns(sheet, formatConfigs);
+  
+  // Auto-resize columns for better readability
+  sheet.autoResizeColumns(1, headers.length);
+}
+```
+
+2. Implement specific functions for each data type:
+```javascript
+function writeAccountInfoToSheet(data) {
+  const headers = ['accountId', 'accountName', 'currency', 'type', 'status'];
+  const formatConfigs = [];
+  writeDataToSheet('Account Info', data, headers, formatConfigs);
+}
+
+function writeCashBalanceToSheet(data) {
+  const headers = ['accountId', 'accountName', 'currency', 'amount', 'updatedAt'];
+  const formatConfigs = [
+    { column: 4, startRow: 2, format: 'currency' },
+    { column: 5, startRow: 2, format: 'datetime' }
+  ];
+  writeDataToSheet('Cash Balance', data, headers, formatConfigs);
+}
+
+function writeTransactionsToSheet(data) {
+  const headers = ['id', 'accountId', 'instrumentId', 'type', 'direction', 'quantity', 'price', 'amount', 'fee', 'date', 'status'];
+  const formatConfigs = [
+    { column: 6, startRow: 2, format: 'number' },
+    { column: 7, startRow: 2, format: 'currency' },
+    { column: 8, startRow: 2, format: 'currency' },
+    { column: 9, startRow: 2, format: 'currency' },
+    { column: 10, startRow: 2, format: 'datetime' }
+  ];
+  writeDataToSheet('Transactions', data, headers, formatConfigs);
+}
+```
+
+3. Implement similar functions for orders, dividends, instruments, and pies
+
+# Test Strategy:
+1. Test writing different data types to sheets
+2. Verify formatting is correctly applied
+3. Test handling of empty data sets
+4. Test with mock data to ensure proper data transformation
+5. Verify auto-resizing of columns works correctly

@@ -1,0 +1,56 @@
+# Task ID: 24
+# Title: Refactor: 4.1 Create Data Model Classes
+# Status: pending
+# Dependencies: 17
+# Priority: high
+# Description: Develop data model classes (e.g., BaseModel, PieModel) to represent data entities fetched from the API. These classes should encapsulate data processing logic and provide methods for converting data to sheet rows.
+# Details:
+Current Issues:
+- Complex data transformation logic
+- Inconsistent sheet updating approach
+
+Recommended Changes:
+Create Data Model Classes. Example:
+```javascript
+/**
+ * Base model class for data entities.
+ */
+class BaseModel {
+  constructor(data) {
+    this.rawData = data;
+    this.processData();
+  }
+  
+  processData() {
+    // Default implementation
+  }
+  
+  toSheetRow() {
+    // Convert to array for sheet row
+  }
+}
+
+/**
+ * Pie model for investment pies.
+ */
+class PieModel extends BaseModel {
+  processData() {
+    this.id = this.rawData.id;
+    this.name = this.rawData.name;
+    this.value = this.rawData.value;
+    this.items = (this.rawData.items || []).map(item => new PieItemModel(item));
+  }
+  
+  toSheetRow() {
+    return [
+      this.id,
+      this.name,
+      this.value,
+      this.items.map(item => item.name).join(', ')
+    ];
+  }
+}
+```
+
+# Test Strategy:
+

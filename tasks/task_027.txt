@@ -1,0 +1,38 @@
+# Task ID: 27
+# Title: Refactor: 5.1 Create a UI Controller
+# Status: pending
+# Dependencies: 17, 20
+# Priority: medium
+# Description: Develop a dedicated UI controller class to manage user interface interactions, such as showing modals and handling UI events. This will centralize UI logic and improve code organization.
+# Details:
+Current Issues:
+- Complex UI initialization
+- Limited feedback mechanisms
+- Inconsistent UI handling
+
+Recommended Changes:
+Create a UI Controller. Example:
+```javascript
+/**
+ * Controller for UI management.
+ */
+class UiController {
+  constructor() {
+    this.eventEmitter = new EventEmitter();
+  }
+  
+  showModal(templateName, title, options = {}) {
+    const html = this.createModalHtml(templateName, options);
+    SpreadsheetApp.getUi().showModalDialog(html, title);
+  }
+  
+  createModalHtml(templateName, options) {
+    // Implementation...
+  }
+  
+  // Other methods...
+}
+```
+
+# Test Strategy:
+

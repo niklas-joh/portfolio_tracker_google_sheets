@@ -1,0 +1,20 @@
+# Task ID: 38
+# Title: Refactor: 8.3 Create User Documentation
+# Status: pending
+# Dependencies: None
+# Priority: low
+# Description: Develop user-friendly documentation covering installation, setup, data fetching, sheet customization, and troubleshooting. This will help users effectively utilize the add-on.
+# Details:
+Current Issues:
+- Limited user guides
+
+Recommended Changes:
+Create User Documentation. Create user-friendly guides for:
+- Installation and setup
+- Connecting to Trading212 API
+- Fetching and updating data
+- Customizing sheets and reports
+- Troubleshooting common issues
+
+# Test Strategy:
+

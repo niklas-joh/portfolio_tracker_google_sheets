@@ -1,0 +1,39 @@
+# Task ID: 36
+# Title: Refactor: 8.1 Standardize Code Documentation
+# Status: pending
+# Dependencies: None
+# Priority: low
+# Description: Adopt and apply a consistent JSDoc style for documenting all functions, classes, and modules. This will improve code readability and maintainability.
+# Details:
+Current Issues:
+- Inconsistent documentation style
+- Missing documentation for key functionality
+
+Recommended Changes:
+Standardize Code Documentation. Adopt a consistent JSDoc style for all functions and classes:
+```javascript
+/**
+ * Fetches investment pies from the Trading212 API.
+ * 
+ * @async
+ * @function fetchPies
+ * @param {Object} [options] - Optional configuration for the fetch operation.
+ * @param {number} [options.limit=20] - Maximum number of pies to fetch.
+ * @param {string} [options.cursor] - Cursor for pagination.
+ * @returns {Promise<Array<PieModel>>} Array of pie models.
+ * @throws {ApiError} When the API request fails.
+ * 
+ * @example
+ * // Fetch pies with default options
+ * const pies = await fetchPies();
+ * 
+ * // Fetch pies with custom options
+ * const pies = await fetchPies({ limit: 50 });
+ */
+async function fetchPies(options = {}) {
+  // Implementation...
+}
+```
+
+# Test Strategy:
+

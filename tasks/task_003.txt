@@ -1,0 +1,50 @@
+# Task ID: 3
+# Title: Implement Account Information Fetching
+# Status: done
+# Dependencies: 2
+# Priority: high
+# Description: Create functions to fetch account information and cash balance from the trading platform API.
+# Details:
+1. Implement function to fetch account information:
+```javascript
+function fetchAccountInfo() {
+  try {
+    return makeApiRequest('/accounts');
+  } catch (error) {
+    Logger.log(`Failed to fetch account info: ${error}`);
+    throw error;
+  }
+}
+```
+
+2. Implement function to fetch cash balance:
+```javascript
+function fetchCashBalance() {
+  try {
+    const accounts = fetchAccountInfo();
+    const balances = [];
+    
+    for (const account of accounts) {
+      const balance = makeApiRequest(`/accounts/${account.id}/cash`);
+      balances.push({
+        accountId: account.id,
+        accountName: account.name,
+        ...balance
+      });
+    }
+    
+    return balances;
+  } catch (error) {
+    Logger.log(`Failed to fetch cash balance: ${error}`);
+    throw error;
+  }
+}
+```
+
+3. Process and flatten the account data structure for easier handling in sheets
+
+# Test Strategy:
+1. Test fetching account information with valid API credentials
+2. Verify cash balance retrieval works for different account types
+3. Test error scenarios (e.g., API unavailable, rate limited)
+4. Verify data structure matches expected format for sheet writing

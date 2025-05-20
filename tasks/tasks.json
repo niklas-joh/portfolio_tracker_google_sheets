@@ -1,0 +1,647 @@
+{
+  "tasks": [
+    {
+      "id": 1,
+      "title": "Setup Project Structure and API Configuration",
+      "description": "Create the initial project structure in Google Apps Script and implement API configuration functionality for the trading platform.",
+      "details": "1. Create a new Google Apps Script project\n2. Set up the basic file structure:\n   - `Config.gs`: Store API configuration and constants\n   - `ApiUtils.gs`: API utility functions\n   - `DataFetcher.gs`: Functions to fetch data from API\n   - `SheetManager.gs`: Functions to manage sheets\n   - `UI.gs`: UI components\n   - `Main.gs`: Main entry point and menu setup\n3. Implement configuration storage using PropertiesService:\n```javascript\nfunction saveApiConfig(apiKey, environment) {\n  const scriptProperties = PropertiesService.getScriptProperties();\n  scriptProperties.setProperty('API_KEY', apiKey);\n  scriptProperties.setProperty('ENVIRONMENT', environment);\n  return true;\n}\n\nfunction getApiConfig() {\n  const scriptProperties = PropertiesService.getScriptProperties();\n  return {\n    apiKey: scriptProperties.getProperty('API_KEY'),\n    environment: scriptProperties.getProperty('ENVIRONMENT')\n  };\n}\n```\n4. Create constants for API endpoints based on environment\n5. Set up onOpen trigger to create custom menu",
+      "testStrategy": "1. Verify project structure is correctly set up with all necessary files\n2. Test saving and retrieving API configuration\n3. Confirm custom menu appears when spreadsheet is opened\n4. Manually verify that configuration is persisted between sessions",
+      "priority": "high",
+      "dependencies": [],
+      "status": "done",
+      "subtasks": []
+    },
+    {
+      "id": 2,
+      "title": "Implement API Utility Functions",
+      "description": "Create utility functions for making API requests to the trading platform with proper error handling and rate limiting.",
+      "details": "1. Implement a base API request function with error handling:\n```javascript\nfunction makeApiRequest(endpoint, method = 'GET', payload = null) {\n  const config = getApiConfig();\n  if (!config.apiKey) {\n    throw new Error('API key not configured');\n  }\n  \n  const baseUrl = config.environment === 'prod' \n    ? 'https://api.trading212.com/v1' \n    : 'https://demo.trading212.com/v1';\n    \n  const options = {\n    method: method,\n    headers: {\n      'Authorization': `Bearer ${config.apiKey}`,\n      'Content-Type': 'application/json'\n    },\n    muteHttpExceptions: true\n  };\n  \n  if (payload && (method === 'POST' || method === 'PUT')) {\n    options.payload = JSON.stringify(payload);\n  }\n  \n  // Implement caching for GET requests\n  const cacheKey = `${endpoint}_${method}`;\n  const cache = CacheService.getScriptCache();\n  const cachedResponse = method === 'GET' ? cache.get(cacheKey) : null;\n  \n  if (cachedResponse) {\n    return JSON.parse(cachedResponse);\n  }\n  \n  // Implement rate limiting\n  Utilities.sleep(200); // Simple rate limiting\n  \n  try {\n    const response = UrlFetchApp.fetch(`${baseUrl}${endpoint}`, options);\n    const responseCode = response.getResponseCode();\n    const responseText = response.getContentText();\n    \n    if (responseCode >= 200 && responseCode < 300) {\n      const responseData = JSON.parse(responseText);\n      \n      // Cache successful GET responses for 5 minutes\n      if (method === 'GET') {\n        cache.put(cacheKey, responseText, 300);\n      }\n      \n      return responseData;\n    } else {\n      throw new Error(`API Error (${responseCode}): ${responseText}`);\n    }\n  } catch (error) {\n    Logger.log(`API Request Failed: ${error.toString()}`);\n    throw error;\n  }\n}\n```\n2. Create specialized functions for different API endpoints\n3. Implement retry logic for failed requests\n4. Add proper logging for debugging purposes",
+      "testStrategy": "1. Test API connection with valid and invalid API keys\n2. Verify error handling works correctly for various error scenarios\n3. Test rate limiting by making multiple consecutive requests\n4. Verify caching works by checking response times for repeated requests\n5. Test with mock responses to simulate different API scenarios",
+      "priority": "high",
+      "dependencies": [
+        1
+      ],
+      "status": "done",
+      "subtasks": []
+    },
+    {
+      "id": 3,
+      "title": "Implement Account Information Fetching",
+      "description": "Create functions to fetch account information and cash balance from the trading platform API.",
+      "details": "1. Implement function to fetch account information:\n```javascript\nfunction fetchAccountInfo() {\n  try {\n    return makeApiRequest('/accounts');\n  } catch (error) {\n    Logger.log(`Failed to fetch account info: ${error}`);\n    throw error;\n  }\n}\n```\n\n2. Implement function to fetch cash balance:\n```javascript\nfunction fetchCashBalance() {\n  try {\n    const accounts = fetchAccountInfo();\n    const balances = [];\n    \n    for (const account of accounts) {\n      const balance = makeApiRequest(`/accounts/${account.id}/cash`);\n      balances.push({\n        accountId: account.id,\n        accountName: account.name,\n        ...balance\n      });\n    }\n    \n    return balances;\n  } catch (error) {\n    Logger.log(`Failed to fetch cash balance: ${error}`);\n    throw error;\n  }\n}\n```\n\n3. Process and flatten the account data structure for easier handling in sheets",
+      "testStrategy": "1. Test fetching account information with valid API credentials\n2. Verify cash balance retrieval works for different account types\n3. Test error scenarios (e.g., API unavailable, rate limited)\n4. Verify data structure matches expected format for sheet writing",
+      "priority": "high",
+      "dependencies": [
+        2
+      ],
+      "status": "done",
+      "subtasks": []
+    },
+    {
+      "id": 4,
+      "title": "Implement Transaction History Fetching",
+      "description": "Create functions to fetch transaction history from the trading platform API.",
+      "details": "1. Implement function to fetch transaction history:\n```javascript\nfunction fetchTransactions(dateFrom = null, dateTo = null) {\n  try {\n    let endpoint = '/transactions';\n    const queryParams = [];\n    \n    if (dateFrom) {\n      queryParams.push(`dateFrom=${dateFrom}`);\n    }\n    \n    if (dateTo) {\n      queryParams.push(`dateTo=${dateTo}`);\n    }\n    \n    if (queryParams.length > 0) {\n      endpoint += '?' + queryParams.join('&');\n    }\n    \n    return makeApiRequest(endpoint);\n  } catch (error) {\n    Logger.log(`Failed to fetch transactions: ${error}`);\n    throw error;\n  }\n}\n```\n\n2. Process transaction data to flatten nested structures\n3. Add date formatting and categorization of transaction types\n4. Implement pagination if the API supports it for handling large transaction sets",
+      "testStrategy": "1. Test fetching transactions with different date ranges\n2. Verify handling of empty transaction sets\n3. Test with mock data to ensure proper processing of different transaction types\n4. Verify pagination works correctly for large transaction sets\n5. Test error handling for API failures",
+      "priority": "high",
+      "dependencies": [
+        2
+      ],
+      "status": "done",
+      "subtasks": []
+    },
+    {
+      "id": 5,
+      "title": "Implement Order History Fetching",
+      "description": "Create functions to fetch order history from the trading platform API.",
+      "details": "1. Implement function to fetch order history:\n```javascript\nfunction fetchOrders(status = 'all') {\n  try {\n    let endpoint = '/orders';\n    \n    if (status !== 'all') {\n      endpoint += `?status=${status}`;\n    }\n    \n    return makeApiRequest(endpoint);\n  } catch (error) {\n    Logger.log(`Failed to fetch orders: ${error}`);\n    throw error;\n  }\n}\n```\n\n2. Process order data to flatten nested structures\n3. Add functions to filter orders by status (open, closed, canceled)\n4. Implement date and time formatting for order timestamps",
+      "testStrategy": "1. Test fetching orders with different status filters\n2. Verify handling of empty order sets\n3. Test with mock data to ensure proper processing of different order types\n4. Verify date formatting works correctly\n5. Test error handling for API failures",
+      "priority": "medium",
+      "dependencies": [
+        2
+      ],
+      "status": "done",
+      "subtasks": []
+    },
+    {
+      "id": 6,
+      "title": "Implement Dividend Fetching",
+      "description": "Create functions to fetch dividend information from the trading platform API.",
+      "details": "1. Implement function to fetch dividends:\n```javascript\nfunction fetchDividends(dateFrom = null, dateTo = null) {\n  try {\n    let endpoint = '/dividends';\n    const queryParams = [];\n    \n    if (dateFrom) {\n      queryParams.push(`dateFrom=${dateFrom}`);\n    }\n    \n    if (dateTo) {\n      queryParams.push(`dateTo=${dateTo}`);\n    }\n    \n    if (queryParams.length > 0) {\n      endpoint += '?' + queryParams.join('&');\n    }\n    \n    return makeApiRequest(endpoint);\n  } catch (error) {\n    Logger.log(`Failed to fetch dividends: ${error}`);\n    throw error;\n  }\n}\n```\n\n2. Process dividend data to flatten nested structures\n3. Add date formatting for dividend payment dates\n4. Calculate dividend yield if not provided by the API",
+      "testStrategy": "1. Test fetching dividends with different date ranges\n2. Verify handling of empty dividend sets\n3. Test with mock data to ensure proper processing of different dividend types\n4. Verify date formatting works correctly\n5. Test error handling for API failures",
+      "priority": "medium",
+      "dependencies": [
+        2
+      ],
+      "status": "done",
+      "subtasks": []
+    },
+    {
+      "id": 7,
+      "title": "Implement Instrument and Pie Fetching",
+      "description": "Create functions to fetch instrument lists and pie configurations from the trading platform API.",
+      "details": "1. Implement function to fetch instruments:\n```javascript\nfunction fetchInstruments() {\n  try {\n    return makeApiRequest('/instruments');\n  } catch (error) {\n    Logger.log(`Failed to fetch instruments: ${error}`);\n    throw error;\n  }\n}\n```\n\n2. Implement function to fetch pie configurations:\n```javascript\nfunction fetchPies() {\n  try {\n    return makeApiRequest('/pies');\n  } catch (error) {\n    Logger.log(`Failed to fetch pies: ${error}`);\n    throw error;\n  }\n}\n```\n\n3. Process instrument data to extract relevant fields\n4. Process pie data to flatten nested structures and calculate allocations",
+      "testStrategy": "1. Test fetching instruments and verifying data structure\n2. Test fetching pies and verifying data structure\n3. Verify handling of empty instrument and pie sets\n4. Test with mock data to ensure proper processing\n5. Test error handling for API failures",
+      "priority": "medium",
+      "dependencies": [
+        2
+      ],
+      "status": "done",
+      "subtasks": []
+    },
+    {
+      "id": 8,
+      "title": "Implement Sheet Management Functions",
+      "description": "Create functions to manage sheets within the Google Spreadsheet, including creation, clearing, and formatting.",
+      "details": "1. Implement function to get or create a sheet:\n```javascript\nfunction getOrCreateSheet(sheetName) {\n  const ss = SpreadsheetApp.getActiveSpreadsheet();\n  let sheet = ss.getSheetByName(sheetName);\n  \n  if (!sheet) {\n    sheet = ss.insertSheet(sheetName);\n  }\n  \n  return sheet;\n}\n```\n\n2. Implement function to clear sheet data:\n```javascript\nfunction clearSheetData(sheetName, preserveHeaders = true) {\n  const sheet = getOrCreateSheet(sheetName);\n  const startRow = preserveHeaders ? 2 : 1;\n  \n  if (sheet.getLastRow() >= startRow) {\n    sheet.getRange(startRow, 1, sheet.getLastRow() - startRow + 1, sheet.getLastColumn()).clear();\n  }\n  \n  return sheet;\n}\n```\n\n3. Implement function to set headers:\n```javascript\nfunction setSheetHeaders(sheetName, headers) {\n  const sheet = getOrCreateSheet(sheetName);\n  sheet.getRange(1, 1, 1, headers.length).setValues([headers]).setFontWeight('bold');\n  return sheet;\n}\n```\n\n4. Implement function to apply formatting to specific columns:\n```javascript\nfunction formatSheetColumns(sheet, formatConfigs) {\n  for (const config of formatConfigs) {\n    const range = sheet.getRange(config.startRow, config.column, \n                                sheet.getLastRow() - config.startRow + 1, 1);\n    \n    if (config.format === 'currency') {\n      range.setNumberFormat('$#,##0.00');\n    } else if (config.format === 'date') {\n      range.setNumberFormat('yyyy-mm-dd');\n    } else if (config.format === 'datetime') {\n      range.setNumberFormat('yyyy-mm-dd hh:mm:ss');\n    } else if (config.format === 'percent') {\n      range.setNumberFormat('0.00%');\n    }\n  }\n}\n```",
+      "testStrategy": "1. Test creating new sheets and accessing existing ones\n2. Verify clearing sheet data with and without preserving headers\n3. Test setting headers and verifying formatting\n4. Test applying different formatting types to columns\n5. Verify behavior with empty sheets and edge cases",
+      "priority": "high",
+      "dependencies": [
+        1
+      ],
+      "status": "done",
+      "subtasks": []
+    },
+    {
+      "id": 9,
+      "title": "Implement Data Writing Functions",
+      "description": "Create functions to write fetched data to the appropriate sheets with proper formatting.",
+      "details": "1. Implement generic function to write data to a sheet:\n```javascript\nfunction writeDataToSheet(sheetName, data, headers, formatConfigs = []) {\n  if (!data || data.length === 0) {\n    Logger.log(`No data to write to ${sheetName}`);\n    return;\n  }\n  \n  const sheet = clearSheetData(sheetName);\n  setSheetHeaders(sheetName, headers);\n  \n  // Prepare rows for writing\n  const rows = data.map(item => {\n    return headers.map(header => {\n      const value = item[header] || '';\n      return value;\n    });\n  });\n  \n  // Write data\n  sheet.getRange(2, 1, rows.length, headers.length).setValues(rows);\n  \n  // Apply formatting\n  formatSheetColumns(sheet, formatConfigs);\n  \n  // Auto-resize columns for better readability\n  sheet.autoResizeColumns(1, headers.length);\n}\n```\n\n2. Implement specific functions for each data type:\n```javascript\nfunction writeAccountInfoToSheet(data) {\n  const headers = ['accountId', 'accountName', 'currency', 'type', 'status'];\n  const formatConfigs = [];\n  writeDataToSheet('Account Info', data, headers, formatConfigs);\n}\n\nfunction writeCashBalanceToSheet(data) {\n  const headers = ['accountId', 'accountName', 'currency', 'amount', 'updatedAt'];\n  const formatConfigs = [\n    { column: 4, startRow: 2, format: 'currency' },\n    { column: 5, startRow: 2, format: 'datetime' }\n  ];\n  writeDataToSheet('Cash Balance', data, headers, formatConfigs);\n}\n\nfunction writeTransactionsToSheet(data) {\n  const headers = ['id', 'accountId', 'instrumentId', 'type', 'direction', 'quantity', 'price', 'amount', 'fee', 'date', 'status'];\n  const formatConfigs = [\n    { column: 6, startRow: 2, format: 'number' },\n    { column: 7, startRow: 2, format: 'currency' },\n    { column: 8, startRow: 2, format: 'currency' },\n    { column: 9, startRow: 2, format: 'currency' },\n    { column: 10, startRow: 2, format: 'datetime' }\n  ];\n  writeDataToSheet('Transactions', data, headers, formatConfigs);\n}\n```\n\n3. Implement similar functions for orders, dividends, instruments, and pies",
+      "testStrategy": "1. Test writing different data types to sheets\n2. Verify formatting is correctly applied\n3. Test handling of empty data sets\n4. Test with mock data to ensure proper data transformation\n5. Verify auto-resizing of columns works correctly",
+      "priority": "high",
+      "dependencies": [
+        3,
+        4,
+        5,
+        6,
+        7,
+        8
+      ],
+      "status": "done",
+      "subtasks": []
+    },
+    {
+      "id": 10,
+      "title": "Implement UI for API Configuration",
+      "description": "Create a user interface for configuring the API key and environment.",
+      "details": "1. Implement function to show API configuration modal:\n```javascript\nfunction showApiConfigModal() {\n  const config = getApiConfig();\n  \n  const ui = HtmlService.createHtmlOutput(`\n    <style>\n      body {\n        font-family: Arial, sans-serif;\n        padding: 10px;\n      }\n      .form-group {\n        margin-bottom: 15px;\n      }\n      label {\n        display: block;\n        margin-bottom: 5px;\n        font-weight: bold;\n      }\n      input, select {\n        width: 100%;\n        padding: 8px;\n        box-sizing: border-box;\n      }\n      .button-container {\n        text-align: right;\n        margin-top: 20px;\n      }\n      button {\n        padding: 8px 15px;\n        background-color: #4285f4;\n        color: white;\n        border: none;\n        border-radius: 4px;\n        cursor: pointer;\n      }\n    </style>\n    <form id=\"apiConfigForm\">\n      <div class=\"form-group\">\n        <label for=\"apiKey\">API Key:</label>\n        <input type=\"password\" id=\"apiKey\" value=\"${config.apiKey || ''}\" required>\n      </div>\n      <div class=\"form-group\">\n        <label for=\"environment\">Environment:</label>\n        <select id=\"environment\">\n          <option value=\"demo\" ${config.environment === 'demo' ? 'selected' : ''}>Demo</option>\n          <option value=\"prod\" ${config.environment === 'prod' ? 'selected' : ''}>Production</option>\n        </select>\n      </div>\n      <div class=\"button-container\">\n        <button type=\"button\" onclick=\"saveConfig()\">Save Configuration</button>\n      </div>\n    </form>\n    <script>\n      function saveConfig() {\n        const apiKey = document.getElementById('apiKey').value;\n        const environment = document.getElementById('environment').value;\n        \n        google.script.run\n          .withSuccessHandler(function() {\n            google.script.host.close();\n          })\n          .withFailureHandler(function(error) {\n            alert('Error: ' + error);\n          })\n          .saveApiConfig(apiKey, environment);\n      }\n    </script>\n  `)\n  .setWidth(400)\n  .setHeight(250)\n  .setTitle('API Configuration');\n  \n  SpreadsheetApp.getUi().showModalDialog(ui, 'API Configuration');\n}\n```\n\n2. Add function to validate API configuration\n3. Add function to test API connection with provided credentials",
+      "testStrategy": "1. Test opening the configuration modal\n2. Verify saving configuration works correctly\n3. Test validation of API key format\n4. Verify API connection test works with valid and invalid credentials\n5. Test UI appearance in different browsers",
+      "priority": "high",
+      "dependencies": [
+        1,
+        2
+      ],
+      "status": "done",
+      "subtasks": []
+    },
+    {
+      "id": 11,
+      "title": "Implement UI for Data Fetching",
+      "description": "Create a user interface for triggering data fetches for different data types.",
+      "details": "1. Implement function to show data fetch modal:\n```javascript\nfunction showDataFetchModal() {\n  const ui = HtmlService.createHtmlOutput(`\n    <style>\n      body {\n        font-family: Arial, sans-serif;\n        padding: 10px;\n      }\n      .checkbox-group {\n        margin-bottom: 15px;\n      }\n      .date-group {\n        margin-bottom: 15px;\n        display: none;\n      }\n      label {\n        display: block;\n        margin-bottom: 5px;\n        font-weight: bold;\n      }\n      input[type=\"date\"] {\n        width: 100%;\n        padding: 8px;\n        box-sizing: border-box;\n      }\n      .button-container {\n        text-align: right;\n        margin-top: 20px;\n      }\n      button {\n        padding: 8px 15px;\n        background-color: #4285f4;\n        color: white;\n        border: none;\n        border-radius: 4px;\n        cursor: pointer;\n      }\n    </style>\n    <form id=\"dataFetchForm\">\n      <div class=\"checkbox-group\">\n        <label><input type=\"checkbox\" id=\"fetchAccountInfo\" checked> Account Information</label>\n        <label><input type=\"checkbox\" id=\"fetchCashBalance\" checked> Cash Balance</label>\n        <label><input type=\"checkbox\" id=\"fetchTransactions\" checked> Transactions</label>\n        <label><input type=\"checkbox\" id=\"fetchOrders\"> Orders</label>\n        <label><input type=\"checkbox\" id=\"fetchDividends\"> Dividends</label>\n        <label><input type=\"checkbox\" id=\"fetchInstruments\"> Instruments</label>\n        <label><input type=\"checkbox\" id=\"fetchPies\"> Pies</label>\n      </div>\n      \n      <div class=\"date-group\" id=\"dateRangeGroup\">\n        <label for=\"dateFrom\">Date From:</label>\n        <input type=\"date\" id=\"dateFrom\">\n        <label for=\"dateTo\">Date To:</label>\n        <input type=\"date\" id=\"dateTo\">\n      </div>\n      \n      <div class=\"button-container\">\n        <button type=\"button\" onclick=\"fetchData()\">Fetch Data</button>\n      </div>\n    </form>\n    <script>\n      document.getElementById('fetchTransactions').addEventListener('change', toggleDateRange);\n      document.getElementById('fetchDividends').addEventListener('change', toggleDateRange);\n      \n      function toggleDateRange() {\n        const transactionsChecked = document.getElementById('fetchTransactions').checked;\n        const dividendsChecked = document.getElementById('fetchDividends').checked;\n        document.getElementById('dateRangeGroup').style.display = \n          (transactionsChecked || dividendsChecked) ? 'block' : 'none';\n      }\n      \n      function fetchData() {\n        const options = {\n          fetchAccountInfo: document.getElementById('fetchAccountInfo').checked,\n          fetchCashBalance: document.getElementById('fetchCashBalance').checked,\n          fetchTransactions: document.getElementById('fetchTransactions').checked,\n          fetchOrders: document.getElementById('fetchOrders').checked,\n          fetchDividends: document.getElementById('fetchDividends').checked,\n          fetchInstruments: document.getElementById('fetchInstruments').checked,\n          fetchPies: document.getElementById('fetchPies').checked,\n          dateFrom: document.getElementById('dateFrom').value || null,\n          dateTo: document.getElementById('dateTo').value || null\n        };\n        \n        google.script.run\n          .withSuccessHandler(function() {\n            google.script.host.close();\n          })\n          .withFailureHandler(function(error) {\n            alert('Error: ' + error);\n          })\n          .fetchAndWriteData(options);\n      }\n      \n      // Initialize date range visibility\n      toggleDateRange();\n    </script>\n  `)\n  .setWidth(400)\n  .setHeight(400)\n  .setTitle('Fetch Portfolio Data');\n  \n  SpreadsheetApp.getUi().showModalDialog(ui, 'Fetch Portfolio Data');\n}\n```\n\n2. Implement function to handle data fetching based on user selections:\n```javascript\nfunction fetchAndWriteData(options) {\n  try {\n    // Validate API configuration first\n    const config = getApiConfig();\n    if (!config.apiKey) {\n      throw new Error('API key not configured. Please configure API first.');\n    }\n    \n    // Fetch and write data based on options\n    if (options.fetchAccountInfo) {\n      const accountInfo = fetchAccountInfo();\n      writeAccountInfoToSheet(accountInfo);\n    }\n    \n    if (options.fetchCashBalance) {\n      const cashBalance = fetchCashBalance();\n      writeCashBalanceToSheet(cashBalance);\n    }\n    \n    if (options.fetchTransactions) {\n      const transactions = fetchTransactions(options.dateFrom, options.dateTo);\n      writeTransactionsToSheet(transactions);\n    }\n    \n    // Add similar blocks for other data types\n    \n    return true;\n  } catch (error) {\n    Logger.log(`Error in fetchAndWriteData: ${error}`);\n    throw error;\n  }\n}\n```",
+      "testStrategy": "1. Test opening the data fetch modal\n2. Verify date range fields appear/disappear based on selections\n3. Test fetching different combinations of data types\n4. Verify error handling when API is not configured\n5. Test with date ranges to ensure proper filtering",
+      "priority": "high",
+      "dependencies": [
+        3,
+        4,
+        5,
+        6,
+        7,
+        9
+      ],
+      "status": "done",
+      "subtasks": []
+    },
+    {
+      "id": 12,
+      "title": "Implement Main Menu and Entry Points",
+      "description": "Create the main menu and entry points for the Google Apps Script.",
+      "details": "1. Implement onOpen function to create custom menu:\n```javascript\nfunction onOpen() {\n  const ui = SpreadsheetApp.getUi();\n  ui.createMenu('Portfolio Tracker')\n    .addItem('Configure API', 'showApiConfigModal')\n    .addItem('Fetch Data', 'showDataFetchModal')\n    .addSeparator()\n    .addItem('About', 'showAboutDialog')\n    .addToUi();\n}\n```\n\n2. Implement about dialog:\n```javascript\nfunction showAboutDialog() {\n  const ui = SpreadsheetApp.getUi();\n  ui.alert(\n    'Portfolio Tracker',\n    'This Google Apps Script connects to your trading platform to fetch and display portfolio data.\\n\\n' +\n    'Version: 1.0.0\\n' +\n    'Created by: Your Name\\n\\n' +\n    'To get started, configure your API key using the \"Configure API\" menu item.',\n    ui.ButtonSet.OK\n  );\n}\n```\n\n3. Add function to initialize the spreadsheet with default sheets if needed",
+      "testStrategy": "1. Test onOpen trigger to ensure menu is created\n2. Verify all menu items work correctly\n3. Test about dialog appearance\n4. Verify initialization of default sheets",
+      "priority": "high",
+      "dependencies": [
+        10,
+        11
+      ],
+      "status": "done",
+      "subtasks": []
+    },
+    {
+      "id": 13,
+      "title": "Implement Advanced Error Handling and Logging",
+      "description": "Enhance error handling and implement comprehensive logging throughout the application.",
+      "details": "1. Implement centralized error handling function:\n```javascript\nfunction handleError(error, context = '') {\n  const errorMessage = error.toString();\n  Logger.log(`Error in ${context}: ${errorMessage}`);\n  \n  // Write to error log sheet\n  const sheet = getOrCreateSheet('Error Log');\n  const headers = ['Timestamp', 'Context', 'Error Message'];\n  \n  // Ensure headers exist\n  if (sheet.getLastRow() === 0) {\n    setSheetHeaders('Error Log', headers);\n  }\n  \n  // Add error to log\n  sheet.appendRow([new Date(), context, errorMessage]);\n  \n  return errorMessage;\n}\n```\n\n2. Update API request function to use centralized error handling\n3. Add user-friendly error messages in UI components\n4. Implement function to clear error log\n5. Add option to export error log",
+      "testStrategy": "1. Test error handling with various error scenarios\n2. Verify errors are properly logged to the Error Log sheet\n3. Test user-friendly error messages in UI\n4. Verify error log clearing functionality\n5. Test error log export",
+      "priority": "medium",
+      "dependencies": [
+        2,
+        9,
+        11
+      ],
+      "status": "pending",
+      "subtasks": []
+    },
+    {
+      "id": 14,
+      "title": "Implement Data Refresh Automation",
+      "description": "Create time-based triggers to automatically refresh data at scheduled intervals.",
+      "details": "1. Implement function to create time-based trigger:\n```javascript\nfunction createDailyTrigger() {\n  // Delete existing triggers first\n  deleteTriggers();\n  \n  // Create new daily trigger\n  ScriptApp.newTrigger('fetchAndWriteAllData')\n    .timeBased()\n    .everyDays(1)\n    .atHour(6) // 6 AM\n    .create();\n    \n  return true;\n}\n\nfunction deleteTriggers() {\n  const triggers = ScriptApp.getProjectTriggers();\n  for (const trigger of triggers) {\n    if (trigger.getHandlerFunction() === 'fetchAndWriteAllData') {\n      ScriptApp.deleteTrigger(trigger);\n    }\n  }\n}\n\nfunction fetchAndWriteAllData() {\n  try {\n    fetchAndWriteData({\n      fetchAccountInfo: true,\n      fetchCashBalance: true,\n      fetchTransactions: true,\n      fetchOrders: true,\n      fetchDividends: true,\n      fetchInstruments: true,\n      fetchPies: true,\n      dateFrom: null,\n      dateTo: null\n    });\n  } catch (error) {\n    handleError(error, 'fetchAndWriteAllData');\n  }\n}\n```\n\n2. Add UI for configuring automatic refresh settings\n3. Implement function to check trigger status\n4. Add notification for successful/failed automatic refreshes",
+      "testStrategy": "1. Test creating daily trigger\n2. Verify trigger deletion works correctly\n3. Test automatic data refresh functionality\n4. Verify trigger status checking\n5. Test notification system for automatic refreshes",
+      "priority": "low",
+      "dependencies": [
+        9,
+        12
+      ],
+      "status": "pending",
+      "subtasks": []
+    },
+    {
+      "id": 15,
+      "title": "Implement Data Analysis and Summary Dashboard",
+      "description": "Create a summary dashboard sheet with key portfolio metrics and charts.",
+      "details": "1. Implement function to create summary dashboard:\n```javascript\nfunction createSummaryDashboard() {\n  const sheet = getOrCreateSheet('Dashboard');\n  sheet.clear();\n  \n  // Set up dashboard layout\n  sheet.getRange('A1:C1').merge().setValue('PORTFOLIO SUMMARY').setFontWeight('bold').setHorizontalAlignment('center');\n  sheet.getRange('A1:C1').setBackground('#f3f3f3');\n  \n  // Account summary section\n  sheet.getRange('A3').setValue('Account Summary').setFontWeight('bold');\n  sheet.getRange('A4').setValue('Total Cash Balance:');\n  sheet.getRange('A5').setValue('Total Portfolio Value:');\n  sheet.getRange('A6').setValue('Total Profit/Loss:');\n  \n  // Transaction summary section\n  sheet.getRange('A8').setValue('Transaction Summary').setFontWeight('bold');\n  sheet.getRange('A9').setValue('Total Buy Transactions:');\n  sheet.getRange('A10').setValue('Total Sell Transactions:');\n  sheet.getRange('A11').setValue('Total Fees Paid:');\n  \n  // Dividend summary section\n  sheet.getRange('A13').setValue('Dividend Summary').setFontWeight('bold');\n  sheet.getRange('A14').setValue('Total Dividends Received:');\n  sheet.getRange('A15').setValue('Dividend Yield:');\n  \n  // Add formulas to calculate values from other sheets\n  updateDashboardValues();\n  \n  // Add charts\n  addPortfolioCharts(sheet);\n  \n  return sheet;\n}\n\nfunction updateDashboardValues() {\n  const sheet = getOrCreateSheet('Dashboard');\n  const cashBalanceSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Cash Balance');\n  const transactionsSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Transactions');\n  const dividendsSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Dividends');\n  \n  // Update cash balance if available\n  if (cashBalanceSheet && cashBalanceSheet.getLastRow() > 1) {\n    const cashRange = cashBalanceSheet.getRange(2, 4, cashBalanceSheet.getLastRow() - 1, 1);\n    sheet.getRange('B4').setFormula('=SUM(\\'' + cashBalanceSheet.getName() + '\\'!D2:D)');\n    sheet.getRange('B4').setNumberFormat('$#,##0.00');\n  }\n  \n  // Update transaction data if available\n  if (transactionsSheet && transactionsSheet.getLastRow() > 1) {\n    // Count buy transactions\n    sheet.getRange('B9').setFormula('=COUNTIFS(\\'' + transactionsSheet.getName() + '\\'!D:D,\"BUY\")');\n    \n    // Count sell transactions\n    sheet.getRange('B10').setFormula('=COUNTIFS(\\'' + transactionsSheet.getName() + '\\'!D:D,\"SELL\")');\n    \n    // Sum fees\n    sheet.getRange('B11').setFormula('=SUM(\\'' + transactionsSheet.getName() + '\\'!I:I)');\n    sheet.getRange('B11').setNumberFormat('$#,##0.00');\n  }\n  \n  // Update dividend data if available\n  if (dividendsSheet && dividendsSheet.getLastRow() > 1) {\n    // Sum dividends\n    sheet.getRange('B14').setFormula('=SUM(\\'' + dividendsSheet.getName() + '\\'!D:D)');\n    sheet.getRange('B14').setNumberFormat('$#,##0.00');\n  }\n}\n\nfunction addPortfolioCharts(sheet) {\n  // Implementation depends on available data and desired charts\n  // This would create charts based on transaction history, portfolio composition, etc.\n}\n```\n\n2. Implement functions to calculate key portfolio metrics\n3. Create charts for portfolio composition, performance over time, etc.\n4. Add refresh button to update dashboard data\n5. Implement conditional formatting for positive/negative values",
+      "testStrategy": "1. Test dashboard creation with various data scenarios\n2. Verify formulas correctly calculate values from other sheets\n3. Test chart creation and appearance\n4. Verify dashboard refresh functionality\n5. Test conditional formatting for different value ranges",
+      "priority": "low",
+      "dependencies": [
+        9
+      ],
+      "status": "pending",
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Design dashboard layout and structure",
+          "description": "Create the overall layout and structure for the data analysis and summary dashboard",
+          "dependencies": [],
+          "details": "Design a clean, intuitive dashboard layout with designated sections for account summary, transaction details, dividend analysis, and portfolio visualization. Create placeholders for all major components and establish a consistent visual style. Include navigation elements if needed and ensure the layout is scalable for future additions.",
+          "status": "pending"
+        },
+        {
+          "id": 2,
+          "title": "Implement account summary calculations",
+          "description": "Develop formulas and logic to calculate and display key account metrics",
+          "dependencies": [
+            1
+          ],
+          "details": "Create formulas to calculate total account value, cash balance, invested amount, unrealized gains/losses, and overall performance metrics. Implement conditional formatting to highlight positive/negative changes. Ensure calculations pull data correctly from relevant sheets and handle edge cases like missing data.",
+          "status": "pending"
+        },
+        {
+          "id": 3,
+          "title": "Create transaction summary metrics",
+          "description": "Build transaction analysis section with key metrics and filtering capabilities",
+          "dependencies": [
+            1
+          ],
+          "details": "Develop summary tables showing transaction counts by type, recent transactions, and transaction totals. Implement filtering options by date range, transaction type, and account. Create formulas to calculate transaction trends over time and highlight unusual activity. Ensure proper data connections to transaction source sheets.",
+          "status": "pending"
+        },
+        {
+          "id": 4,
+          "title": "Develop dividend analysis features",
+          "description": "Implement dividend tracking, projection, and analysis components",
+          "dependencies": [
+            1,
+            2
+          ],
+          "details": "Create dividend calendar showing past and projected payments. Implement formulas to calculate dividend yield, growth rate, and annual income projections. Develop visualizations showing dividend income trends and distribution across holdings. Ensure accurate data pulling from dividend history sheets.",
+          "status": "pending"
+        },
+        {
+          "id": 5,
+          "title": "Implement portfolio visualization charts",
+          "description": "Create interactive charts and graphs to visualize portfolio composition and performance",
+          "dependencies": [
+            1,
+            2
+          ],
+          "details": "Develop pie/donut charts showing asset allocation by sector, asset type, and geography. Create performance line charts showing portfolio value over time. Implement comparison charts for benchmarking against indices. Add interactive elements like tooltips and filtering options where possible.",
+          "status": "pending"
+        },
+        {
+          "id": 6,
+          "title": "Create dashboard refresh/update mechanisms",
+          "description": "Implement functionality to keep dashboard data current and accurate",
+          "dependencies": [
+            2,
+            3,
+            4,
+            5
+          ],
+          "details": "Develop refresh buttons or automatic update triggers to recalculate all dashboard components. Implement timestamp indicators showing when data was last updated. Create error handling for missing or inconsistent data sources. Test update mechanisms under various scenarios to ensure reliability.",
+          "status": "pending"
+        }
+      ]
+    },
+    {
+      "id": 16,
+      "title": "Refactor: 1.1 Adopt a Consistent Modular Architecture",
+      "description": "Define and implement a clear folder structure with well-defined responsibilities as outlined in the refactoring plan. This aims to resolve issues of inconsistent code organization, mixed styles, unclear module boundaries, and duplicate functionality.",
+      "details": "Current Issues:\n- Inconsistent code organization with mixed styles (classes vs. standalone functions)\n- Unclear module boundaries and responsibilities\n- Duplicate functionality across files\n\nRecommended Changes:\nAdopt a Consistent Modular Architecture by creating a clear folder structure with well-defined responsibilities:\n```\n/\n├── api/                  # API interaction\n│   ├── client.js         # Core API client functionality\n│   ├── endpoints.js      # API endpoint definitions\n│   └── rateLimiter.js    # Rate limiting logic\n├── data/                 # Data processing\n│   ├── processors/       # Data transformation\n│   ├── cache.js          # Caching functionality\n│   └── sheetManager.js   # Sheet interactions\n├── ui/                   # User interface\n│   ├── components/       # Reusable UI components\n│   ├── modals/           # Modal dialogs\n│   └── menu.js           # Menu creation\n├── utils/                # Utilities\n│   ├── logging.js        # Logging functionality\n│   ├── error.js          # Error handling\n│   └── config.js         # Configuration management\n└── main.js               # Entry point\n```",
+      "testStrategy": "",
+      "status": "pending",
+      "dependencies": [],
+      "priority": "high",
+      "subtasks": []
+    },
+    {
+      "id": 17,
+      "title": "Refactor: 1.2 Convert to Consistent Class-Based Architecture",
+      "description": "Refactor existing code and implement new features using a consistent class-based architecture. This will improve code organization, encapsulation, and maintainability.",
+      "details": "Current Issues:\n- Inconsistent code organization with mixed styles (classes vs. standalone functions)\n\nRecommended Changes:\nConvert to Consistent Class-Based Architecture. Example:\n```javascript\n/**\n * ApiClient class to encapsulate all API interactions.\n */\nclass ApiClient {\n  constructor(config) {\n    this.baseUrl = config.baseUrl;\n    this.apiKey = config.apiKey;\n    this.rateLimiter = new RateLimiter(config.rateLimits);\n  }\n\n  async request(endpoint, params = {}) {\n    const url = this.buildUrl(endpoint, params);\n    const canProceed = this.rateLimiter.canProceed(endpoint);\n    \n    if (!canProceed.proceed) {\n      await this.wait(canProceed.waitTime);\n    }\n    \n    return this.makeRequest(url);\n  }\n  \n  // Other methods...\n}\n```",
+      "testStrategy": "",
+      "status": "pending",
+      "dependencies": [
+        16
+      ],
+      "priority": "high",
+      "subtasks": []
+    },
+    {
+      "id": 18,
+      "title": "Refactor: 2.1 Implement Singleton Pattern for Service Classes",
+      "description": "Implement the Singleton design pattern for service classes like ApiClient to ensure a single instance is used throughout the application. This will help manage shared resources and state.",
+      "details": "Current Issues:\n- Lack of consistent design patterns\n- Mixed approach to similar problems\n\nRecommended Changes:\nImplement Singleton Pattern for Service Classes. Example:\n```javascript\n/**\n * Singleton pattern for ApiClient.\n */\nclass ApiClient {\n  static instance;\n  \n  static getInstance(config) {\n    if (!ApiClient.instance) {\n      ApiClient.instance = new ApiClient(config);\n    }\n    return ApiClient.instance;\n  }\n  \n  // Rest of the class implementation...\n}\n```",
+      "testStrategy": "",
+      "status": "pending",
+      "dependencies": [
+        17
+      ],
+      "priority": "medium",
+      "subtasks": []
+    },
+    {
+      "id": 19,
+      "title": "Refactor: 2.2 Use Factory Pattern for Sheet Creation",
+      "description": "Implement the Factory design pattern for creating different types of Google Sheets. This will centralize sheet creation logic and make it easier to add new sheet types.",
+      "details": "Current Issues:\n- Lack of consistent design patterns\n- Mixed approach to similar problems\n\nRecommended Changes:\nUse Factory Pattern for Sheet Creation. Example:\n```javascript\n/**\n * Factory for creating different types of sheets.\n */\nclass SheetFactory {\n  static createSheet(type, name) {\n    switch (type) {\n      case 'account':\n        return new AccountSheet(name);\n      case 'transactions':\n        return new TransactionsSheet(name);\n      case 'pies':\n        return new PiesSheet(name);\n      default:\n        return new BaseSheet(name);\n    }\n  }\n}\n```",
+      "testStrategy": "",
+      "status": "pending",
+      "dependencies": [
+        17
+      ],
+      "priority": "medium",
+      "subtasks": []
+    },
+    {
+      "id": 20,
+      "title": "Refactor: 2.3 Implement Observer Pattern for UI Updates",
+      "description": "Implement the Observer design pattern for managing UI updates. This will decouple UI components from data sources and allow for more flexible and maintainable UI logic.",
+      "details": "Current Issues:\n- Lack of consistent design patterns\n- Mixed approach to similar problems\n\nRecommended Changes:\nImplement Observer Pattern for UI Updates. Example:\n```javascript\n/**\n * Observer pattern for UI updates.\n */\nclass EventEmitter {\n  constructor() {\n    this.events = {};\n  }\n  \n  on(event, listener) {\n    if (!this.events[event]) {\n      this.events[event] = [];\n    }\n    this.events[event].push(listener);\n  }\n  \n  emit(event, data) {\n    if (this.events[event]) {\n      this.events[event].forEach(listener => listener(data));\n    }\n  }\n}\n```",
+      "testStrategy": "",
+      "status": "pending",
+      "dependencies": [
+        17
+      ],
+      "priority": "medium",
+      "subtasks": []
+    },
+    {
+      "id": 21,
+      "title": "Refactor: 3.1 Centralize API Configuration",
+      "description": "Create a single, centralized configuration file for all API-related constants, such as base URLs, endpoints, and rate limits. This will improve maintainability and make it easier to update API settings.",
+      "details": "Current Issues:\n- Inconsistent API request handling\n- Duplicate API call functions\n- Limited rate limiting implementation\n\nRecommended Changes:\nCentralize API Configuration. Create a single config file for all API-related constants:\n```javascript\n/**\n * Centralized API configuration.\n */\nconst API_CONFIG = {\n  domains: {\n    live: 'https://live.trading212.com',\n    demo: 'https://demo.trading212.com'\n  },\n  version: '/api/v0/',\n  endpoints: {\n    pies: 'equity/pies',\n    accountInfo: 'equity/account/info',\n    // Other endpoints...\n  },\n  rateLimits: {\n    'equity/pies': { limit: 1, windowMs: 30000 },\n    // Other rate limits...\n  }\n};\n```",
+      "testStrategy": "",
+      "status": "pending",
+      "dependencies": [
+        16
+      ],
+      "priority": "high",
+      "subtasks": []
+    },
+    {
+      "id": 22,
+      "title": "Refactor: 3.2 Create a Unified API Client",
+      "description": "Develop a unified API client class (e.g., Trading212ApiClient) to handle all interactions with the Trading212 API. This client should use the centralized API configuration and incorporate rate limiting.",
+      "details": "Current Issues:\n- Inconsistent API request handling\n- Duplicate API call functions\n\nRecommended Changes:\nCreate a Unified API Client. Example:\n```javascript\n/**\n * Unified API client for all Trading212 API interactions.\n */\nclass Trading212ApiClient {\n  constructor(environment = 'demo') {\n    this.domain = API_CONFIG.domains[environment];\n    this.baseUrl = `${this.domain}${API_CONFIG.version}`;\n    this.rateLimiter = new RateLimiter(API_CONFIG.rateLimits);\n  }\n  \n  async get(endpoint, params = {}) {\n    const url = this.buildUrl(endpoint, params);\n    const rateLimitStatus = this.rateLimiter.canProceed(endpoint);\n    \n    if (!rateLimitStatus.proceed) {\n      await new Promise(resolve => setTimeout(resolve, rateLimitStatus.waitTime));\n    }\n    \n    return this.fetchWithAuth(url);\n  }\n  \n  // Other methods...\n}\n```",
+      "testStrategy": "",
+      "status": "pending",
+      "dependencies": [
+        17,
+        21
+      ],
+      "priority": "high",
+      "subtasks": []
+    },
+    {
+      "id": 23,
+      "title": "Refactor: 3.3 Implement Robust Rate Limiting",
+      "description": "Enhance the RateLimiter class to include robust strategies for handling API rate limits, such as backoff and retry mechanisms. This will make API interactions more resilient.",
+      "details": "Current Issues:\n- Limited rate limiting implementation\n\nRecommended Changes:\nImplement Robust Rate Limiting. Enhance the RateLimiter class to handle backoff and retry strategies:\n```javascript\n/**\n * Enhanced rate limiter with backoff and retry strategies.\n */\nclass RateLimiter {\n  constructor(rateLimits) {\n    this.rateLimits = rateLimits;\n    this.requestLogs = {};\n  }\n  \n  canProceed(endpoint) {\n    // Current implementation...\n  }\n  \n  async executeWithRateLimit(endpoint, func) {\n    const status = this.canProceed(endpoint);\n    \n    if (status.proceed) {\n      return func();\n    } else {\n      await new Promise(resolve => setTimeout(resolve, status.waitTime));\n      return this.executeWithRateLimit(endpoint, func);\n    }\n  }\n}\n```",
+      "testStrategy": "",
+      "status": "pending",
+      "dependencies": [
+        17,
+        21
+      ],
+      "priority": "high",
+      "subtasks": []
+    },
+    {
+      "id": 24,
+      "title": "Refactor: 4.1 Create Data Model Classes",
+      "description": "Develop data model classes (e.g., BaseModel, PieModel) to represent data entities fetched from the API. These classes should encapsulate data processing logic and provide methods for converting data to sheet rows.",
+      "details": "Current Issues:\n- Complex data transformation logic\n- Inconsistent sheet updating approach\n\nRecommended Changes:\nCreate Data Model Classes. Example:\n```javascript\n/**\n * Base model class for data entities.\n */\nclass BaseModel {\n  constructor(data) {\n    this.rawData = data;\n    this.processData();\n  }\n  \n  processData() {\n    // Default implementation\n  }\n  \n  toSheetRow() {\n    // Convert to array for sheet row\n  }\n}\n\n/**\n * Pie model for investment pies.\n */\nclass PieModel extends BaseModel {\n  processData() {\n    this.id = this.rawData.id;\n    this.name = this.rawData.name;\n    this.value = this.rawData.value;\n    this.items = (this.rawData.items || []).map(item => new PieItemModel(item));\n  }\n  \n  toSheetRow() {\n    return [\n      this.id,\n      this.name,\n      this.value,\n      this.items.map(item => item.name).join(', ')\n    ];\n  }\n}\n```",
+      "testStrategy": "",
+      "status": "pending",
+      "dependencies": [
+        17
+      ],
+      "priority": "high",
+      "subtasks": []
+    },
+    {
+      "id": 25,
+      "title": "Refactor: 4.2 Implement Repository Pattern for Data Access",
+      "description": "Implement the Repository design pattern for data access and management. Create repository classes (e.g., BaseRepository, PiesRepository) to abstract data source interactions (API, sheets) and manage data models.",
+      "details": "Current Issues:\n- Complex data transformation logic\n- Inconsistent sheet updating approach\n\nRecommended Changes:\nImplement Repository Pattern for Data Access. Example:\n```javascript\n/**\n * Base repository class for data access.\n */\nclass BaseRepository {\n  constructor(sheetName) {\n    this.sheetName = sheetName;\n    this.sheet = this.getOrCreateSheet();\n  }\n  \n  getOrCreateSheet() {\n    // Implementation...\n  }\n  \n  save(models) {\n    // Implementation...\n  }\n}\n\n/**\n * Pies repository for pie data management.\n */\nclass PiesRepository extends BaseRepository {\n  async fetchAll() {\n    const apiClient = ApiClient.getInstance();\n    const data = await apiClient.get('equity/pies');\n    return data.items.map(item => new PieModel(item));\n  }\n  \n  saveAll(pies) {\n    const headers = ['ID', 'Name', 'Value', 'Items'];\n    const rows = pies.map(pie => pie.toSheetRow());\n    super.writeData(headers, rows);\n  }\n}\n```",
+      "testStrategy": "",
+      "status": "pending",
+      "dependencies": [
+        17,
+        18,
+        24
+      ],
+      "priority": "high",
+      "subtasks": []
+    },
+    {
+      "id": 26,
+      "title": "Refactor: 4.3 Enhanced Caching Strategy",
+      "description": "Implement an enhanced caching service with TTL (Time-To-Live) and invalidation mechanisms to improve performance and reduce API calls. This will make the application more responsive and reduce the risk of hitting API rate limits.",
+      "details": "Current Issues:\n- Limited caching strategy\n\nRecommended Changes:\nEnhanced Caching Strategy. Example:\n```javascript\n/**\n * Enhanced caching service with TTL and invalidation.\n */\nclass CacheService {\n  constructor() {\n    this.cache = CacheService.getScriptCache();\n  }\n  \n  get(key) {\n    const data = this.cache.get(key);\n    return data ? JSON.parse(data) : null;\n  }\n  \n  set(key, data, ttl = 600) { // Default 10 minutes\n    this.cache.put(key, JSON.stringify(data), ttl);\n  }\n  \n  invalidate(key) {\n    this.cache.remove(key);\n  }\n  \n  invalidateByPrefix(prefix) {\n    // Implementation to invalidate keys by prefix\n  }\n}\n```",
+      "testStrategy": "",
+      "status": "pending",
+      "dependencies": [
+        17
+      ],
+      "priority": "medium",
+      "subtasks": []
+    },
+    {
+      "id": 27,
+      "title": "Refactor: 5.1 Create a UI Controller",
+      "description": "Develop a dedicated UI controller class to manage user interface interactions, such as showing modals and handling UI events. This will centralize UI logic and improve code organization.",
+      "details": "Current Issues:\n- Complex UI initialization\n- Limited feedback mechanisms\n- Inconsistent UI handling\n\nRecommended Changes:\nCreate a UI Controller. Example:\n```javascript\n/**\n * Controller for UI management.\n */\nclass UiController {\n  constructor() {\n    this.eventEmitter = new EventEmitter();\n  }\n  \n  showModal(templateName, title, options = {}) {\n    const html = this.createModalHtml(templateName, options);\n    SpreadsheetApp.getUi().showModalDialog(html, title);\n  }\n  \n  createModalHtml(templateName, options) {\n    // Implementation...\n  }\n  \n  // Other methods...\n}\n```",
+      "testStrategy": "",
+      "status": "pending",
+      "dependencies": [
+        17,
+        20
+      ],
+      "priority": "medium",
+      "subtasks": []
+    },
+    {
+      "id": 28,
+      "title": "Refactor: 5.2 Implement a Loading State Manager",
+      "description": "Implement a loading state manager to provide clear feedback to the user during data fetching or processing operations. This will improve the user experience by indicating when the application is busy.",
+      "details": "Current Issues:\n- Limited feedback mechanisms\n- Inconsistent UI handling\n\nRecommended Changes:\nImplement a Loading State Manager. Example:\n```javascript\n/**\n * Loading state manager for UI feedback.\n */\nclass LoadingManager {\n  constructor() {\n    this.loadingStates = {};\n  }\n  \n  setLoading(id, isLoading) {\n    this.loadingStates[id] = isLoading;\n    this.updateUi(id);\n  }\n  \n  updateUi(id) {\n    // Implementation to update UI based on loading state\n  }\n}\n```",
+      "testStrategy": "",
+      "status": "pending",
+      "dependencies": [
+        17,
+        27
+      ],
+      "priority": "medium",
+      "subtasks": []
+    },
+    {
+      "id": 29,
+      "title": "Refactor: 5.3 Create Reusable UI Components",
+      "description": "Develop reusable UI components (e.g., progress indicators, buttons) to ensure consistency and simplify UI development. These components should be modular and easy to integrate.",
+      "details": "Current Issues:\n- Complex UI initialization\n- Inconsistent UI handling\n\nRecommended Changes:\nCreate Reusable UI Components. Example:\n```javascript\n/**\n * Function to create a progress indicator component.\n */\nfunction createProgressIndicator(steps, currentStep) {\n  let html = '<div class=\"step-indicator\">';\n  \n  for (let i = 0; i < steps; i++) {\n    html += `<div class=\"step-dot ${i === currentStep ? 'active' : ''}\"></div>`;\n  }\n  \n  html += '</div>';\n  return html;\n}\n```",
+      "testStrategy": "",
+      "status": "pending",
+      "dependencies": [
+        16
+      ],
+      "priority": "medium",
+      "subtasks": []
+    },
+    {
+      "id": 30,
+      "title": "Refactor: 6.1 Create a Centralized Error Handler",
+      "description": "Develop a centralized error handler class to manage errors consistently throughout the application. This handler should log errors, determine error types, and trigger appropriate actions.",
+      "details": "Current Issues:\n- Inconsistent error handling\n- Limited user feedback for errors\n- Unclear error recovery strategies\n\nRecommended Changes:\nCreate a Centralized Error Handler. Example:\n```javascript\n/**\n * Centralized error handler for consistent error management.\n */\nclass ErrorHandler {\n  static handle(error, context = {}) {\n    Logger.log(`Error in ${context.location || 'unknown'}: ${error.message}`);\n    \n    // Determine error type and action\n    if (error.name === 'ApiError') {\n      return ErrorHandler.handleApiError(error, context);\n    } else if (error.name === 'ValidationError') {\n      return ErrorHandler.handleValidationError(error, context);\n    } else {\n      return ErrorHandler.handleGenericError(error, context);\n    }\n  }\n  \n  static handleApiError(error, context) {\n    // Handle API-specific errors\n  }\n  \n  static handleValidationError(error, context) {\n    // Handle validation errors\n  }\n  \n  static handleGenericError(error, context) {\n    // Handle generic errors\n  }\n}\n```",
+      "testStrategy": "",
+      "status": "pending",
+      "dependencies": [
+        16
+      ],
+      "priority": "high",
+      "subtasks": []
+    },
+    {
+      "id": 31,
+      "title": "Refactor: 6.2 Implement Custom Error Classes",
+      "description": "Create custom error classes (e.g., ApiError, ValidationError) to provide more specific information about different types of errors. This will improve error handling and debugging.",
+      "details": "Current Issues:\n- Inconsistent error handling\n- Limited user feedback for errors\n- Unclear error recovery strategies\n\nRecommended Changes:\nImplement Custom Error Classes. Example:\n```javascript\n/**\n * Custom error class for API errors.\n */\nclass ApiError extends Error {\n  constructor(message, statusCode, endpoint) {\n    super(message);\n    this.name = 'ApiError';\n    this.statusCode = statusCode;\n    this.endpoint = endpoint;\n  }\n}\n\n/**\n * Custom error class for validation errors.\n */\nclass ValidationError extends Error {\n  constructor(message, field, value) {\n    super(message);\n    this.name = 'ValidationError';\n    this.field = field;\n    this.value = value;\n  }\n}\n```",
+      "testStrategy": "",
+      "status": "pending",
+      "dependencies": [
+        30
+      ],
+      "priority": "medium",
+      "subtasks": []
+    },
+    {
+      "id": 32,
+      "title": "Refactor: 6.3 Implement Try-Catch Patterns",
+      "description": "Implement consistent try-catch patterns throughout the codebase to ensure errors are caught and handled by the centralized error handler. This will prevent unhandled exceptions and improve application stability.",
+      "details": "Current Issues:\n- Inconsistent error handling\n- Unclear error recovery strategies\n\nRecommended Changes:\nImplement Try-Catch Patterns. Example:\n```javascript\n/**\n * Example of consistent try-catch pattern.\n */\nasync function safeApiCall(endpoint, params, context) {\n  try {\n    const apiClient = ApiClient.getInstance();\n    return await apiClient.get(endpoint, params);\n  } catch (error) {\n    return ErrorHandler.handle(error, {\n      location: 'apiCall',\n      endpoint,\n      params,\n      ...context\n    });\n  }\n}\n```",
+      "testStrategy": "",
+      "status": "pending",
+      "dependencies": [
+        30,
+        31
+      ],
+      "priority": "medium",
+      "subtasks": []
+    },
+    {
+      "id": 33,
+      "title": "Refactor: 7.1 Implement Unit Testing",
+      "description": "Set up a basic unit testing framework for Google Apps Script to enable systematic testing of individual code units (functions, methods). This will improve code quality and help catch bugs early.",
+      "details": "Current Issues:\n- Lack of systematic testing\n- Difficulty in validating code changes\n\nRecommended Changes:\nImplement Unit Testing. Set up a basic unit testing framework for Apps Script:\n```javascript\n/**\n * Simple unit testing framework.\n */\nclass TestRunner {\n  constructor() {\n    this.tests = [];\n    this.results = {\n      passed: 0,\n      failed: 0,\n      total: 0\n    };\n  }\n  \n  addTest(name, testFunc) {\n    this.tests.push({ name, testFunc });\n  }\n  \n  async runTests() {\n    for (const test of this.tests) {\n      try {\n        await test.testFunc();\n        this.results.passed++;\n        Logger.log(`✅ Test passed: ${test.name}`);\n      } catch (error) {\n        this.results.failed++;\n        Logger.log(`❌ Test failed: ${test.name}`);\n        Logger.log(`   Error: ${error.message}`);\n      }\n      this.results.total++;\n    }\n    \n    this.logResults();\n  }\n  \n  logResults() {\n    Logger.log(`\n      Test Results:\n      - Total: ${this.results.total}\n      - Passed: ${this.results.passed}\n      - Failed: ${this.results.failed}\n    `);\n  }\n}\n```",
+      "testStrategy": "",
+      "status": "pending",
+      "dependencies": [],
+      "priority": "medium",
+      "subtasks": []
+    },
+    {
+      "id": 34,
+      "title": "Refactor: 7.2 Create Mock Objects for Testing",
+      "description": "Develop mock objects (e.g., MockApiClient) to simulate external dependencies during testing. This will allow for isolated unit testing and faster test execution.",
+      "details": "Current Issues:\n- Lack of systematic testing\n- Difficulty in validating code changes\n\nRecommended Changes:\nCreate Mock Objects for Testing. Example:\n```javascript\n/**\n * Mock API client for testing.\n */\nclass MockApiClient {\n  constructor(mockResponses) {\n    this.mockResponses = mockResponses;\n  }\n  \n  async get(endpoint, params = {}) {\n    if (this.mockResponses[endpoint]) {\n      return this.mockResponses[endpoint];\n    }\n    throw new Error(`No mock response for endpoint: ${endpoint}`);\n  }\n}\n```",
+      "testStrategy": "",
+      "status": "pending",
+      "dependencies": [
+        33
+      ],
+      "priority": "medium",
+      "subtasks": []
+    },
+    {
+      "id": 35,
+      "title": "Refactor: 7.3 Set Up Integration Tests",
+      "description": "Establish integration tests to verify the interaction between different components and external services (like the API). This will ensure the system works correctly as a whole.",
+      "details": "Current Issues:\n- Lack of systematic testing\n- Difficulty in validating code changes\n\nRecommended Changes:\nSet Up Integration Tests. Example:\n```javascript\n/**\n * Integration test for fetching pies.\n */\nfunction testFetchPies() {\n  const runner = new TestRunner();\n  \n  runner.addTest('Should fetch and process pies', async () => {\n    // Set up mock API client\n    const mockApiClient = new MockApiClient({\n      'equity/pies': { items: [{ id: 1, name: 'Test Pie', value: 100 }] }\n    });\n    \n    // Override API client instance\n    ApiClient.instance = mockApiClient;\n    \n    // Execute the function to test\n    const result = await fetchPies();\n    \n    // Assert the results\n    if (!result || result.length !== 1 || result[0].name !== 'Test Pie') {\n      throw new Error('Unexpected result from fetchPies');\n    }\n  });\n  \n  runner.runTests();\n}\n```",
+      "testStrategy": "",
+      "status": "pending",
+      "dependencies": [
+        33,
+        34
+      ],
+      "priority": "medium",
+      "subtasks": []
+    },
+    {
+      "id": 36,
+      "title": "Refactor: 8.1 Standardize Code Documentation",
+      "description": "Adopt and apply a consistent JSDoc style for documenting all functions, classes, and modules. This will improve code readability and maintainability.",
+      "details": "Current Issues:\n- Inconsistent documentation style\n- Missing documentation for key functionality\n\nRecommended Changes:\nStandardize Code Documentation. Adopt a consistent JSDoc style for all functions and classes:\n```javascript\n/**\n * Fetches investment pies from the Trading212 API.\n * \n * @async\n * @function fetchPies\n * @param {Object} [options] - Optional configuration for the fetch operation.\n * @param {number} [options.limit=20] - Maximum number of pies to fetch.\n * @param {string} [options.cursor] - Cursor for pagination.\n * @returns {Promise<Array<PieModel>>} Array of pie models.\n * @throws {ApiError} When the API request fails.\n * \n * @example\n * // Fetch pies with default options\n * const pies = await fetchPies();\n * \n * // Fetch pies with custom options\n * const pies = await fetchPies({ limit: 50 });\n */\nasync function fetchPies(options = {}) {\n  // Implementation...\n}\n```",
+      "testStrategy": "",
+      "status": "pending",
+      "dependencies": [],
+      "priority": "low",
+      "subtasks": []
+    },
+    {
+      "id": 37,
+      "title": "Refactor: 8.2 Create Technical Documentation",
+      "description": "Create a comprehensive technical documentation file covering the architecture, module responsibilities, API interactions, data processing flow, error handling, and configuration options. This will aid developers in understanding and contributing to the project.",
+      "details": "Current Issues:\n- Inconsistent documentation style\n- Missing documentation for key functionality\n\nRecommended Changes:\nCreate Technical Documentation. Create a comprehensive technical documentation file explaining:\n- Architecture overview\n- Module responsibilities\n- API interactions\n- Data processing flow\n- Error handling strategy\n- Configuration options",
+      "testStrategy": "",
+      "status": "pending",
+      "dependencies": [
+        16,
+        17,
+        21,
+        24,
+        30
+      ],
+      "priority": "low",
+      "subtasks": []
+    },
+    {
+      "id": 38,
+      "title": "Refactor: 8.3 Create User Documentation",
+      "description": "Develop user-friendly documentation covering installation, setup, data fetching, sheet customization, and troubleshooting. This will help users effectively utilize the add-on.",
+      "details": "Current Issues:\n- Limited user guides\n\nRecommended Changes:\nCreate User Documentation. Create user-friendly guides for:\n- Installation and setup\n- Connecting to Trading212 API\n- Fetching and updating data\n- Customizing sheets and reports\n- Troubleshooting common issues",
+      "testStrategy": "",
+      "status": "pending",
+      "dependencies": [],
+      "priority": "low",
+      "subtasks": []
+    },
+    {
+      "id": 39,
+      "title": "Feature: 9.1 Enhanced Data Visualization",
+      "description": "Implement enhanced data visualization features, including automatic chart generation for portfolio performance, dynamic dashboards, and customizable visualization options. This will provide users with better insights into their portfolio.",
+      "details": "New Features:\nEnhanced Data Visualization\n- Implement automatic chart generation for portfolio performance\n- Add dynamic dashboards summarizing portfolio metrics\n- Create customizable visualization options\n\nExample implementation for automatic chart generation:\n```javascript\n/**\n * Creates a portfolio performance chart in the given sheet.\n * \n * @param {string} sheetName - The name of the sheet to create the chart in.\n * @param {Array<Object>} performanceData - Array of performance data points.\n */\nfunction createPortfolioPerformanceChart(sheetName, performanceData) {\n  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetName);\n  \n  // Prepare data for chart\n  const headers = ['Date', 'Value'];\n  const rows = performanceData.map(item => [item.date, item.value]);\n  \n  // Write data to sheet\n  sheet.getRange(1, 1, 1, headers.length).setValues([headers]);\n  sheet.getRange(2, 1, rows.length, rows[0].length).setValues(rows);\n  \n  // Create chart\n  const chart = sheet.newChart()\n    .setChartType(Charts.ChartType.LINE)\n    .addRange(sheet.getRange(1, 1, rows.length + 1, 2))\n    .setPosition(5, 5, 0, 0)\n    .setOption('title', 'Portfolio Performance')\n    .setOption('legend', {position: 'none'})\n    .setOption('vAxis', {title: 'Value'})\n    .setOption('hAxis', {title: 'Date'})\n    .build();\n  \n  sheet.insertChart(chart);\n}\n```",
+      "testStrategy": "",
+      "status": "pending",
+      "dependencies": [
+        24,
+        25
+      ],
+      "priority": "medium",
+      "subtasks": []
+    },
+    {
+      "id": 40,
+      "title": "Feature: 9.2 Scheduled Refreshes",
+      "description": "Add functionality to automatically refresh portfolio data on a configurable schedule (e.g., daily, hourly) using time-driven triggers. Implement optional email notifications for significant portfolio changes.",
+      "details": "New Features:\nScheduled Refreshes\n- Add functionality to automatically refresh data on a schedule\n- Implement configurable refresh intervals (daily, hourly, etc.)\n- Add email notifications for significant portfolio changes\n\nExample implementation for scheduled refreshes:\n```javascript\n/**\n * Sets up a time-driven trigger to refresh data on a schedule.\n * \n * @param {string} frequency - The frequency of the refresh ('hourly', 'daily', 'weekly').\n */\nfunction setupScheduledRefresh(frequency) {\n  // Delete any existing triggers\n  const triggers = ScriptApp.getProjectTriggers();\n  for (const trigger of triggers) {\n    if (trigger.getHandlerFunction() === 'refreshPortfolioData') {\n      ScriptApp.deleteTrigger(trigger);\n    }\n  }\n  \n  // Create new trigger based on frequency\n  switch (frequency) {\n    case 'hourly':\n      ScriptApp.newTrigger('refreshPortfolioData')\n        .timeBased()\n        .everyHours(1)\n        .create();\n      break;\n    case 'daily':\n      ScriptApp.newTrigger('refreshPortfolioData')\n        .timeBased()\n        .everyDays(1)\n        .atHour(6) // 6 AM\n        .create();\n      break;\n    case 'weekly':\n      ScriptApp.newTrigger('refreshPortfolioData')\n        .timeBased()\n        .onWeekDay(ScriptApp.WeekDay.MONDAY)\n        .atHour(6) // 6 AM\n        .create();\n      break;\n  }\n  \n  // Save the configuration\n  PropertiesService.getUserProperties().setProperty('REFRESH_FREQUENCY', frequency);\n}\n```",
+      "testStrategy": "",
+      "status": "pending",
+      "dependencies": [
+        25
+      ],
+      "priority": "medium",
+      "subtasks": []
+    },
+    {
+      "id": 41,
+      "title": "Feature: 9.3 Portfolio Analysis",
+      "description": "Implement portfolio analysis tools, including performance metrics calculation, sector allocation analysis, dividend tracking and forecasting, and risk assessment tools. This will provide users with deeper insights into their portfolio's characteristics.",
+      "details": "New Features:\nPortfolio Analysis\n- Implement portfolio performance metrics calculation\n- Add sector allocation analysis\n- Create dividend tracking and forecasting\n- Implement risk assessment tools\n\nExample implementation for sector allocation analysis:\n```javascript\n/**\n * Analyzes sector allocation in the portfolio.\n * \n * @returns {Object} Sector allocation data.\n */\nfunction analyzeSectorAllocation() {\n  const holdings = getPortfolioHoldings();\n  const sectors = {};\n  \n  // Calculate sector totals\n  for (const holding of holdings) {\n    if (!sectors[holding.sector]) {\n      sectors[holding.sector] = 0;\n    }\n    sectors[holding.sector] += holding.value;\n  }\n  \n  // Calculate percentages\n  const totalValue = holdings.reduce((sum, holding) => sum + holding.value, 0);\n  const sectorAllocation = Object.entries(sectors).map(([sector, value]) => ({\n    sector,\n    value,\n    percentage: (value / totalValue) * 100\n  }));\n  \n  // Sort by percentage (descending)\n  sectorAllocation.sort((a, b) => b.percentage - a.percentage);\n  \n  return sectorAllocation;\n}\n```",
+      "testStrategy": "",
+      "status": "pending",
+      "dependencies": [
+        24,
+        25
+      ],
+      "priority": "medium",
+      "subtasks": []
+    },
+    {
+      "id": 42,
+      "title": "Feature: 9.4 Mobile Compatibility",
+      "description": "Optimize the user interface for mobile use by implementing responsive design principles and creating mobile-friendly views for key information. This will improve the user experience on mobile devices.",
+      "details": "New Features:\nMobile Compatibility\n- Optimize UI for mobile use\n- Create mobile-friendly views for key information\n- Implement responsive design principles\n\nExample approach for mobile compatibility:\n```html\n<!-- Example of responsive CSS for mobile compatibility -->\n<style>\n  /* Base styles */\n  .setup-container {\n    padding: 20px;\n  }\n  \n  /* Responsive styles */\n  @media screen and (max-width: 600px) {\n    .setup-container {\n      padding: 10px;\n    }\n    \n    .environment-cards {\n      flex-direction: column;\n    }\n    \n    .environment-card {\n      width: 100%;\n      margin-bottom: 15px;\n    }\n    \n    .button-container {\n      flex-direction: column;\n      gap: 10px;\n    }\n    \n    .button-container button {\n      width: 100%;\n    }\n  }\n</style>\n```",
+      "testStrategy": "",
+      "status": "pending",
+      "dependencies": [
+        27,
+        29
+      ],
+      "priority": "medium",
+      "subtasks": []
+    },
+    {
+      "id": 43,
+      "title": "Feature: 9.5 Data Export Options",
+      "description": "Add functionality to export portfolio data in various formats (CSV, PDF) and implement options for email report delivery and custom report templates. This will provide users with more flexibility in accessing and sharing their data.",
+      "details": "New Features:\nData Export Options\n- Add functionality to export portfolio data in various formats (CSV, PDF)\n- Create email report delivery options\n- Implement custom report templates\n\nExample implementation for CSV export:\n```javascript\n/**\n * Exports portfolio data to CSV.\n * \n * @param {string} sheetName - The name of the sheet to export.\n * @returns {string} CSV data as a string.\n */\nfunction exportSheetToCsv(sheetName) {\n  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetName);\n  const data = sheet.getDataRange().getValues();\n  \n  // Convert to CSV\n  const csv = data.map(row => row.join(',')).join('\\n');\n  \n  return csv;\n}\n\n/**\n * Creates and emails a portfolio report.\n * \n * @param {string} email - The email address to send the report to.\n * @param {string} reportType - The type of report to generate ('summary', 'detailed').\n */\nfunction emailPortfolioReport(email, reportType) {\n  // Generate report data\n  const reportData = generatePortfolioReport(reportType);\n  \n  // Export to CSV\n  const csv = exportSheetToCsv(reportData.sheetName);\n  \n  // Create blob\n  const blob = Utilities.newBlob(csv, 'text/csv', `Portfolio_Report_${new Date().toISOString().slice(0, 10)}.csv`);\n  \n  // Send email\n  MailApp.sendEmail({\n    to: email,\n    subject: 'Your Trading212 Portfolio Report',\n    body: 'Please find your portfolio report attached.',\n    attachments: [blob]\n  });\n}\n```",
+      "testStrategy": "",
+      "status": "pending",
+      "dependencies": [
+        25
+      ],
+      "priority": "medium",
+      "subtasks": []
+    }
+  ]
+}

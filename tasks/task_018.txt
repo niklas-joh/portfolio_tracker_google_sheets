@@ -1,0 +1,33 @@
+# Task ID: 18
+# Title: Refactor: 2.1 Implement Singleton Pattern for Service Classes
+# Status: pending
+# Dependencies: 17
+# Priority: medium
+# Description: Implement the Singleton design pattern for service classes like ApiClient to ensure a single instance is used throughout the application. This will help manage shared resources and state.
+# Details:
+Current Issues:
+- Lack of consistent design patterns
+- Mixed approach to similar problems
+
+Recommended Changes:
+Implement Singleton Pattern for Service Classes. Example:
+```javascript
+/**
+ * Singleton pattern for ApiClient.
+ */
+class ApiClient {
+  static instance;
+  
+  static getInstance(config) {
+    if (!ApiClient.instance) {
+      ApiClient.instance = new ApiClient(config);
+    }
+    return ApiClient.instance;
+  }
+  
+  // Rest of the class implementation...
+}
+```
+
+# Test Strategy:
+

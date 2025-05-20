@@ -1,0 +1,44 @@
+# Task ID: 35
+# Title: Refactor: 7.3 Set Up Integration Tests
+# Status: pending
+# Dependencies: 33, 34
+# Priority: medium
+# Description: Establish integration tests to verify the interaction between different components and external services (like the API). This will ensure the system works correctly as a whole.
+# Details:
+Current Issues:
+- Lack of systematic testing
+- Difficulty in validating code changes
+
+Recommended Changes:
+Set Up Integration Tests. Example:
+```javascript
+/**
+ * Integration test for fetching pies.
+ */
+function testFetchPies() {
+  const runner = new TestRunner();
+  
+  runner.addTest('Should fetch and process pies', async () => {
+    // Set up mock API client
+    const mockApiClient = new MockApiClient({
+      'equity/pies': { items: [{ id: 1, name: 'Test Pie', value: 100 }] }
+    });
+    
+    // Override API client instance
+    ApiClient.instance = mockApiClient;
+    
+    // Execute the function to test
+    const result = await fetchPies();
+    
+    // Assert the results
+    if (!result || result.length !== 1 || result[0].name !== 'Test Pie') {
+      throw new Error('Unexpected result from fetchPies');
+    }
+  });
+  
+  runner.runTests();
+}
+```
+
+# Test Strategy:
+

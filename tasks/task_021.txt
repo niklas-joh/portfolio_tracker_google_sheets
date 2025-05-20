@@ -1,0 +1,38 @@
+# Task ID: 21
+# Title: Refactor: 3.1 Centralize API Configuration
+# Status: pending
+# Dependencies: 16
+# Priority: high
+# Description: Create a single, centralized configuration file for all API-related constants, such as base URLs, endpoints, and rate limits. This will improve maintainability and make it easier to update API settings.
+# Details:
+Current Issues:
+- Inconsistent API request handling
+- Duplicate API call functions
+- Limited rate limiting implementation
+
+Recommended Changes:
+Centralize API Configuration. Create a single config file for all API-related constants:
+```javascript
+/**
+ * Centralized API configuration.
+ */
+const API_CONFIG = {
+  domains: {
+    live: 'https://live.trading212.com',
+    demo: 'https://demo.trading212.com'
+  },
+  version: '/api/v0/',
+  endpoints: {
+    pies: 'equity/pies',
+    accountInfo: 'equity/account/info',
+    // Other endpoints...
+  },
+  rateLimits: {
+    'equity/pies': { limit: 1, windowMs: 30000 },
+    // Other rate limits...
+  }
+};
+```
+
+# Test Strategy:
+

@@ -1,0 +1,40 @@
+# Task ID: 1
+# Title: Setup Project Structure and API Configuration
+# Status: done
+# Dependencies: None
+# Priority: high
+# Description: Create the initial project structure in Google Apps Script and implement API configuration functionality for the trading platform.
+# Details:
+1. Create a new Google Apps Script project
+2. Set up the basic file structure:
+   - `Config.gs`: Store API configuration and constants
+   - `ApiUtils.gs`: API utility functions
+   - `DataFetcher.gs`: Functions to fetch data from API
+   - `SheetManager.gs`: Functions to manage sheets
+   - `UI.gs`: UI components
+   - `Main.gs`: Main entry point and menu setup
+3. Implement configuration storage using PropertiesService:
+```javascript
+function saveApiConfig(apiKey, environment) {
+  const scriptProperties = PropertiesService.getScriptProperties();
+  scriptProperties.setProperty('API_KEY', apiKey);
+  scriptProperties.setProperty('ENVIRONMENT', environment);
+  return true;
+}
+
+function getApiConfig() {
+  const scriptProperties = PropertiesService.getScriptProperties();
+  return {
+    apiKey: scriptProperties.getProperty('API_KEY'),
+    environment: scriptProperties.getProperty('ENVIRONMENT')
+  };
+}
+```
+4. Create constants for API endpoints based on environment
+5. Set up onOpen trigger to create custom menu
+
+# Test Strategy:
+1. Verify project structure is correctly set up with all necessary files
+2. Test saving and retrieving API configuration
+3. Confirm custom menu appears when spreadsheet is opened
+4. Manually verify that configuration is persisted between sessions

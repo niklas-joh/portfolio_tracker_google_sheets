@@ -1,0 +1,40 @@
+# Task ID: 7
+# Title: Implement Instrument and Pie Fetching
+# Status: done
+# Dependencies: 2
+# Priority: medium
+# Description: Create functions to fetch instrument lists and pie configurations from the trading platform API.
+# Details:
+1. Implement function to fetch instruments:
+```javascript
+function fetchInstruments() {
+  try {
+    return makeApiRequest('/instruments');
+  } catch (error) {
+    Logger.log(`Failed to fetch instruments: ${error}`);
+    throw error;
+  }
+}
+```
+
+2. Implement function to fetch pie configurations:
+```javascript
+function fetchPies() {
+  try {
+    return makeApiRequest('/pies');
+  } catch (error) {
+    Logger.log(`Failed to fetch pies: ${error}`);
+    throw error;
+  }
+}
+```
+
+3. Process instrument data to extract relevant fields
+4. Process pie data to flatten nested structures and calculate allocations
+
+# Test Strategy:
+1. Test fetching instruments and verifying data structure
+2. Test fetching pies and verifying data structure
+3. Verify handling of empty instrument and pie sets
+4. Test with mock data to ensure proper processing
+5. Test error handling for API failures

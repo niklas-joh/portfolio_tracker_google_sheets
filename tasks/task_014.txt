@@ -1,0 +1,61 @@
+# Task ID: 14
+# Title: Implement Data Refresh Automation
+# Status: pending
+# Dependencies: 9, 12
+# Priority: low
+# Description: Create time-based triggers to automatically refresh data at scheduled intervals.
+# Details:
+1. Implement function to create time-based trigger:
+```javascript
+function createDailyTrigger() {
+  // Delete existing triggers first
+  deleteTriggers();
+  
+  // Create new daily trigger
+  ScriptApp.newTrigger('fetchAndWriteAllData')
+    .timeBased()
+    .everyDays(1)
+    .atHour(6) // 6 AM
+    .create();
+    
+  return true;
+}
+
+function deleteTriggers() {
+  const triggers = ScriptApp.getProjectTriggers();
+  for (const trigger of triggers) {
+    if (trigger.getHandlerFunction() === 'fetchAndWriteAllData') {
+      ScriptApp.deleteTrigger(trigger);
+    }
+  }
+}
+
+function fetchAndWriteAllData() {
+  try {
+    fetchAndWriteData({
+      fetchAccountInfo: true,
+      fetchCashBalance: true,
+      fetchTransactions: true,
+      fetchOrders: true,
+      fetchDividends: true,
+      fetchInstruments: true,
+      fetchPies: true,
+      dateFrom: null,
+      dateTo: null
+    });
+  } catch (error) {
+    handleError(error, 'fetchAndWriteAllData');
+  }
+}
+```
+
+2. Add UI for configuring automatic refresh settings
+3. Implement function to check trigger status
+4. Add notification for successful/failed automatic refreshes
+
+# Test Strategy:
+1. Test creating daily trigger
+2. Verify trigger deletion works correctly
+3. Test automatic data refresh functionality
+4. Verify trigger status checking
+5. Test notification system for automatic refreshes
