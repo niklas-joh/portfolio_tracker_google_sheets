@@ -69,18 +69,42 @@ class SheetManager {
    * @param {string[]} headers An array of header strings (used to determine columns).
    */
   updateSheetData(sheetName, dataRows, headers) {
-    const sheet = this.ensureSheetExists(sheetName);
-    // Clear old data (below header row)
-    if (sheet.getLastRow() > 1) {
-      sheet.getRange(2, 1, sheet.getLastRow() - 1, sheet.getLastColumn()).clearContent();
-    }
-    if (dataRows && dataRows.length > 0) {
-      // Ensure headers array is valid and has a length property for determining numColumns
-      const numColumns = Array.isArray(headers) && headers.length > 0 ? headers.length : (dataRows[0] ? dataRows[0].length : 1);
-      sheet.getRange(2, 1, dataRows.length, numColumns).setValues(dataRows);
-      Logger.log(`SheetManager: Updated sheet "${sheetName}" with ${dataRows.length} rows of data.`);
-    } else {
-      Logger.log(`SheetManager: No data to update for sheet "${sheetName}".`);
+    try {
+      const sheet = this.ensureSheetExists(sheetName);
+      
+      // Validate dataRows before clearing the sheet
+      if (!dataRows || !Array.isArray(dataRows)) {
+        Logger.log(`SheetManager: Invalid dataRows for sheet "${sheetName}". Not clearing or updating.`);
+        return;
+      }
+      
+      Logger.log(`SheetManager: Preparing to update sheet "${sheetName}" with ${dataRows.length} rows of data.`);
+      
+      // Only clear and update if we have valid data to write
+      if (dataRows.length > 0) {
+        // Clear old data (below header row)
+        if (sheet.getLastRow() > 1) {
+          Logger.log(`SheetManager: Clearing existing data in sheet "${sheetName}".`);
+          sheet.getRange(2, 1, sheet.getLastRow() - 1, sheet.getLastColumn()).clearContent();
+        }
+        
+        try {
+          // Ensure headers array is valid and has a length property for determining numColumns
+          const numColumns = Array.isArray(headers) && headers.length > 0 ? headers.length : (dataRows[0] ? dataRows[0].length : 1);
+          
+          Logger.log(`SheetManager: Writing ${dataRows.length} rows with ${numColumns} columns to sheet "${sheetName}".`);
+          sheet.getRange(2, 1, dataRows.length, numColumns).setValues(dataRows);
+          Logger.log(`SheetManager: Successfully updated sheet "${sheetName}" with ${dataRows.length} rows of data.`);
+        } catch (writeError) {
+          Logger.log(`SheetManager: Error writing data to sheet "${sheetName}": ${writeError.message}`);
+          throw new Error(`Failed to write data to sheet "${sheetName}": ${writeError.message}`);
+        }
+      } else {
+        Logger.log(`SheetManager: No data rows to update for sheet "${sheetName}". Sheet not cleared.`);
+      }
+    } catch (error) {
+      Logger.log(`SheetManager: Error in updateSheetData for sheet "${sheetName}": ${error.message}`);
+      throw error; // Re-throw to allow calling code to handle the error
     }
   }
 

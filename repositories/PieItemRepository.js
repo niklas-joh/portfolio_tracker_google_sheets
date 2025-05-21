@@ -80,33 +80,69 @@ class PieItemRepository {
 
   /**
    * Saves an array of PieItemModel instances to the Google Sheet.
-   * This will overwrite all existing data for the specified pieId if clearExisting is true,
-   * or append/update otherwise (complex, for now assume overwrite for simplicity or manage externally).
-   * For simplicity, this example will just append all given items.
-   * A more robust solution would handle updates or clear+write for a specific pie.
+   * This will overwrite all existing data in the sheet with the provided items.
+   * All pie items from all pies should be passed together when using this method.
    * @param {Array<PieItemModel>} pieItems An array of PieItemModel instances to save.
-   * @returns {Promise<void>}
+   * @returns {Promise<boolean>} A promise that resolves to true if the save was successful, false otherwise.
    */
   async savePieItemsToSheet(pieItems) {
-    if (!Array.isArray(pieItems) || !pieItems.every(item => item instanceof PieItemModel)) {
-      throw new Error('Invalid input: pieItems must be an array of PieItemModel instances.');
-    }
-    if (pieItems.length === 0) {
-      Logger.log('No pie items to save to sheet.');
-      return;
-    }
     try {
-      const dataRows = pieItems.map(item => item.toSheetRow());
-      // This simple save appends. A real scenario might need to clear old items for a pie first.
-      // For now, we'll use updateSheetData which implies overwrite of the whole sheet.
-      // This means all pie items from all pies should be passed together if using this method.
-      // Or, sheetManager needs a more granular update/append method.
-      // Let's assume for now this method is called with ALL pie items to be stored.
+      // Validate input
+      if (!Array.isArray(pieItems)) {
+        Logger.log('Invalid input: pieItems must be an array.');
+        return false;
+      }
+      
+      // Check if all items are PieItemModel instances
+      if (!pieItems.every(item => item instanceof PieItemModel)) {
+        Logger.log('Invalid input: Not all items in pieItems array are PieItemModel instances.');
+        return false;
+      }
+      
+      // Handle empty array case
+      if (pieItems.length === 0) {
+        Logger.log('No pie items to save to sheet. Sheet will not be updated.');
+        return true; // Return true as this is not an error condition
+      }
+      
+      // Log the number of items being saved
+      Logger.log(`Preparing to save ${pieItems.length} pie items to sheet '${this.sheetName}'...`);
+      
+      // Transform items to sheet rows
+      const dataRows = pieItems.map(item => {
+        try {
+          return item.toSheetRow();
+        } catch (rowError) {
+          Logger.log(`Error converting pie item to sheet row: ${rowError.message}`);
+          // Return a row with the pieId and error message, rest empty
+          return [
+            item.pieId || 'Unknown',
+            item.id || 'Unknown',
+            item.ticker || 'Error',
+            'Error',
+            'Error',
+            0,
+            0,
+            0,
+            0,
+            'Error: ' + rowError.message
+          ];
+        }
+      });
+      
+      // Save to sheet
       await this.sheetManager.updateSheetData(this.sheetName, dataRows, this.sheetHeaders);
-      Logger.log(`${pieItems.length} pie items saved to sheet '${this.sheetName}'.`);
+      Logger.log(`Successfully saved ${pieItems.length} pie items to sheet '${this.sheetName}'.`);
+      return true;
     } catch (error) {
       Logger.log(`Error saving pie items to sheet: ${error.message}`);
-      ErrorHandler.handleError(error, 'Failed to save pie items to Google Sheet.');
+      if (typeof ErrorHandler !== 'undefined' && ErrorHandler.handleError) {
+        ErrorHandler.handleError(error, 'Failed to save pie items to Google Sheet.');
+      } else {
+        // Fallback if ErrorHandler is not available
+        Logger.log(`Stack trace: ${error.stack || 'No stack trace available'}`);
+      }
+      return false;
     }
   }
 

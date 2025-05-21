@@ -172,25 +172,87 @@ async function fetchPieItemsAndSave_() {
     }
 
     Logger.log(`UI: Found ${pies.length} pies. Fetching items for each...`);
+    
+    // Create an array to store any errors that occur during fetching
+    const fetchErrors = [];
+    
+    // Fetch items for each pie
     const fetchPromises = pies.map(pie => {
       if (pie && typeof pie.id !== 'undefined') {
-        return pieItemRepository.fetchPieItemsForPie(pie.id);
+        return pieItemRepository.fetchPieItemsForPie(pie.id)
+          .catch(error => {
+            // Log the error and add it to the errors array
+            const errorMsg = `Failed to fetch items for pie ID ${pie.id} (${pie.name || 'Unknown'}): ${error.message}`;
+            Logger.log(`UI: ${errorMsg}`);
+            fetchErrors.push(errorMsg);
+            return []; // Return empty array for this pie
+          });
       }
       Logger.log(`UI: Pie object or pie.id is undefined for a pie: ${JSON.stringify(pie)}. Skipping.`);
       return Promise.resolve([]); // Resolve with empty array for invalid pie objects
     });
     
+    // Wait for all fetch operations to complete
     const pieItemsArrays = await Promise.all(fetchPromises);
+    
+    // Process the results
     const allPieItems = pieItemsArrays.flat().filter(item => item); // Flatten and remove any null/undefined items
-
+    
+    Logger.log(`UI: Fetched ${allPieItems.length} total pie items across ${pies.length} pies.`);
+    
+    // Detailed logging of what was fetched
+    const pieItemCounts = {};
+    allPieItems.forEach(item => {
+      if (item.pieId) {
+        pieItemCounts[item.pieId] = (pieItemCounts[item.pieId] || 0) + 1;
+      }
+    });
+    
+    // Log the count of items per pie
+    Object.keys(pieItemCounts).forEach(pieId => {
+      Logger.log(`UI: Pie ID ${pieId} has ${pieItemCounts[pieId]} items.`);
+    });
+    
+    // Check if we have any items to save
     if (allPieItems.length > 0) {
-      Logger.log(`UI: Total ${allPieItems.length} pie items fetched. Saving to sheet...`);
-      await pieItemRepository.savePieItemsToSheet(allPieItems);
-      Logger.log("UI: fetchPieItemsAndSave_ completed successfully.");
-      SpreadsheetApp.getUi().alert(`Fetch & Save Pie Items completed. ${allPieItems.length} items saved. Check logs and the 'PieItems' sheet.`);
+      Logger.log(`UI: Saving ${allPieItems.length} pie items to sheet...`);
+      
+      // Save the items to the sheet
+      const saveResult = await pieItemRepository.savePieItemsToSheet(allPieItems);
+      
+      if (saveResult) {
+        Logger.log("UI: fetchPieItemsAndSave_ completed successfully.");
+        
+        // Construct a detailed success message
+        let successMessage = `Fetch & Save Pie Items completed. ${allPieItems.length} items saved.`;
+        
+        // Add information about any errors that occurred
+        if (fetchErrors.length > 0) {
+          successMessage += `\n\nNote: ${fetchErrors.length} pie(s) had errors during fetch.`;
+        }
+        
+        SpreadsheetApp.getUi().alert(successMessage);
+      } else {
+        Logger.log("UI: Failed to save pie items to sheet.");
+        SpreadsheetApp.getUi().alert("Error: Items were fetched but could not be saved to the sheet. Check logs for details.");
+      }
     } else {
+      // No items were found
+      let noItemsMessage = "No pie items found for the existing pies.";
+      
+      // Add information about any errors that occurred
+      if (fetchErrors.length > 0) {
+        noItemsMessage += `\n\n${fetchErrors.length} pie(s) had errors during fetch:`;
+        fetchErrors.slice(0, 3).forEach(error => {
+          noItemsMessage += `\n- ${error}`;
+        });
+        if (fetchErrors.length > 3) {
+          noItemsMessage += `\n- ... and ${fetchErrors.length - 3} more errors. Check logs for details.`;
+        }
+      }
+      
       Logger.log("UI: No pie items found for any of the pies.");
-      SpreadsheetApp.getUi().alert("No pie items found for the existing pies.");
+      SpreadsheetApp.getUi().alert(noItemsMessage);
     }
 
   } catch (e) {
