@@ -1,0 +1,153 @@
+/**
+ * @fileoverview Defines the PieItemRepository class for managing pie item data.
+ */
+
+// Assuming ApiClient, PieItemModel, PieModel, and SheetManager are globally available.
+// For GAS, ensure relevant .js files are loaded.
+
+/**
+ * Repository class for fetching and managing Pie Item data.
+ * Pie items are typically part of a Pie's details. This repository
+ * might fetch them via the PieRepository or directly if an endpoint exists.
+ * It transforms data into PieItemModel instances and handles persistence.
+ */
+class PieItemRepository {
+  /**
+   * Creates an instance of PieItemRepository.
+   * @param {Trading212ApiClient} apiClient The API client for fetching data.
+   * @param {SheetManager} sheetManager The manager for interacting with Google Sheets.
+   * @param {string} sheetName The name of the Google Sheet where pie item data is stored.
+   */
+  constructor(apiClient, sheetManager, sheetName = 'PieItems') {
+    if (!apiClient) {
+      throw new Error('PieItemRepository: apiClient is required.');
+    }
+    if (!sheetManager) {
+      throw new Error('PieItemRepository: sheetManager is required.');
+    }
+    /** @private @const {Trading212ApiClient} */
+    this.apiClient = apiClient; // May not be used directly if items always come via Pie details
+    /** @private @const {SheetManager} */
+    this.sheetManager = sheetManager;
+    /** @private @const {string} */
+    this.sheetName = sheetName;
+    /** @private @const {Array<string>} */
+    this.sheetHeaders = ['Pie ID', 'Item ID', 'Ticker', 'Expected Share', 'Current Share', 'Current Value', 'Invested Value', 'Quantity', 'Result', 'Result Currency'];
+    
+    this.sheetManager.ensureSheetExists(this.sheetName);
+    this.sheetManager.setHeaders(this.sheetName, this.sheetHeaders);
+  }
+
+  /**
+   * Fetches all pie items for a specific pie from the API.
+   * This typically involves fetching the pie details and extracting items.
+   * @param {number} pieId The ID of the pie whose items are to be fetched.
+   * @returns {Promise<Array<PieItemModel>>} A promise that resolves to an array of PieItemModel instances.
+   */
+  async fetchPieItemsForPie(pieId) {
+    try {
+      // Assumes pie details from API client include instrument data
+      const rawPieData = await this.apiClient.getPieDetails(pieId);
+      if (!rawPieData || !rawPieData.instruments || !Array.isArray(rawPieData.instruments)) {
+        Logger.log(`No instruments data found for pie ID ${pieId} or data is not an array.`);
+        return [];
+      }
+      return rawPieData.instruments.map(rawItem => {
+        // Add pieId to each item if not already present from API
+        const itemDataWithPieId = { ...rawItem, pieId: pieId };
+        return new PieItemModel(itemDataWithPieId);
+      });
+    } catch (error) {
+      Logger.log(`Error fetching pie items for pie ID ${pieId}: ${error.message}`);
+      ErrorHandler.handleError(error, `Failed to fetch pie items for pie ID ${pieId}.`);
+      return [];
+    }
+  }
+
+  /**
+   * Saves an array of PieItemModel instances to the Google Sheet.
+   * This will overwrite all existing data for the specified pieId if clearExisting is true,
+   * or append/update otherwise (complex, for now assume overwrite for simplicity or manage externally).
+   * For simplicity, this example will just append all given items.
+   * A more robust solution would handle updates or clear+write for a specific pie.
+   * @param {Array<PieItemModel>} pieItems An array of PieItemModel instances to save.
+   * @returns {Promise<void>}
+   */
+  async savePieItemsToSheet(pieItems) {
+    if (!Array.isArray(pieItems) || !pieItems.every(item => item instanceof PieItemModel)) {
+      throw new Error('Invalid input: pieItems must be an array of PieItemModel instances.');
+    }
+    if (pieItems.length === 0) {
+      Logger.log('No pie items to save to sheet.');
+      return;
+    }
+    try {
+      const dataRows = pieItems.map(item => item.toSheetRow());
+      // This simple save appends. A real scenario might need to clear old items for a pie first.
+      // For now, we'll use updateSheetData which implies overwrite of the whole sheet.
+      // This means all pie items from all pies should be passed together if using this method.
+      // Or, sheetManager needs a more granular update/append method.
+      // Let's assume for now this method is called with ALL pie items to be stored.
+      await this.sheetManager.updateSheetData(this.sheetName, dataRows, this.sheetHeaders);
+      Logger.log(`${pieItems.length} pie items saved to sheet '${this.sheetName}'.`);
+    } catch (error) {
+      Logger.log(`Error saving pie items to sheet: ${error.message}`);
+      ErrorHandler.handleError(error, 'Failed to save pie items to Google Sheet.');
+    }
+  }
+
+  /**
+   * Fetches pie items for a given pie ID and saves them to the sheet.
+   * Note: This will overwrite the entire sheet with items for THIS pie only.
+   * Consider if this is the desired behavior or if items should be appended/merged.
+   * @param {number} pieId The ID of the pie.
+   * @returns {Promise<Array<PieItemModel>>}
+   */
+  async fetchAndSaveItemsForPie(pieId) {
+    const items = await this.fetchPieItemsForPie(pieId);
+    if (items.length > 0) {
+      // This replaces the entire sheet. If you want to manage items for multiple pies
+      // in one sheet, you'd need to fetch all items for all pies and save them together,
+      // or implement a more complex update logic in sheetManager.
+      await this.savePieItemsToSheet(items);
+    } else {
+      Logger.log(`No items fetched for pie ID ${pieId}, sheet not updated.`);
+      // If this means "clear items for this pie", that logic is more complex with a shared sheet.
+      // If the sheet is ONLY for one pie's items at a time, then clearing is fine:
+      // await this.sheetManager.updateSheetData(this.sheetName, [], this.sheetHeaders);
+    }
+    return items;
+  }
+  
+  /**
+   * Retrieves all pie items from the Google Sheet.
+   * @returns {Promise<Array<PieItemModel>>} A promise that resolves to an array of PieItemModel instances.
+   */
+  async getAllPieItemsFromSheet() {
+    try {
+      const dataRows = await this.sheetManager.getSheetData(this.sheetName);
+      return dataRows.map(row => PieItemModel.fromSheetRow(row, this.sheetHeaders));
+    } catch (error) {
+      Logger.log(`Error retrieving pie items from sheet: ${error.message}`);
+      ErrorHandler.handleError(error, 'Failed to retrieve pie items from Google Sheet.');
+      return [];
+    }
+  }
+
+  /**
+   * Retrieves all pie items for a specific pie ID from the Google Sheet.
+   * @param {number} pieId The ID of the pie.
+   * @returns {Promise<Array<PieItemModel>>}
+   */
+  async getPieItemsForPieFromSheet(pieId) {
+    try {
+      const allItems = await this.getAllPieItemsFromSheet();
+      return allItems.filter(item => item.pieId === pieId);
+    } catch (error) {
+      Logger.log(`Error retrieving items for pie ID ${pieId} from sheet: ${error.message}`);
+      return [];
+    }
+  }
+}
+
+// Global availability for GAS V8 runtime
