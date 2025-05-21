@@ -58,15 +58,16 @@ class Trading212ApiClient {
     // Check rate limiting
     const canProceed = this.rateLimiter.canProceed(endpoint);
     if (!canProceed.proceed) {
-      Logger.log(`Rate limit reached for ${endpoint}. Waiting for ${canProceed.waitTime} ms.`);
+      const proactiveWaitTime = canProceed.waitTime + 500; // Add a 500ms buffer
+      Logger.log(`Rate limit reached for ${endpoint}. Proactively waiting for ${proactiveWaitTime} ms.`);
       
       // Ensure we don't exceed execution time limits
-      if (canProceed.waitTime > 300000) { // 5 minutes
-        throw new Error('Wait time exceeds script execution time limits.');
+      if (proactiveWaitTime > 300000) { // 5 minutes
+        throw new Error('Proactive wait time exceeds script execution time limits.');
       }
       
       // Wait for the required time before proceeding
-      Utilities.sleep(canProceed.waitTime);
+      Utilities.sleep(proactiveWaitTime);
     }
     
     // Make the request with retry logic
@@ -102,9 +103,19 @@ class Trading212ApiClient {
         const jsonData = JSON.parse(response.getContentText());
         return jsonData;
       } else if (statusCode === 429 && retryCount < 3) {
-        // Rate limit hit, wait and retry with exponential backoff
-        const waitTime = Math.pow(2, retryCount) * 1000; // 1s, 2s, 4s
-        Logger.log(`Rate limit hit. Waiting ${waitTime}ms before retry.`);
+        // Rate limit hit, wait and retry
+        let waitTime;
+        const specificRateLimit = this.rateLimiter.rateLimits[endpoint];
+        if (specificRateLimit && specificRateLimit.limit > 0 && specificRateLimit.windowMs > 0) {
+          // Calculate wait based on specific endpoint limit, add jitter and backoff factor
+          const baseInterval = specificRateLimit.windowMs / specificRateLimit.limit;
+          waitTime = baseInterval + (Math.random() * 1000) + (retryCount * baseInterval / 2); // Base + jitter + increasing backoff
+          Logger.log(`Rate limit hit for ${endpoint} (specific). Waiting ${waitTime}ms before retry.`);
+        } else {
+          // Fallback to a longer generic exponential backoff if specific limit not found or invalid
+          waitTime = Math.pow(2, retryCount) * 2000 + (Math.random() * 1000); // 2s, 4s, 8s + jitter
+          Logger.log(`Rate limit hit for ${endpoint} (generic). Waiting ${waitTime}ms before retry.`);
+        }
         Utilities.sleep(waitTime);
         return this._makeRequestWithRetry(url, endpoint, retryCount + 1);
       } else {

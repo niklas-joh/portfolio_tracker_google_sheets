@@ -78,7 +78,42 @@ class DividendRepository {
         this.errorHandler.logError(new Error('Invalid data format received from API for dividends.'), errorMsg);
         return []; // Return empty array on format error to prevent downstream issues
       }
-      return rawDividendsData.map(rawDividend => new DividendModel(rawDividend));
+      // Safely map raw data to DividendModel instances
+      return rawDividendsData
+        .map(rawDividend => {
+          // Validate the structure of rawDividend based on DividendModel constructor requirements
+          // The error indicates: id, ticker, timestamp, amount (with value and currency)
+          // Assuming 'reference' maps to 'id' and 'paidOn' to 'timestamp' from HistoryDividendItem
+          // and that DividendModel expects an amount object.
+          const isValidDividendObject = rawDividend &&
+            typeof rawDividend.reference !== 'undefined' && // for id
+            rawDividend.ticker &&
+            rawDividend.paidOn && // for timestamp
+            typeof rawDividend.amount === 'number'; // HistoryDividendItem.amount is a number
+
+          // If DividendModel strictly expects rawDividend.amount.value and rawDividend.amount.currency,
+          // and rawDividend.amount is just a number from the API, this check needs adjustment
+          // or DividendModel needs to handle the numeric amount.
+          // For now, let's assume DividendModel can handle rawDividend.amount being a number
+          // and internally gets currency from account settings or similar.
+          // The critical part is that rawDividend itself is an object with the main fields.
+
+          if (isValidDividendObject) {
+            try {
+              return new DividendModel(rawDividend);
+            } catch (modelError) {
+              // This catch is specifically for errors during DividendModel instantiation
+              this.errorHandler.logError(modelError, `Error constructing DividendModel for data: ${JSON.stringify(rawDividend)}`);
+              return null; // Skip this problematic item
+            }
+          } else {
+            const warningMsg = `Skipping invalid or incomplete dividend data structure: ${JSON.stringify(rawDividend)}`;
+            Logger.log(warningMsg);
+            this.errorHandler.log(warningMsg, 'WARN');
+            return null; // Skip this problematic item
+          }
+        })
+        .filter(dividend => dividend !== null); // Remove any nulls that resulted from invalid data
     } catch (error) {
       this.errorHandler.logError(error, 'Failed to fetch all dividends from API in DividendRepository.');
       throw error; // Re-throw to allow calling function to handle
