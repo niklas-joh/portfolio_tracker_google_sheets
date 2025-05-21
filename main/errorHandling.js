@@ -9,7 +9,7 @@
  * Functions in this section include:
  * - `handleApiError`: Processes API responses based on status codes and
  *   performs appropriate actions.
- * - Any other error handling utilities as needed.
+ * - `ErrorHandler` class: A class for more structured error handling.
  */
 
 /**
@@ -52,4 +52,51 @@ function handleApiError(response) {
 
   // Return null to indicate an error occurred
   return null;
+}
+
+/**
+ * @class ErrorHandler
+ * @description A class for handling and logging errors in a structured way.
+ */
+class ErrorHandler {
+  /**
+   * @constructor
+   * @param {string} source - The source of the error (e.g., 'uiFunctions', 'PieRepository').
+   */
+  constructor(source) {
+    this.source = source || 'UnknownSource';
+  }
+
+  /**
+   * @description Logs an error and optionally shows an alert to the UI.
+   * @param {Error} error - The error object.
+   * @param {string} message - A custom message to prepend to the error.
+   * @param {boolean} [showAlert=false] - Whether to show an alert in the UI.
+   */
+  handleError(error, message, showAlert = false) {
+    const fullMessage = `${this.source} Error: ${message} - ${error.message}`;
+    Logger.log(`${fullMessage}\nStack: ${error.stack || 'No stack available'}`);
+    if (showAlert && typeof SpreadsheetApp !== 'undefined' && SpreadsheetApp.getUi()) {
+      SpreadsheetApp.getUi().alert(fullMessage);
+    }
+  }
+
+  /**
+   * @description Logs an error message.
+   * @param {Error} error - The error object.
+   * @param {string} message - A custom message to prepend to the error.
+   */
+  logError(error, message) {
+    const fullMessage = `${this.source} Log: ${message} - ${error.message}`;
+    Logger.log(`${fullMessage}\nStack: ${error.stack || 'No stack available'}`);
+  }
+
+  /**
+   * @description Logs a simple message.
+   * @param {string} message - The message to log.
+   * @param {string} [level='INFO'] - The log level (e.g., INFO, WARNING, ERROR).
+   */
+  log(message, level = 'INFO') {
+    Logger.log(`[${level}] ${this.source}: ${message}`);
+  }
 }

@@ -17,19 +17,25 @@ class PieRepository {
    * Creates an instance of PieRepository.
    * @param {Trading212ApiClient} apiClient The API client for fetching data.
    * @param {SheetManager} sheetManager The manager for interacting with Google Sheets.
-   * @param {string} sheetName The name of the Google Sheet where pie data is stored.
+   * @param {ErrorHandler} errorHandler The error handler instance.
+   * @param {string} [sheetName=API_RESOURCES.PIES.sheetName] The name of the Google Sheet where pie data is stored.
    */
-  constructor(apiClient, sheetManager, sheetName = 'Pies') {
+  constructor(apiClient, sheetManager, errorHandler, sheetName = API_RESOURCES.PIES.sheetName) {
     if (!apiClient) {
       throw new Error('PieRepository: apiClient is required.');
     }
     if (!sheetManager) {
       throw new Error('PieRepository: sheetManager is required.');
     }
+    if (!errorHandler) {
+      throw new Error('PieRepository: errorHandler is required.');
+    }
     /** @private @const {Trading212ApiClient} */
     this.apiClient = apiClient;
     /** @private @const {SheetManager} */
     this.sheetManager = sheetManager;
+    /** @private @const {ErrorHandler} */
+    this.errorHandler = errorHandler;
     /** @private @const {string} */
     this.sheetName = sheetName;
     /** @private @const {Array<string>} */
@@ -49,13 +55,12 @@ class PieRepository {
     try {
       const rawPiesData = await this.apiClient.getPies(); // Assumes getPies() returns array of raw pie objects
       if (!Array.isArray(rawPiesData)) {
-        Logger.log(`Expected an array from apiClient.getPies(), but got: ${typeof rawPiesData}`);
+        this.errorHandler.logError(new Error('Invalid data format for pies'), `Expected an array from apiClient.getPies(), but got: ${typeof rawPiesData}`);
         throw new Error('Invalid data format received from API for pies.');
       }
       return rawPiesData.map(rawPie => new PieModel(rawPie));
     } catch (error) {
-      Logger.log(`Error fetching all pies: ${error.message}`);
-      ErrorHandler.handleError(error, 'Failed to fetch all pies from API.'); // Assuming ErrorHandler is global
+      this.errorHandler.handleError(error, 'Failed to fetch all pies from API.');
       return []; // Return empty array or rethrow as per error handling strategy
     }
   }
@@ -74,8 +79,7 @@ class PieRepository {
       }
       return new PieModel(rawPieData);
     } catch (error) {
-      Logger.log(`Error fetching pie by ID ${pieId}: ${error.message}`);
-      ErrorHandler.handleError(error, `Failed to fetch pie with ID ${pieId} from API.`);
+      this.errorHandler.handleError(error, `Failed to fetch pie with ID ${pieId} from API.`);
       return null; // Return null or rethrow
     }
   }
@@ -93,10 +97,9 @@ class PieRepository {
     try {
       const dataRows = pies.map(pie => pie.toSheetRow());
       await this.sheetManager.updateSheetData(this.sheetName, dataRows, this.sheetHeaders);
-      Logger.log(`${pies.length} pies saved to sheet '${this.sheetName}'.`);
+      this.errorHandler.log(`${pies.length} pies saved to sheet '${this.sheetName}'.`);
     } catch (error) {
-      Logger.log(`Error saving pies to sheet: ${error.message}`);
-      ErrorHandler.handleError(error, 'Failed to save pies to Google Sheet.');
+      this.errorHandler.handleError(error, 'Failed to save pies to Google Sheet.');
       // Rethrow or handle as appropriate
     }
   }
@@ -128,8 +131,7 @@ class PieRepository {
       // For now, assuming getSheetData returns data rows only (excluding headers)
       return dataRows.map(row => PieModel.fromSheetRow(row, this.sheetHeaders));
     } catch (error) {
-      Logger.log(`Error retrieving pies from sheet: ${error.message}`);
-      ErrorHandler.handleError(error, 'Failed to retrieve pies from Google Sheet.');
+      this.errorHandler.handleError(error, 'Failed to retrieve pies from Google Sheet.');
       return [];
     }
   }

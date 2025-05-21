@@ -365,6 +365,23 @@ class Trading212ApiClient {
     
     return allItems;
   }
+
+  /**
+   * Fetches all pies from the Trading212 API.
+   * Uses fetchAllPages to handle potential pagination.
+   * @param {Object} [params={}] - Optional query parameters.
+   * @param {Object} [cacheOptions={ enabled: true, ttl: 300 }] - Cache configuration.
+   * @returns {Promise<Array<Object>>} - A promise that resolves to an array of pie objects.
+   */
+  async getPies(params = {}, cacheOptions = { enabled: true, ttl: 300 }) {
+    const endpoint = API_RESOURCES.PIES.endpoint;
+    if (!endpoint) {
+      Logger.log("API endpoint for PIES is not defined in API_RESOURCES.");
+      throw new Error("Pies API endpoint not configured.");
+    }
+    Logger.log(`Fetching pies from endpoint: ${endpoint} with params: ${JSON.stringify(params)}`);
+    return this.fetchAllPages(endpoint, params, cacheOptions);
+  }
 }
 
 /**
