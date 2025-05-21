@@ -13,5 +13,11 @@ function onOpen() {
       .addItem('Refresh Column Mapping', 'refreshColumnMapping')
       .addItem('Apply All Formatting', 'applyFormattingToAllSheets'))
     .addSeparator()
+    .addSubMenu(ui.createMenu('Fetch Repository Data')
+      .addItem('Fetch & Save Pies', 'fetchPiesAndSave_')
+      .addItem('Fetch & Save Pie Items', 'fetchPieItemsAndSave_')
+      .addItem('Fetch & Save Transactions', 'fetchTransactionsAndSave_')
+      .addItem('Fetch & Save Dividends', 'fetchDividendsAndSave_'))
+    .addSeparator()
     .addToUi();
 }

@@ -34,6 +34,75 @@ class SheetManager {
     ]);
     sheet.protect().setWarningOnly(true);
   }
+
+  /**
+   * Ensures a sheet with the given name exists. If not, it creates it.
+   * @param {string} sheetName The name of the sheet.
+   * @return {GoogleAppsScript.Spreadsheet.Sheet} The sheet object.
+   */
+  ensureSheetExists(sheetName) {
+    let sheet = this.spreadsheet.getSheetByName(sheetName);
+    if (!sheet) {
+      sheet = this.spreadsheet.insertSheet(sheetName);
+      Logger.log(`SheetManager: Created sheet "${sheetName}".`);
+    }
+    return sheet;
+  }
+
+  /**
+   * Sets the header row for a given sheet.
+   * @param {string} sheetName The name of the sheet.
+   * @param {string[]} headers An array of header strings.
+   */
+  setHeaders(sheetName, headers) {
+    const sheet = this.ensureSheetExists(sheetName);
+    sheet.clearContents(); // Clear existing content before setting new headers
+    sheet.appendRow(headers);
+    sheet.getRange(1, 1, 1, headers.length).setFontWeight("bold");
+    Logger.log(`SheetManager: Set headers for sheet "${sheetName}": ${headers.join(", ")}`);
+  }
+
+  /**
+   * Updates a sheet with new data, clearing old data below the headers.
+   * @param {string} sheetName The name of the sheet.
+   * @param {Array<Array<any>>} dataRows An array of arrays representing rows of data.
+   * @param {string[]} headers An array of header strings (used to determine columns).
+   */
+  updateSheetData(sheetName, dataRows, headers) {
+    const sheet = this.ensureSheetExists(sheetName);
+    // Clear old data (below header row)
+    if (sheet.getLastRow() > 1) {
+      sheet.getRange(2, 1, sheet.getLastRow() - 1, sheet.getLastColumn()).clearContent();
+    }
+    if (dataRows && dataRows.length > 0) {
+      // Ensure headers array is valid and has a length property for determining numColumns
+      const numColumns = Array.isArray(headers) && headers.length > 0 ? headers.length : (dataRows[0] ? dataRows[0].length : 1);
+      sheet.getRange(2, 1, dataRows.length, numColumns).setValues(dataRows);
+      Logger.log(`SheetManager: Updated sheet "${sheetName}" with ${dataRows.length} rows of data.`);
+    } else {
+      Logger.log(`SheetManager: No data to update for sheet "${sheetName}".`);
+    }
+  }
+
+  /**
+   * Retrieves all data from a sheet, excluding the header row.
+   * @param {string} sheetName The name of the sheet.
+   * @return {Array<Array<any>>} An array of arrays representing rows of data.
+   */
+  getSheetData(sheetName) {
+    const sheet = this.spreadsheet.getSheetByName(sheetName);
+    if (!sheet) {
+      Logger.log(`SheetManager: Sheet "${sheetName}" not found.`);
+      return [];
+    }
+    if (sheet.getLastRow() <= 1) {
+      Logger.log(`SheetManager: Sheet "${sheetName}" has no data beyond headers.`);
+      return [];
+    }
+    const data = sheet.getRange(2, 1, sheet.getLastRow() - 1, sheet.getLastColumn()).getValues();
+    Logger.log(`SheetManager: Retrieved ${data.length} rows from sheet "${sheetName}".`);
+    return data;
+  }
 }
 
 /**
