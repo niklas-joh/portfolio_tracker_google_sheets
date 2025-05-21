@@ -140,9 +140,16 @@ class PieItemModel {
       let value = rowData[index];
       // Transformations from sheet format to rawData format
       if (['id', 'pieId', 'currentValue', 'investedValue', 'quantity', 'result'].includes(header)) {
-        value = value !== '' && value !== null ? parseFloat(value) : null;
+        value = value !== '' && value !== null && !isNaN(parseFloat(value)) ? parseFloat(value) : null;
       } else if (['expectedShare', 'currentShare'].includes(header) && typeof value === 'string' && value.endsWith('%')) {
         value = parseFloat(value.replace('%', '')) / 100;
+      } else if (header === 'issues' && typeof value === 'string') {
+        try {
+          value = JSON.parse(value);
+        } catch (e) {
+          Logger.log(`Error parsing issues JSON from sheet for ticker ${obj.ticker || 'unknown'}: ${value}`);
+          value = null; // Or an empty array, or keep as string if preferred
+        }
       }
       obj[header] = value;
       return obj;

@@ -67,7 +67,7 @@ class PieItemRepository {
           // 'id' (item id) is not in API instrument data, PieItemModel handles it as potentially null.
           // 'resultCurrency' is not in API instrument data, PieItemModel handles it as potentially null.
           // It could be enhanced later to take currency from the parent pie if needed.
-          issues: rawItem.issues // Pass along issues, though constructor doesn't explicitly use it
+          issues: rawItem.issues // Pass along issues
         };
         return new PieItemModel(transformedRawItem);
       });

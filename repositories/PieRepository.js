@@ -88,16 +88,33 @@ class PieRepository {
           const { detail: rawPieDetail, summary: rawPieSummary } = result;
           
           // Construct modelData by combining details and summary
-          // PieModel expects: id, name, value, currency, creationDate?, lastUpdateDate?, icon?, progress?, instruments?
           const modelData = {
+            // From pie settings (via rawPieDetail)
             id: rawPieDetail.settings.id,
             name: rawPieDetail.settings.name,
             creationDate: rawPieDetail.settings.creationDate,
             lastUpdateDate: rawPieDetail.settings.endDate, // Assuming endDate from settings is lastUpdateDate
             icon: rawPieDetail.settings.icon,
-            progress: rawPieSummary.progress, // Progress from summary
-            value: rawPieSummary.result ? rawPieSummary.result.priceAvgValue : 0, // Value from summary's result
-            currency: rawPieDetail.settings.currencyCode || 'USD', // ASSUMPTION: currencyCode in settings. Defaulting to USD.
+            currency: rawPieDetail.settings.currencyCode || 'USD', // Defaulting to USD if not present
+            dividendCashAction: rawPieDetail.settings.dividendCashAction,
+            goal: rawPieDetail.settings.goal,
+            initialInvestment: rawPieDetail.settings.initialInvestment,
+            instrumentShares: rawPieDetail.settings.instrumentShares,
+            publicUrl: rawPieDetail.settings.publicUrl,
+            
+            // From pie summary (via rawPieSummary)
+            cash: rawPieSummary.cash,
+            dividendDetails: rawPieSummary.dividendDetails, // { gained, inCash, reinvested }
+            progress: rawPieSummary.progress,
+            value: rawPieSummary.result ? rawPieSummary.result.priceAvgValue : 0, // This is the main 'value'
+            summaryResult: rawPieSummary.result ? { // Store other result fields separately
+              priceAvgInvestedValue: rawPieSummary.result.priceAvgInvestedValue,
+              priceAvgResult: rawPieSummary.result.priceAvgResult,
+              priceAvgResultCoef: rawPieSummary.result.priceAvgResultCoef
+            } : null,
+            status: rawPieSummary.status,
+            
+            // Instruments from pie detail
             instruments: rawPieDetail.instruments || []
           };
 
@@ -123,17 +140,78 @@ class PieRepository {
 
   /**
    * Fetches a specific pie by its ID from the API.
+   * Note: This method fetches only the pie details. To get a complete PieModel
+   * similar to fetchAllPies, you might need to fetch the summary separately or adjust.
+   * For now, it constructs a PieModel primarily from detail data.
    * @param {number} pieId The ID of the pie to fetch.
    * @returns {Promise<PieModel|null>} A promise that resolves to a PieModel instance or null if not found.
    * @throws {Error} If API request fails or data parsing fails.
    */
   async getPieById(pieId) {
     try {
-      const rawPieData = await this.apiClient.getPieDetails(pieId); // Assumes getPieDetails(id) returns single raw pie object
-      if (!rawPieData) {
+      const rawPieDetail = await this.apiClient.getPieDetails(pieId);
+      if (!rawPieDetail) {
         return null; // Pie not found
       }
-      return new PieModel(rawPieData);
+      // To create a full PieModel, we'd ideally also fetch its summary.
+      // For now, we'll create a partial model based on details.
+      // This might mean some fields (like progress, cash, summary.result) are null/default.
+      // Or, we fetch the summary as well:
+      const pieSummaries = await this.apiClient.getPies(); // This fetches all summaries
+      const rawPieSummary = pieSummaries.find(s => s.id === pieId);
+
+      if (!rawPieSummary) {
+        this.errorHandler.logError(new Error(`Summary not found for pie ID ${pieId} when calling getPieById.`), `Pie detail was fetched but summary was not found.`);
+        // Construct with what we have
+         const modelData = {
+            id: rawPieDetail.settings.id,
+            name: rawPieDetail.settings.name,
+            creationDate: rawPieDetail.settings.creationDate,
+            lastUpdateDate: rawPieDetail.settings.endDate,
+            icon: rawPieDetail.settings.icon,
+            currency: rawPieDetail.settings.currencyCode || 'USD',
+            dividendCashAction: rawPieDetail.settings.dividendCashAction,
+            goal: rawPieDetail.settings.goal,
+            initialInvestment: rawPieDetail.settings.initialInvestment,
+            instrumentShares: rawPieDetail.settings.instrumentShares,
+            publicUrl: rawPieDetail.settings.publicUrl,
+            instruments: rawPieDetail.instruments || [],
+            // Summary fields will be missing or default
+            cash: null,
+            dividendDetails: null,
+            progress: null,
+            value: 0, // Or perhaps from a detail field if available, but API spec implies summary
+            summaryResult: null,
+            status: null,
+          };
+          return new PieModel(modelData);
+      }
+
+      const modelData = {
+        id: rawPieDetail.settings.id,
+        name: rawPieDetail.settings.name,
+        creationDate: rawPieDetail.settings.creationDate,
+        lastUpdateDate: rawPieDetail.settings.endDate,
+        icon: rawPieDetail.settings.icon,
+        currency: rawPieDetail.settings.currencyCode || 'USD',
+        dividendCashAction: rawPieDetail.settings.dividendCashAction,
+        goal: rawPieDetail.settings.goal,
+        initialInvestment: rawPieDetail.settings.initialInvestment,
+        instrumentShares: rawPieDetail.settings.instrumentShares,
+        publicUrl: rawPieDetail.settings.publicUrl,
+        cash: rawPieSummary.cash,
+        dividendDetails: rawPieSummary.dividendDetails,
+        progress: rawPieSummary.progress,
+        value: rawPieSummary.result ? rawPieSummary.result.priceAvgValue : 0,
+        summaryResult: rawPieSummary.result ? {
+          priceAvgInvestedValue: rawPieSummary.result.priceAvgInvestedValue,
+          priceAvgResult: rawPieSummary.result.priceAvgResult,
+          priceAvgResultCoef: rawPieSummary.result.priceAvgResultCoef
+        } : null,
+        status: rawPieSummary.status,
+        instruments: rawPieDetail.instruments || []
+      };
+      return new PieModel(modelData);
     } catch (error) {
       this.errorHandler.handleError(error, `Failed to fetch pie with ID ${pieId} from API.`);
       return null; // Return null or rethrow

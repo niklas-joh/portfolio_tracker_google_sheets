@@ -127,21 +127,39 @@ class PieModel {
     const rawData = headers.reduce((obj, header, index) => {
       let value = rowData[index];
       // Basic transformations from sheet format to rawData format
-      if (header === 'id' || header === 'value' || header === 'instrumentsCount') {
+      let key = header;
+      // Map sheet headers back to rawData properties, handling nested structures
+      if (header === 'dividendDetails_gained') { key = 'dividendDetails.gained'; value = parseFloat(value); }
+      else if (header === 'dividendDetails_inCash') { key = 'dividendDetails.inCash'; value = parseFloat(value); }
+      else if (header === 'dividendDetails_reinvested') { key = 'dividendDetails.reinvested'; value = parseFloat(value); }
+      else if (header === 'summaryResult_priceAvgInvestedValue') { key = 'summaryResult.priceAvgInvestedValue'; value = parseFloat(value); }
+      else if (header === 'summaryResult_priceAvgResult') { key = 'summaryResult.priceAvgResult'; value = parseFloat(value); }
+      else if (header === 'summaryResult_priceAvgResultCoef') { key = 'summaryResult.priceAvgResultCoef'; value = parseFloat(value); }
+      else if (header === 'instrumentShares' && value) { try { value = JSON.parse(value); } catch (e) { value = null; } }
+      else if (['id', 'value', 'instrumentsCount', 'cash', 'goal', 'initialInvestment'].includes(header)) {
         value = parseFloat(value);
       } else if (header === 'progress' && typeof value === 'string' && value.endsWith('%')) {
         value = parseFloat(value.replace('%', '')) / 100;
       } else if ((header === 'creationDate' || header === 'lastUpdateDate') && value) {
         value = new Date(value).toISOString();
       }
-      obj[header] = value;
+      
+      // Handle nested properties for reconstruction
+      const parts = key.split('.');
+      let current = obj;
+      for (let i = 0; i < parts.length - 1; i++) {
+        if (!current[parts[i]]) current[parts[i]] = {};
+        current = current[parts[i]];
+      }
+      current[parts[parts.length - 1]] = value;
+      
       return obj;
     }, {});
 
     // Instruments are not typically stored in a flat sheet row in detail,
     // so we might initialize it as empty or handle it differently.
     // For now, assuming instruments are not directly reconstructed from a simple row.
-    rawData.instruments = [];
+    rawData.instruments = rawData.instruments || []; // Ensure instruments array exists
 
     return new PieModel(rawData);
   }
