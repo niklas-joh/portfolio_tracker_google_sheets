@@ -324,7 +324,7 @@ function fetchDividendsAndSave_() {
     dateFrom.setDate(dateTo.getDate() - 90);
     Logger.log(`UI: Fetching dividends from ${dateFrom.toISOString()} to ${dateTo.toISOString()}`);
 
-    dividendRepository.fetchAndSaveDividends(dateFrom, dateTo);
+    dividendRepository.fetchAndSaveAllDividends(dateFrom, dateTo);
 
     Logger.log("UI: fetchDividendsAndSave_ completed successfully.");
     SpreadsheetApp.getUi().alert("Fetch & Save Dividends completed. Check logs and the 'Dividends' sheet.");
