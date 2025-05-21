@@ -16,14 +16,27 @@ class PieItemRepository {
    * Creates an instance of PieItemRepository.
    * @param {Trading212ApiClient} apiClient The API client for fetching data.
    * @param {SheetManager} sheetManager The manager for interacting with Google Sheets.
-   * @param {string} sheetName The name of the Google Sheet where pie item data is stored.
+   * @param {ErrorHandler} errorHandler The error handler instance.
+   * @param {string} [sheetName='PieItems'] The name of the Google Sheet where pie item data is stored.
    */
-  constructor(apiClient, sheetManager, sheetName = 'PieItems') {
+  constructor(apiClient, sheetManager, errorHandler, sheetName = 'PieItems') {
     if (!apiClient) {
       throw new Error('PieItemRepository: apiClient is required.');
     }
     if (!sheetManager) {
       throw new Error('PieItemRepository: sheetManager is required.');
+    }
+    if (!errorHandler) {
+      // Attempt to get a default ErrorHandler if not provided, or throw
+      if (typeof ErrorHandler !== 'undefined') {
+        this.errorHandler = new ErrorHandler('PieItemRepository_Default');
+        this.errorHandler.log('ErrorHandler not provided to PieItemRepository constructor, using default.', 'WARN');
+      } else {
+        throw new Error('PieItemRepository: errorHandler is required and ErrorHandler class is not available.');
+      }
+    } else {
+      /** @private @const {ErrorHandler} */
+      this.errorHandler = errorHandler;
     }
     /** @private @const {Trading212ApiClient} */
     this.apiClient = apiClient; // May not be used directly if items always come via Pie details
@@ -77,9 +90,8 @@ class PieItemRepository {
         return new PieItemModel(transformedRawItem);
       });
     } catch (error) {
-      Logger.log(`Error fetching pie items for pie ID ${pieId}: ${error.message}`);
-      ErrorHandler.handleError(error, `Failed to fetch pie items for pie ID ${pieId}.`);
-      return [];
+      this.errorHandler.logError(error, `Failed to fetch pie items for pie ID ${pieId}. Error will be re-thrown.`);
+      throw error; // Re-throw
     }
   }
 
@@ -140,14 +152,11 @@ class PieItemRepository {
       Logger.log(`Successfully saved ${pieItems.length} pie items to sheet '${this.sheetName}'.`);
       return true;
     } catch (error) {
-      Logger.log(`Error saving pie items to sheet: ${error.message}`);
-      if (typeof ErrorHandler !== 'undefined' && ErrorHandler.handleError) {
-        ErrorHandler.handleError(error, 'Failed to save pie items to Google Sheet.');
-      } else {
-        // Fallback if ErrorHandler is not available
-        Logger.log(`Stack trace: ${error.stack || 'No stack trace available'}`);
-      }
-      return false;
+      this.errorHandler.logError(error, 'Failed to save pie items to Google Sheet. Error will be re-thrown.');
+      // Note: The original code returned false here. By re-throwing, the caller (uiFunctions)
+      // will handle the UI notification. If this method is called directly and needs to indicate
+      // failure without throwing, the design might need adjustment, but for now, re-throwing is consistent.
+      throw error; 
     }
   }
 
@@ -183,9 +192,8 @@ class PieItemRepository {
       const dataRows = await this.sheetManager.getSheetData(this.sheetName);
       return dataRows.map(row => PieItemModel.fromSheetRow(row, this.sheetHeaders));
     } catch (error) {
-      Logger.log(`Error retrieving pie items from sheet: ${error.message}`);
-      ErrorHandler.handleError(error, 'Failed to retrieve pie items from Google Sheet.');
-      return [];
+      this.errorHandler.logError(error, 'Failed to retrieve pie items from Google Sheet. Error will be re-thrown.');
+      throw error; // Re-throw
     }
   }
 
@@ -199,8 +207,10 @@ class PieItemRepository {
       const allItems = await this.getAllPieItemsFromSheet();
       return allItems.filter(item => item.pieId === pieId);
     } catch (error) {
-      Logger.log(`Error retrieving items for pie ID ${pieId} from sheet: ${error.message}`);
-      return [];
+      // If getAllPieItemsFromSheet re-throws, this catch might not be strictly necessary
+      // unless there's an error in the .filter() part, which is unlikely.
+      this.errorHandler.logError(error, `Error filtering pie items for pie ID ${pieId} from sheet. Error will be re-thrown.`);
+      throw error; // Re-throw
     }
   }
 }

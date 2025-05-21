@@ -152,36 +152,13 @@ class Trading212ApiClient {
    * @returns {null} - Always returns null to indicate an error occurred.
    */
   _handleApiError(response, endpoint) {
-    const statusCode = response.getResponseCode();
-    const contentText = response.getContentText();
-    
-    Logger.log(`API Error (${statusCode}) for ${endpoint}: ${contentText}`);
-    
-    // Handle specific error codes
-    switch (statusCode) {
-      case 401:
-        Logger.log('Authentication failed. Please check your API key.');
-        break;
-      case 403:
-        Logger.log('Access forbidden. You may not have permission for this resource.');
-        break;
-      case 404:
-        Logger.log('Resource not found.');
-        break;
-      case 429:
-        Logger.log('Rate limit exceeded. Too many requests.');
-        break;
-      case 500:
-      case 502:
-      case 503:
-      case 504:
-        Logger.log('Server error. The Trading212 API is experiencing issues.');
-        break;
-      default:
-        Logger.log(`Unexpected error with status code ${statusCode}.`);
-    }
-    
-    return null;
+    // The global handleApiError (from main/errorHandling.js) now processes the response
+    // and throws an ApiError. This client method will let that error propagate.
+    // The ErrorHandler instance within this class is not used here anymore for this specific step,
+    // as the global function handles the immediate response processing.
+    // Context for the error can be passed to the global handler.
+    const contextMessage = `API request to ${endpoint} failed`;
+    return handleApiError(response, contextMessage); // This will throw an ApiError
   }
 
   /**

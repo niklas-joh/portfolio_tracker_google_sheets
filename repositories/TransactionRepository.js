@@ -16,14 +16,27 @@ class TransactionRepository {
    * Creates an instance of TransactionRepository.
    * @param {Trading212ApiClient} apiClient The API client for fetching data.
    * @param {SheetManager} sheetManager The manager for interacting with Google Sheets.
-   * @param {string} sheetName The name of the Google Sheet where transaction data is stored.
+   * @param {ErrorHandler} errorHandler The error handler instance.
+   * @param {string} [sheetName='Transactions'] The name of the Google Sheet where transaction data is stored.
    */
-  constructor(apiClient, sheetManager, sheetName = 'Transactions') {
+  constructor(apiClient, sheetManager, errorHandler, sheetName = 'Transactions') {
     if (!apiClient) {
       throw new Error('TransactionRepository: apiClient is required.');
     }
     if (!sheetManager) {
       throw new Error('TransactionRepository: sheetManager is required.');
+    }
+    if (!errorHandler) {
+      // Attempt to get a default ErrorHandler if not provided, or throw
+      if (typeof ErrorHandler !== 'undefined') {
+        this.errorHandler = new ErrorHandler('TransactionRepository_Default');
+        this.errorHandler.log('ErrorHandler not provided to TransactionRepository constructor, using default.', 'WARN');
+      } else {
+        throw new Error('TransactionRepository: errorHandler is required and ErrorHandler class is not available.');
+      }
+    } else {
+      /** @private @const {ErrorHandler} */
+      this.errorHandler = errorHandler;
     }
     /** @private @const {Trading212ApiClient} */
     this.apiClient = apiClient;
@@ -56,9 +69,8 @@ class TransactionRepository {
       }
       return rawTransactionsData.map(rawTx => new TransactionModel(rawTx));
     } catch (error) {
-      Logger.log(`Error fetching all transactions: ${error.message}`);
-      ErrorHandler.handleError(error, 'Failed to fetch all transactions from API.');
-      return [];
+      this.errorHandler.logError(error, 'Failed to fetch all transactions from API. Error will be re-thrown.');
+      throw error; // Re-throw
     }
   }
 
@@ -87,10 +99,10 @@ class TransactionRepository {
     try {
       const dataRows = transactions.map(tx => tx.toSheetRow());
       await this.sheetManager.updateSheetData(this.sheetName, dataRows, this.sheetHeaders);
-      Logger.log(`${transactions.length} transactions saved to sheet '${this.sheetName}'.`);
+      this.errorHandler.log(`${transactions.length} transactions saved to sheet '${this.sheetName}'.`, 'INFO');
     } catch (error) {
-      Logger.log(`Error saving transactions to sheet: ${error.message}`);
-      ErrorHandler.handleError(error, 'Failed to save transactions to Google Sheet.');
+      this.errorHandler.logError(error, 'Failed to save transactions to Google Sheet. Error will be re-thrown.');
+      throw error; // Re-throw
     }
   }
   
@@ -122,9 +134,8 @@ class TransactionRepository {
       const dataRows = await this.sheetManager.getSheetData(this.sheetName);
       return dataRows.map(row => TransactionModel.fromSheetRow(row, this.sheetHeaders));
     } catch (error) {
-      Logger.log(`Error retrieving transactions from sheet: ${error.message}`);
-      ErrorHandler.handleError(error, 'Failed to retrieve transactions from Google Sheet.');
-      return [];
+      this.errorHandler.logError(error, 'Failed to retrieve transactions from Google Sheet. Error will be re-thrown.');
+      throw error; // Re-throw
     }
   }
 
@@ -138,8 +149,8 @@ class TransactionRepository {
       const allTransactions = await this.getAllTransactionsFromSheet();
       return allTransactions.filter(tx => tx.type.toUpperCase() === type.toUpperCase());
     } catch (error) {
-      Logger.log(`Error retrieving transactions of type ${type} from sheet: ${error.message}`);
-      return [];
+      this.errorHandler.logError(error, `Error retrieving transactions of type ${type} from sheet. Error will be re-thrown.`);
+      throw error; // Re-throw
     }
   }
 }

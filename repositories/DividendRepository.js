@@ -16,14 +16,27 @@ class DividendRepository {
    * Creates an instance of DividendRepository.
    * @param {Trading212ApiClient} apiClient The API client for fetching data.
    * @param {SheetManager} sheetManager The manager for interacting with Google Sheets.
-   * @param {string} sheetName The name of the Google Sheet where dividend data is stored.
+   * @param {ErrorHandler} errorHandler The error handler instance.
+   * @param {string} [sheetName='Dividends'] The name of the Google Sheet where dividend data is stored.
    */
-  constructor(apiClient, sheetManager, sheetName = 'Dividends') {
+  constructor(apiClient, sheetManager, errorHandler, sheetName = 'Dividends') {
     if (!apiClient) {
       throw new Error('DividendRepository: apiClient is required.');
     }
     if (!sheetManager) {
       throw new Error('DividendRepository: sheetManager is required.');
+    }
+    if (!errorHandler) {
+      // Attempt to get a default ErrorHandler if not provided, or throw
+      if (typeof ErrorHandler !== 'undefined') {
+        this.errorHandler = new ErrorHandler('DividendRepository_Default');
+        this.errorHandler.log('ErrorHandler not provided to DividendRepository constructor, using default.', 'WARN');
+      } else {
+        throw new Error('DividendRepository: errorHandler is required and ErrorHandler class is not available.');
+      }
+    } else {
+      /** @private @const {ErrorHandler} */
+      this.errorHandler = errorHandler;
     }
     /** @private @const {Trading212ApiClient} */
     this.apiClient = apiClient;
@@ -59,9 +72,8 @@ class DividendRepository {
       }
       return rawDividendsData.map(rawDividend => new DividendModel(rawDividend));
     } catch (error) {
-      Logger.log(`Error fetching all dividends: ${error.message}`);
-      ErrorHandler.handleError(error, 'Failed to fetch all dividends from API.');
-      return [];
+      this.errorHandler.logError(error, 'Failed to fetch all dividends from API. Error will be re-thrown.');
+      throw error; // Re-throw
     }
   }
   
@@ -87,10 +99,10 @@ class DividendRepository {
     try {
       const dataRows = dividends.map(dividend => dividend.toSheetRow());
       await this.sheetManager.updateSheetData(this.sheetName, dataRows, this.sheetHeaders);
-      Logger.log(`${dividends.length} dividends saved to sheet '${this.sheetName}'.`);
+      this.errorHandler.log(`${dividends.length} dividends saved to sheet '${this.sheetName}'.`, 'INFO');
     } catch (error) {
-      Logger.log(`Error saving dividends to sheet: ${error.message}`);
-      ErrorHandler.handleError(error, 'Failed to save dividends to Google Sheet.');
+      this.errorHandler.logError(error, 'Failed to save dividends to Google Sheet. Error will be re-thrown.');
+      throw error; // Re-throw
     }
   }
   
@@ -122,9 +134,8 @@ class DividendRepository {
       const dataRows = await this.sheetManager.getSheetData(this.sheetName);
       return dataRows.map(row => DividendModel.fromSheetRow(row, this.sheetHeaders));
     } catch (error) {
-      Logger.log(`Error retrieving dividends from sheet: ${error.message}`);
-      ErrorHandler.handleError(error, 'Failed to retrieve dividends from Google Sheet.');
-      return [];
+      this.errorHandler.logError(error, 'Failed to retrieve dividends from Google Sheet. Error will be re-thrown.');
+      throw error; // Re-throw
     }
   }
 
@@ -138,8 +149,8 @@ class DividendRepository {
       const allDividends = await this.getAllDividendsFromSheet();
       return allDividends.filter(div => div.ticker.toUpperCase() === ticker.toUpperCase());
     } catch (error) {
-      Logger.log(`Error retrieving dividends for ticker ${ticker} from sheet: ${error.message}`);
-      return [];
+      this.errorHandler.logError(error, `Error retrieving dividends for ticker ${ticker} from sheet. Error will be re-thrown.`);
+      throw error; // Re-throw
     }
   }
 }

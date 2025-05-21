@@ -141,8 +141,9 @@ class PieRepository {
 
     } catch (error) {
       // Catch errors from the initial getPies() call or Promise.all() itself
-      this.errorHandler.handleError(error, 'Failed to fetch all pies from API.');
-      return []; // Return empty array or rethrow as per error handling strategy
+      this.errorHandler.logError(error, 'Failed to fetch all pies from API. Error will be re-thrown.');
+      // No longer use handleError here for UI, let it bubble up.
+      throw error; // Re-throw to be caught by uiFunctions.js
     }
   }
 
@@ -235,8 +236,8 @@ class PieRepository {
       };
       return new PieModel(modelData);
     } catch (error) {
-      this.errorHandler.handleError(error, `Failed to fetch pie with ID ${pieId} from API.`);
-      return null; // Return null or rethrow
+      this.errorHandler.logError(error, `Failed to fetch pie with ID ${pieId} from API. Error will be re-thrown.`);
+      throw error; // Re-throw
     }
   }
 
@@ -253,10 +254,10 @@ class PieRepository {
     try {
       const dataRows = pies.map(pie => pie.toSheetRow());
       await this.sheetManager.updateSheetData(this.sheetName, dataRows, this.sheetHeaders);
-      this.errorHandler.log(`${pies.length} pies saved to sheet '${this.sheetName}'.`);
+      this.errorHandler.log(`${pies.length} pies saved to sheet '${this.sheetName}'.`, 'INFO');
     } catch (error) {
-      this.errorHandler.handleError(error, 'Failed to save pies to Google Sheet.');
-      // Rethrow or handle as appropriate
+      this.errorHandler.logError(error, 'Failed to save pies to Google Sheet. Error will be re-thrown.');
+      throw error; // Re-throw
     }
   }
   
@@ -287,8 +288,8 @@ class PieRepository {
       // For now, assuming getSheetData returns data rows only (excluding headers)
       return dataRows.map(row => PieModel.fromSheetRow(row, this.sheetHeaders));
     } catch (error) {
-      this.errorHandler.handleError(error, 'Failed to retrieve pies from Google Sheet.');
-      return [];
+      this.errorHandler.logError(error, 'Failed to retrieve pies from Google Sheet. Error will be re-thrown.');
+      throw error; // Re-throw
     }
   }
 

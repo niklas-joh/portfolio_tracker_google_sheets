@@ -32,10 +32,11 @@ function saveApiSettings(apiKey, environment) {
       message: 'Settings saved successfully'
     };
   } catch (error) {
-    console.error('Error saving settings:', error);
+    const errorHandler = getErrorHandlerForUi_();
+    errorHandler.logError(error, 'Failed to save API settings');
     return {
       success: false,
-      error: 'Failed to save settings'
+      error: 'Failed to save settings. Check logs for details.' // User-friendly part
     };
   }
 }
@@ -55,15 +56,16 @@ function getApiClientForUi_() {
 
   if (!apiKey) {
     const msg = "API key not set. Please run 'Setup Account' from the Trading212 Portfolio menu.";
-    Logger.log(msg);
-    SpreadsheetApp.getUi().alert(msg);
-    throw new Error(msg);
+    // This is a specific setup error, direct alert is okay, but let's use ErrorHandler for consistency in display
+    const errorHandler = getErrorHandlerForUi_();
+    errorHandler.displayError(new Error(msg), msg); // Display the direct message
+    throw new Error(msg); // Still throw to stop execution
   }
   // Ensure Trading212ApiClient is available
   if (typeof Trading212ApiClient === 'undefined') {
     const msg = "Trading212ApiClient class is not defined. Ensure api/Trading212ApiClient.js is loaded.";
-    Logger.log(msg);
-    SpreadsheetApp.getUi().alert(msg);
+    const errorHandler = getErrorHandlerForUi_();
+    errorHandler.displayError(new Error(msg), "A critical component (Trading212ApiClient) is missing. The add-on might not function correctly.");
     throw new Error(msg);
   }
   Logger.log(`Initializing Trading212ApiClient for environment: ${environment} from uiFunctions`);
@@ -79,8 +81,8 @@ function getSheetManagerForUi_() {
   // Ensure SheetManager is available
   if (typeof SheetManager === 'undefined') {
     const msg = "SheetManager class is not defined. Ensure data/sheetManager.js is loaded.";
-    Logger.log(msg);
-    SpreadsheetApp.getUi().alert(msg);
+    const errorHandler = getErrorHandlerForUi_();
+    errorHandler.displayError(new Error(msg), "A critical component (SheetManager) is missing. The add-on might not function correctly.");
     throw new Error(msg);
   }
   return new SheetManager();
@@ -136,9 +138,8 @@ function fetchPiesAndSave_() {
     Logger.log("UI: fetchPiesAndSave_ completed successfully.");
     SpreadsheetApp.getUi().alert("Fetch & Save Pies completed. Check logs and the 'Pies' sheet.");
   } catch (e) {
-    Logger.log(`UI Error in fetchPiesAndSave_: ${e.toString()}\nStack: ${e.stack}`);
-    SpreadsheetApp.getUi().alert(`Error fetching Pies: ${e.toString()}`);
-    // ErrorHandler instance within repository should handle detailed logging/reporting
+    const errorHandler = getErrorHandlerForUi_();
+    errorHandler.displayError(e, 'Failed to fetch and save pies.');
   }
 }
 
@@ -160,7 +161,7 @@ async function fetchPieItemsAndSave_() {
     if (typeof PieItemRepository === 'undefined') throw new Error("PieItemRepository class is not defined.");
 
     const pieRepository = new PieRepository(apiClient, sheetManager, errorHandler); // PieRepository uses errorHandler
-    const pieItemRepository = new PieItemRepository(apiClient, sheetManager); // PieItemRepository does not use errorHandler in constructor
+    const pieItemRepository = new PieItemRepository(apiClient, sheetManager, errorHandler); // Pass errorHandler
 
     Logger.log("UI: Fetching all pies from sheet...");
     const pies = await pieRepository.getAllPiesFromSheet();
@@ -256,14 +257,8 @@ async function fetchPieItemsAndSave_() {
     }
 
   } catch (e) {
-    Logger.log(`UI Error in fetchPieItemsAndSave_: ${e.toString()}\nStack: ${e.stack}`);
-    // Use the instantiated errorHandler if available and has a UI-specific method, or fallback
-    const uiErrorHandler = getErrorHandlerForUi_(); // Get it again or ensure it's scoped
-    if (uiErrorHandler && typeof uiErrorHandler.handleError === 'function') {
-       uiErrorHandler.handleError(e, `Error fetching Pie Items`);
-    } else {
-      SpreadsheetApp.getUi().alert(`Error fetching Pie Items: ${e.toString()}`);
-    }
+    const errorHandler = getErrorHandlerForUi_();
+    errorHandler.displayError(e, 'Failed to fetch and save pie items.');
   }
 }
 
@@ -298,8 +293,8 @@ function fetchTransactionsAndSave_() {
     Logger.log("UI: fetchTransactionsAndSave_ completed successfully.");
     SpreadsheetApp.getUi().alert("Fetch & Save Transactions completed. Check logs and the 'Transactions' sheet.");
   } catch (e) {
-    Logger.log(`UI Error in fetchTransactionsAndSave_: ${e.toString()}\nStack: ${e.stack}`);
-    SpreadsheetApp.getUi().alert(`Error fetching Transactions: ${e.toString()}`);
+    const errorHandler = getErrorHandlerForUi_();
+    errorHandler.displayError(e, 'Failed to fetch and save transactions.');
   }
 }
 
@@ -334,8 +329,8 @@ function fetchDividendsAndSave_() {
     Logger.log("UI: fetchDividendsAndSave_ completed successfully.");
     SpreadsheetApp.getUi().alert("Fetch & Save Dividends completed. Check logs and the 'Dividends' sheet.");
   } catch (e) {
-    Logger.log(`UI Error in fetchDividendsAndSave_: ${e.toString()}\nStack: ${e.stack}`);
-    SpreadsheetApp.getUi().alert(`Error fetching Dividends: ${e.toString()}`);
+    const errorHandler = getErrorHandlerForUi_();
+    errorHandler.displayError(e, 'Failed to fetch and save dividends.');
   }
 }
 
@@ -356,10 +351,13 @@ async function validateApiKey(apiKey, environment) {
       message: 'API key validated successfully'
     };
   } catch (error) {
-    console.error('API validation error:', error);
+    const errorHandler = getErrorHandlerForUi_();
+    // This is an async function potentially called from HTML, direct alert might be okay,
+    // but logging should use ErrorHandler.
+    errorHandler.logError(error, 'API key validation failed');
     return {
       success: false,
-      error: 'Failed to validate API key'
+      error: 'Failed to validate API key. See logs for details.' // User-friendly part
     };
   }
 }
@@ -393,10 +391,11 @@ function resetSetup() {
       message: 'Setup reset successfully'
     };
   } catch (error) {
-    console.error('Error resetting setup:', error);
+    const errorHandler = getErrorHandlerForUi_();
+    errorHandler.logError(error, 'Failed to reset setup');
     return {
       success: false,
-      error: 'Failed to reset setup'
+      error: 'Failed to reset setup. Check logs for details.' // User-friendly part
     };
   }
 }
