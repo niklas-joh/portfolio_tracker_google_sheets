@@ -45,6 +45,24 @@ class PieModel {
     /** @type {Array<Object>} */
     this.instruments = rawData.instruments || []; // Assuming instruments is an array of objects
 
+    // New properties from flattened summary data
+    /** @type {number|null} */
+    this.cash = typeof rawData.cash === 'number' ? rawData.cash : null;
+    /** @type {number|null} */
+    this.dividendGained = typeof rawData.dividendGained === 'number' ? rawData.dividendGained : null;
+    /** @type {number|null} */
+    this.dividendInCash = typeof rawData.dividendInCash === 'number' ? rawData.dividendInCash : null;
+    /** @type {number|null} */
+    this.dividendReinvested = typeof rawData.dividendReinvested === 'number' ? rawData.dividendReinvested : null;
+    /** @type {number|null} */
+    this.totalInvested = typeof rawData.totalInvested === 'number' ? rawData.totalInvested : null;
+    /** @type {number|null} */
+    this.totalResult = typeof rawData.totalResult === 'number' ? rawData.totalResult : null;
+    /** @type {number|null} */
+    this.totalResultCoef = typeof rawData.totalResultCoef === 'number' ? rawData.totalResultCoef : null;
+    /** @type {string|null} */
+    this.status = typeof rawData.status === 'string' ? rawData.status : null;
+
     // Perform basic validation
     this.validate();
   }
@@ -76,6 +94,15 @@ class PieModel {
     if (this.lastUpdateDate && isNaN(this.lastUpdateDate.getTime())) {
         throw new Error(`Invalid last update date: ${this.lastUpdateDate}`);
     }
+    // Add validation for new numeric fields if necessary, e.g. ensuring they are numbers if not null
+    if (this.cash !== null && typeof this.cash !== 'number') throw new Error(`Invalid cash value: ${this.cash}`);
+    if (this.dividendGained !== null && typeof this.dividendGained !== 'number') throw new Error(`Invalid dividendGained value: ${this.dividendGained}`);
+    if (this.dividendInCash !== null && typeof this.dividendInCash !== 'number') throw new Error(`Invalid dividendInCash value: ${this.dividendInCash}`);
+    if (this.dividendReinvested !== null && typeof this.dividendReinvested !== 'number') throw new Error(`Invalid dividendReinvested value: ${this.dividendReinvested}`);
+    if (this.totalInvested !== null && typeof this.totalInvested !== 'number') throw new Error(`Invalid totalInvested value: ${this.totalInvested}`);
+    if (this.totalResult !== null && typeof this.totalResult !== 'number') throw new Error(`Invalid totalResult value: ${this.totalResult}`);
+    if (this.totalResultCoef !== null && typeof this.totalResultCoef !== 'number') throw new Error(`Invalid totalResultCoef value: ${this.totalResultCoef}`);
+    if (this.status !== null && typeof this.status !== 'string') throw new Error(`Invalid status value: ${this.status}`);
   }
 
   /**
@@ -92,7 +119,16 @@ class PieModel {
       progress: this.progress,
       value: this.value,
       currency: this.currency,
-      instrumentsCount: this.instruments.length, // Example of a calculated/derived property
+      instrumentsCount: this.instruments.length,
+      // Add new properties
+      cash: this.cash,
+      dividendGained: this.dividendGained,
+      dividendInCash: this.dividendInCash,
+      dividendReinvested: this.dividendReinvested,
+      totalInvested: this.totalInvested,
+      totalResult: this.totalResult,
+      totalResultCoef: this.totalResultCoef,
+      status: this.status,
     };
   }
 
@@ -113,6 +149,15 @@ class PieModel {
       this.lastUpdateDate ? Utilities.formatDate(this.lastUpdateDate, Session.getScriptTimeZone(), "yyyy-MM-dd HH:mm:ss") : '',
       this.instruments.length,
       this.icon,
+      // Add new properties for sheet row
+      this.cash,
+      this.dividendGained,
+      this.dividendInCash,
+      this.dividendReinvested,
+      this.totalInvested,
+      this.totalResult,
+      this.totalResultCoef,
+      this.status,
     ];
   }
 
@@ -126,41 +171,49 @@ class PieModel {
   static fromSheetRow(rowData, headers) {
     const rawData = headers.reduce((obj, header, index) => {
       let value = rowData[index];
-      // Basic transformations from sheet format to rawData format
-      let key = header;
-      // Map sheet headers back to rawData properties, handling nested structures
-      if (header === 'dividendDetails_gained') { key = 'dividendDetails.gained'; value = parseFloat(value); }
-      else if (header === 'dividendDetails_inCash') { key = 'dividendDetails.inCash'; value = parseFloat(value); }
-      else if (header === 'dividendDetails_reinvested') { key = 'dividendDetails.reinvested'; value = parseFloat(value); }
-      else if (header === 'summaryResult_priceAvgInvestedValue') { key = 'summaryResult.priceAvgInvestedValue'; value = parseFloat(value); }
-      else if (header === 'summaryResult_priceAvgResult') { key = 'summaryResult.priceAvgResult'; value = parseFloat(value); }
-      else if (header === 'summaryResult_priceAvgResultCoef') { key = 'summaryResult.priceAvgResultCoef'; value = parseFloat(value); }
-      else if (header === 'instrumentShares' && value) { try { value = JSON.parse(value); } catch (e) { value = null; } }
-      else if (['id', 'value', 'instrumentsCount', 'cash', 'goal', 'initialInvestment'].includes(header)) {
-        value = parseFloat(value);
-      } else if (header === 'progress' && typeof value === 'string' && value.endsWith('%')) {
+      let key = header; // Use header directly as key unless specific transformation is needed
+
+      // Transformations from sheet format to rawData format
+      // Standardize header keys to match model properties (e.g., 'Creation Date' -> 'creationDate')
+      if (header === 'ID') key = 'id';
+      else if (header === 'Name') key = 'name';
+      else if (header === 'Value') key = 'value';
+      else if (header === 'Currency') key = 'currency';
+      else if (header === 'Progress') key = 'progress';
+      else if (header === 'Creation Date') key = 'creationDate';
+      else if (header === 'Last Update Date') key = 'lastUpdateDate';
+      else if (header === 'Instruments Count') key = 'instrumentsCount'; // This is derived, might not be directly set
+      else if (header === 'Icon') key = 'icon';
+      else if (header === 'Cash') key = 'cash';
+      else if (header === 'Dividend Gained') key = 'dividendGained';
+      else if (header === 'Dividend In Cash') key = 'dividendInCash';
+      else if (header === 'Dividend Reinvested') key = 'dividendReinvested';
+      else if (header === 'Total Invested') key = 'totalInvested';
+      else if (header === 'Total Result') key = 'totalResult';
+      else if (header === 'Total Result Coef') key = 'totalResultCoef';
+      else if (header === 'Status') key = 'status';
+      // Add other direct mappings if any
+
+      // Type conversions
+      if (['id', 'value', 'instrumentsCount', 'cash', 'goal', 'initialInvestment', 
+           'dividendGained', 'dividendInCash', 'dividendReinvested', 
+           'totalInvested', 'totalResult', 'totalResultCoef'].includes(key)) {
+        value = (value === '' || value === null || isNaN(parseFloat(value))) ? null : parseFloat(value);
+      } else if (key === 'progress' && typeof value === 'string' && value.endsWith('%')) {
         value = parseFloat(value.replace('%', '')) / 100;
-      } else if ((header === 'creationDate' || header === 'lastUpdateDate') && value) {
-        value = new Date(value).toISOString();
+      } else if ((key === 'creationDate' || key === 'lastUpdateDate') && value) {
+        const dateVal = new Date(value);
+        value = isNaN(dateVal.getTime()) ? null : dateVal.toISOString();
       }
       
-      // Handle nested properties for reconstruction
-      const parts = key.split('.');
-      let current = obj;
-      for (let i = 0; i < parts.length - 1; i++) {
-        if (!current[parts[i]]) current[parts[i]] = {};
-        current = current[parts[i]];
-      }
-      current[parts[parts.length - 1]] = value;
-      
+      obj[key] = value;
       return obj;
     }, {});
 
-    // Instruments are not typically stored in a flat sheet row in detail,
-    // so we might initialize it as empty or handle it differently.
-    // For now, assuming instruments are not directly reconstructed from a simple row.
-    rawData.instruments = rawData.instruments || []; // Ensure instruments array exists
-
+    // Instruments are not typically stored in a flat sheet row in detail.
+    // PieModel constructor initializes instruments to [] if not provided.
+    // rawData.instrumentsCount is read but rawData.instruments itself is not reconstructed here.
+    
     return new PieModel(rawData);
   }
 

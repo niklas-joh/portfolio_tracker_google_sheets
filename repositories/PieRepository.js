@@ -39,7 +39,7 @@ class PieRepository {
     /** @private @const {string} */
     this.sheetName = sheetName;
     /** @private @const {Array<string>} */
-    this.sheetHeaders = ['ID', 'Name', 'Value', 'Currency', 'Progress', 'Creation Date', 'Last Update Date', 'Instruments Count', 'Icon'];
+    this.sheetHeaders = ['ID', 'Name', 'Value', 'Currency', 'Progress', 'Creation Date', 'Last Update Date', 'Instruments Count', 'Icon', 'Cash', 'Dividend Gained', 'Dividend In Cash', 'Dividend Reinvested', 'Total Invested', 'Total Result', 'Total Result Coef', 'Status'];
     
     // Ensure the sheet and headers exist
     this.sheetManager.ensureSheetExists(this.sheetName);
@@ -104,15 +104,23 @@ class PieRepository {
             
             // From pie summary (via rawPieSummary)
             cash: rawPieSummary.cash,
-            dividendDetails: rawPieSummary.dividendDetails, // { gained, inCash, reinvested }
+            // dividendDetails: rawPieSummary.dividendDetails, // { gained, inCash, reinvested } - will be flattened
             progress: rawPieSummary.progress,
             value: rawPieSummary.result ? rawPieSummary.result.priceAvgValue : 0, // This is the main 'value'
-            summaryResult: rawPieSummary.result ? { // Store other result fields separately
-              priceAvgInvestedValue: rawPieSummary.result.priceAvgInvestedValue,
-              priceAvgResult: rawPieSummary.result.priceAvgResult,
-              priceAvgResultCoef: rawPieSummary.result.priceAvgResultCoef
-            } : null,
+            // summaryResult: rawPieSummary.result ? { // Store other result fields separately - will be flattened
+            //   priceAvgInvestedValue: rawPieSummary.result.priceAvgInvestedValue,
+            //   priceAvgResult: rawPieSummary.result.priceAvgResult,
+            //   priceAvgResultCoef: rawPieSummary.result.priceAvgResultCoef
+            // } : null,
             status: rawPieSummary.status,
+
+            // New flattened fields from summary
+            dividendGained: rawPieSummary.dividendDetails ? rawPieSummary.dividendDetails.gained : null,
+            dividendInCash: rawPieSummary.dividendDetails ? rawPieSummary.dividendDetails.inCash : null,
+            dividendReinvested: rawPieSummary.dividendDetails ? rawPieSummary.dividendDetails.reinvested : null,
+            totalInvested: rawPieSummary.result ? rawPieSummary.result.priceAvgInvestedValue : null,
+            totalResult: rawPieSummary.result ? rawPieSummary.result.priceAvgResult : null,
+            totalResultCoef: rawPieSummary.result ? rawPieSummary.result.priceAvgResultCoef : null,
             
             // Instruments from pie detail
             instruments: rawPieDetail.instruments || []
@@ -178,16 +186,24 @@ class PieRepository {
             instruments: rawPieDetail.instruments || [],
             // Summary fields will be missing or default
             cash: null,
-            dividendDetails: null,
+            // dividendDetails: null, // Will be flattened
             progress: null,
             value: 0, // Or perhaps from a detail field if available, but API spec implies summary
-            summaryResult: null,
+            // summaryResult: null, // Will be flattened
             status: null,
+            // New flattened fields
+            dividendGained: null,
+            dividendInCash: null,
+            dividendReinvested: null,
+            totalInvested: null,
+            totalResult: null,
+            totalResultCoef: null,
           };
           return new PieModel(modelData);
       }
 
       const modelData = {
+        // From pie settings (via rawPieDetail)
         id: rawPieDetail.settings.id,
         name: rawPieDetail.settings.name,
         creationDate: rawPieDetail.settings.creationDate,
@@ -199,16 +215,22 @@ class PieRepository {
         initialInvestment: rawPieDetail.settings.initialInvestment,
         instrumentShares: rawPieDetail.settings.instrumentShares,
         publicUrl: rawPieDetail.settings.publicUrl,
+        
+        // From pie summary (via rawPieSummary)
         cash: rawPieSummary.cash,
-        dividendDetails: rawPieSummary.dividendDetails,
         progress: rawPieSummary.progress,
         value: rawPieSummary.result ? rawPieSummary.result.priceAvgValue : 0,
-        summaryResult: rawPieSummary.result ? {
-          priceAvgInvestedValue: rawPieSummary.result.priceAvgInvestedValue,
-          priceAvgResult: rawPieSummary.result.priceAvgResult,
-          priceAvgResultCoef: rawPieSummary.result.priceAvgResultCoef
-        } : null,
         status: rawPieSummary.status,
+
+        // New flattened fields from summary
+        dividendGained: rawPieSummary.dividendDetails ? rawPieSummary.dividendDetails.gained : null,
+        dividendInCash: rawPieSummary.dividendDetails ? rawPieSummary.dividendDetails.inCash : null,
+        dividendReinvested: rawPieSummary.dividendDetails ? rawPieSummary.dividendDetails.reinvested : null,
+        totalInvested: rawPieSummary.result ? rawPieSummary.result.priceAvgInvestedValue : null,
+        totalResult: rawPieSummary.result ? rawPieSummary.result.priceAvgResult : null,
+        totalResultCoef: rawPieSummary.result ? rawPieSummary.result.priceAvgResultCoef : null,
+        
+        // Instruments from pie detail
         instruments: rawPieDetail.instruments || []
       };
       return new PieModel(modelData);

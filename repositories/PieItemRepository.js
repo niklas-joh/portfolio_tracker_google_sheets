@@ -52,6 +52,12 @@ class PieItemRepository {
         Logger.log(`No instruments data found for pie ID ${pieId} or data is not an array.`);
         return [];
       }
+
+      // Determine the currency of the parent pie
+      const pieCurrency = (rawPieData.settings && rawPieData.settings.currencyCode)
+                          ? rawPieData.settings.currencyCode
+                          : 'USD'; // Default if not found in settings
+
       return rawPieData.instruments.map(rawItem => {
         // Transform rawItem to match PieItemModel constructor expectations
         const transformedRawItem = {
@@ -65,8 +71,7 @@ class PieItemRepository {
           result: rawItem.result ? rawItem.result.priceAvgResult : 0,
           quantity: typeof rawItem.ownedQuantity === 'number' ? rawItem.ownedQuantity : 0,
           // 'id' (item id) is not in API instrument data, PieItemModel handles it as potentially null.
-          // 'resultCurrency' is not in API instrument data, PieItemModel handles it as potentially null.
-          // It could be enhanced later to take currency from the parent pie if needed.
+          resultCurrency: pieCurrency, // Set based on parent pie's currency
           issues: rawItem.issues // Pass along issues
         };
         return new PieItemModel(transformedRawItem);
