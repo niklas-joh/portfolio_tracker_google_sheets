@@ -8,7 +8,7 @@
       "testStrategy": "1. Unit test the client with mock responses\n2. Test cache functionality by verifying cached responses are returned\n3. Test retry logic by simulating network failures\n4. Test rate limiting by making rapid sequential requests\n5. Verify proper URL construction with different parameter combinations\n6. Test with both demo and live environments (using appropriate API keys)",
       "priority": "high",
       "dependencies": [],
-      "status": "pending",
+      "status": "deferred",
       "subtasks": []
     },
     {
@@ -21,7 +21,7 @@
       "dependencies": [
         1
       ],
-      "status": "pending",
+      "status": "deferred",
       "subtasks": []
     },
     {
@@ -32,7 +32,7 @@
       "testStrategy": "1. Test each error type to verify proper handling\n2. Verify error logging works correctly\n3. Check that user-facing messages are appropriate and helpful\n4. Test integration with other components to ensure errors are properly caught and handled\n5. Verify that sensitive information is not exposed in error messages",
       "priority": "medium",
       "dependencies": [],
-      "status": "pending",
+      "status": "deferred",
       "subtasks": []
     },
     {
@@ -45,7 +45,7 @@
       "dependencies": [
         2
       ],
-      "status": "pending",
+      "status": "deferred",
       "subtasks": []
     },
     {
@@ -59,7 +59,7 @@
         2,
         4
       ],
-      "status": "pending",
+      "status": "deferred",
       "subtasks": []
     },
     {
@@ -72,7 +72,7 @@
       "dependencies": [
         3
       ],
-      "status": "pending",
+      "status": "deferred",
       "subtasks": []
     },
     {
@@ -85,7 +85,7 @@
       "dependencies": [
         1
       ],
-      "status": "pending",
+      "status": "deferred",
       "subtasks": []
     },
     {
@@ -99,7 +99,7 @@
         1,
         3
       ],
-      "status": "pending",
+      "status": "deferred",
       "subtasks": []
     },
     {
@@ -112,7 +112,7 @@
       "dependencies": [
         2
       ],
-      "status": "pending",
+      "status": "deferred",
       "subtasks": []
     },
     {
@@ -125,7 +125,7 @@
       "dependencies": [
         1
       ],
-      "status": "pending",
+      "status": "deferred",
       "subtasks": []
     },
     {
@@ -139,7 +139,7 @@
         4,
         5
       ],
-      "status": "pending",
+      "status": "deferred",
       "subtasks": []
     },
     {
@@ -154,7 +154,7 @@
         5,
         9
       ],
-      "status": "pending",
+      "status": "deferred",
       "subtasks": []
     },
     {
@@ -165,7 +165,7 @@
       "testStrategy": "1. Test theme switching between all available themes\n2. Verify theme persistence across sessions\n3. Check UI rendering with each theme\n4. Test theme settings UI\n5. Verify CSS generation for different themes",
       "priority": "medium",
       "dependencies": [],
-      "status": "pending",
+      "status": "deferred",
       "subtasks": []
     },
     {
@@ -176,7 +176,7 @@
       "testStrategy": "1. Test UI rendering on different screen sizes\n2. Verify touch interactions work well on mobile\n3. Check form usability on small screens\n4. Test with different mobile browsers\n5. Verify viewport scaling works correctly",
       "priority": "medium",
       "dependencies": [],
-      "status": "pending",
+      "status": "deferred",
       "subtasks": []
     },
     {
@@ -187,7 +187,7 @@
       "testStrategy": "1. Test tooltip display for different UI elements\n2. Verify tutorial flow works correctly\n3. Check FAQ content is displayed properly\n4. Test help modal accessibility\n5. Verify help content is accurate and helpful",
       "priority": "medium",
       "dependencies": [],
-      "status": "pending",
+      "status": "deferred",
       "subtasks": []
     },
     {
@@ -198,7 +198,7 @@
       "testStrategy": "1. Unit test the client with mocked responses for success and error cases\n2. Test cache functionality by verifying cached responses are returned when available\n3. Verify retry logic works by simulating network failures\n4. Test rate limiting by sending multiple requests in succession\n5. Verify proper URL construction with various parameter combinations\n6. Test environment switching between demo and live",
       "priority": "high",
       "dependencies": [],
-      "status": "pending",
+      "status": "done",
       "subtasks": [
         {
           "id": 1,

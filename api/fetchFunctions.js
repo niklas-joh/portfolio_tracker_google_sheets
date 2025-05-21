@@ -21,7 +21,7 @@
 /**
  * Fetches data from a Trading212 API endpoint and writes it to a specified Google Sheet.
  * Automatically handles pagination if `nextPagePath` is present in the API response.
- * Utilizes rate limiting to comply with API request limits.
+ * Uses the Trading212ApiClient for API interactions.
  *
  * @param {string} endpoint - The API endpoint path (e.g., 'equity/pies').
  * @param {string} sheetName - The name of the Google Sheet where data will be written.
@@ -30,50 +30,32 @@
  * @returns {void}
  */
 function fetchDataAndWriteToSheet(endpoint, sheetName, params = {}, startRow = 2) {
-  // Construct the initial API URL
-  let url = constructApiUrl(endpoint, params);
-  
-  // Start fetching data
-  fetchAndHandleData(url, sheetName, startRow, endpoint);
-  // Format sheet
-  formatSheet(sheetName);
-}
-
-/**
- * Fetches a page of data, writes it to the sheet, and handles pagination recursively.
- *
- * @param {string} url - The URL to fetch data from.
- * @param {string} sheetName - The name of the Google Sheet where data will be written.
- * @param {number} currentRow - The current row number to start writing data.
- * @param {string} endpoint - The API endpoint to use for rate limiting.
- */
-function fetchAndHandleData(url, sheetName, currentRow, endpoint) {
-  // Make the API request with rate limiting
-  let data = rateLimitedRequest(url, endpoint);
-
-  if (data) {
-    // Write the data and calculate the next row to write
-    const rowsWritten = writeDataToSheet(data.items || data, sheetName, currentRow);
-
-    // If there is more data (pagination), fetch the next page
-    if (data.nextPagePath) {
-      Logger.log('Fetching next page of data...: ' + data.nextPagePath);
-
-      // Construct the next page URL
-      const nextPageUrl = constructApiUrl(data.nextPagePath, {}, true);
-
-      // Recursively fetch the next page
-      fetchAndHandleData(nextPageUrl, sheetName, currentRow + rowsWritten, endpoint);
+  try {
+    // Get the API client
+    const apiClient = getApiClient();
+    
+    // Fetch all pages of data
+    const allItems = apiClient.fetchAllPages(endpoint, params);
+    
+    if (allItems && allItems.length > 0) {
+      // Write all items to the sheet
+      writeDataToSheet(allItems, sheetName, startRow);
+      
+      // Format the sheet
+      formatSheet(sheetName);
+      
+      Logger.log(`Successfully fetched and wrote ${allItems.length} items to ${sheetName}`);
     } else {
-      Logger.log('No more data to fetch.');
+      Logger.log(`No data found for ${endpoint}`);
     }
-  } else {
-    Logger.log(`Error fetching data for ${sheetName}.`);
+  } catch (error) {
+    Logger.log(`Error in fetchDataAndWriteToSheet for ${endpoint}: ${error.message}`);
   }
 }
 
 /**
  * Fetches the "pies" data from the Trading212 API and writes it to the "Pies" sheet.
+ * Uses the Trading212ApiClient for API interactions.
  * 
  * @returns {void}
  */
@@ -83,6 +65,7 @@ function fetchPies() {
 
 /**
 * Fetches specific "pie" details from the Trading212 API and writes it to the "Pie Details" sheet.
+* Uses the Trading212ApiClient for API interactions.
 * 
 * @param {Object} params - The parameters for the request.
 * @param {number} params.id - The ID of the pie to fetch, required (int64).
@@ -95,17 +78,13 @@ function fetchPie(params) {
   //  throw new Error("Invalid or missing 'id' parameter. 'id' must be an integer.");
   // }
 
-  // Declare parameters for the API call
- //  const queryParams = {
-  //  id: params.id,
-  //};
-
   // Fetch data and write it to the specified sheet
   fetchDataAndWriteToSheet(API_RESOURCES.PIE.endpoint, API_RESOURCES.PIE.sheetName);
 }
 
 /**
  * Fetches the instruments list data from the Trading212 API and writes it to the "InstrumentsList" sheet.
+ * Uses the Trading212ApiClient for API interactions.
  * 
  * @returns {void}
  */
@@ -115,16 +94,18 @@ function fetchInstrumentsList() {
 
 /**
  * Fetches the account information data from the Trading212 API and writes it to the specified sheet.
+ * Uses the Trading212ApiClient for API interactions.
  *
  * @param {Object} [params={}] - Optional query parameters for the API call (if any).
  * @returns {void}
  */
 function fetchAccountInfo(params = {}) {
-  fetchDataAndWriteToSheet(API_RESOURCES.ACCOUNT_INFO.endpoint, API_RESOURCES.ACCOUNT_INFO.sheetName);
+  fetchDataAndWriteToSheet(API_RESOURCES.ACCOUNT_INFO.endpoint, API_RESOURCES.ACCOUNT_INFO.sheetName, params);
 }
 
 /**
  * Fetches the account cash data from the Trading212 API and writes it to the "Cash" sheet.
+ * Uses the Trading212ApiClient for API interactions.
  * 
  * @returns {void}
  */
@@ -135,17 +116,15 @@ function fetchAccountCash() {
 /**
  * Fetches the transactions data from the Trading212 API (version: v0) and writes it to the "Transactions" sheet.
  * Supports query parameters (e.g., limit, cursor).
- * Automatically handles pagination via the nextPagePath if returned by the API.
+ * Automatically handles pagination via the Trading212ApiClient.
  * 
  * @example
  * fetchTransactions({ limit: 50, cursor: 'string' }); // Fetches 50 transactions with page navigation
- * as string (other options are unknown at the moment)
  * 
  * @version v0
  * @param {Object} [params={}] - Optional query parameters for the API call (e.g., cursor, limit).
  * @returns {void}
  */
-
 function fetchTransactions(params = {}) {
   // Declare parameters as a variable
   const queryParams = {
@@ -153,13 +132,14 @@ function fetchTransactions(params = {}) {
     limit: params.limit || 50,            // Max 50, API documentation defaults to 20
   };
 
-   // Call the generic fetchDataAndWriteToSheet function with the query parameters
+  // Call the generic fetchDataAndWriteToSheet function with the query parameters
   fetchDataAndWriteToSheet(API_RESOURCES.TRANSACTIONS.endpoint, API_RESOURCES.TRANSACTIONS.sheetName, queryParams);
 }
 
 /**
  * Fetches the orders history data from the Trading212 API and writes it to the specified sheet.
  * Supports pagination with a cursor and allows filtering by ticker and limit.
+ * Uses the Trading212ApiClient for API interactions.
  * 
  * @example
  * fetchOrderHistory({ ticker: 'AAPL_US_EQ', limit: 10 });
@@ -183,7 +163,7 @@ function fetchOrderHistory(params = {}) {
 /**
  * Fetches the dividend history data from the Trading212 API and writes it to the specified sheet.
  * Supports pagination with a cursor and allows filtering by ticker and limit.
- * Automatically handles pagination via the nextPagePath if returned by the API.
+ * Uses the Trading212ApiClient for API interactions.
  * 
  * @example
  * fetchDividends({ ticker: 'AAPL_US_EQ', limit: 10 });
@@ -206,6 +186,7 @@ function fetchDividends(params = {}) {
 
 /**
 * Fetches selected Trading212 data based on user choices.
+* Uses the Trading212ApiClient for API interactions.
 * 
 * @function
 * @name fetchSelectedTrading212Data
@@ -215,7 +196,7 @@ function fetchDividends(params = {}) {
 *              fetch functions for each selected type. It handles errors for individual fetch
 *              operations and logs them without stopping the entire process.
 * @example
-* fetchSelectedTrading212Data(['pies', 'accountInfo', 'transactions']);
+* fetchSelectedTrading212Data(['Pies', 'Account Info', 'Transactions']);
 */
 function fetchSelectedTrading212Data(selectedOptions) {
   const fetchFunctions = {
@@ -227,23 +208,28 @@ function fetchSelectedTrading212Data(selectedOptions) {
     'Dividends': fetchDividends
   };
 
-  // Iterate through each selected option
-  const option = selectedOptions[0];
+  // Validate input
+  if (!selectedOptions || !Array.isArray(selectedOptions) || selectedOptions.length === 0) {
+    console.error('Invalid or empty selectedOptions array');
+    throw new Error('Please select at least one data type to fetch');
+  }
+
+  try {
+    // Process the first option in the array
+    const option = selectedOptions[0];
+    
     // Check if a fetch function exists for the current option
     if (fetchFunctions[option]) {
-      try {
-        // Execute the fetch function for the current option
-        const result = fetchFunctions[option]();
-        console.log(`Fetched ${option}:`, result);  // Add logging
-        return result;
-      } catch (error) {
-        // If an error occurs during fetch, log it using the Logger
-        console.error(`Error fetching ${option}:`, error);  // Add error logging
-        throw error;
-      }
-    }
-    else {
-      console.error(`Invalid option: ${option}`);  // Add error logging
+      // Execute the fetch function for the current option
+      const result = fetchFunctions[option]();
+      console.log(`Fetched ${option} successfully`);
+      return result;
+    } else {
+      console.error(`Invalid option: ${option}`);
       throw new Error(`Invalid option: ${option}`);
     }
+  } catch (error) {
+    console.error(`Error in fetchSelectedTrading212Data: ${error.message}`);
+    throw error;
   }
+}

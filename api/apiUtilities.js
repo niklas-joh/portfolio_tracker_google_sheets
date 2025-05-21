@@ -1,55 +1,41 @@
 /**
  * Save API configuration and test connection
  * This will be the ONLY function that tests the API connection
+ * 
+ * @param {string} apiKey - The Trading212 API key.
+ * @param {string} [environment='demo'] - The API environment ('demo' or 'live').
+ * @returns {Object} - An object with success status and optional error message.
  */
 function saveApiConfig(apiKey, environment) {
   console.log('saveApiConfig called with environment:', environment);
   
-    // If environment is undefined or invalid, get the saved value or default to 'demo'
-    if (!environment || (environment !== 'demo' && environment !== 'live')) {
-      environment = PropertiesService.getUserProperties().getProperty('SELECTED_ENVIRONMENT') || 'demo';
-      console.log('Using fallback environment:', environment);
-    }
+  // If environment is undefined or invalid, get the saved value or default to 'demo'
+  if (!environment || (environment !== 'demo' && environment !== 'live')) {
+    environment = PropertiesService.getUserProperties().getProperty('SELECTED_ENVIRONMENT') || 'demo';
+    console.log('Using fallback environment:', environment);
+  }
 
+  // Use the new Trading212ApiClient to save the configuration and test the connection
   try {
-    const API_DOMAIN = environment === 'live' ? API_DOMAIN_LIVE : API_DOMAIN_DEMO;
-    const baseUrl = `${API_DOMAIN}${API_VERSION}`;
-    const endpoint = API_RESOURCES.ACCOUNT_INFO.endpoint;
-    const url = `${baseUrl}${endpoint}`;
+    // Create a client with the new configuration
+    const client = new Trading212ApiClient(environment);
     
-    console.log('API Request Details:', {
-      'baseUrl': baseUrl,
-      'endpoint': endpoint,
-      'fullUrl': url,
-      'apiKeyLength': apiKey ? apiKey.length : 0,
-      'environment': environment
-    });
-
-    const response = makeInitialApiRequest(url, apiKey);
-    const responseCode = response.getResponseCode();
-    const responseContent = response.getContentText();
+    // Test the connection
+    const testResult = client.testConnection();
     
-    console.log('API Response:', {
-      'statusCode': responseCode,
-      'content': responseContent,
-      'headers': response.getAllHeaders()
-    });
-
-    if (responseCode === 200) {
+    if (testResult.success) {
       // Save credentials only after successful test
-      saveCredentials(apiKey, environment);
-      // Update the stored environment
-      PropertiesService.getUserProperties().setProperty('SELECTED_ENVIRONMENT', environment);  
+      PropertiesService.getUserProperties().setProperties({
+        'API_KEY': apiKey,
+        'SELECTED_ENVIRONMENT': environment
+      });
+      
       console.log('API connection successful, credentials saved');
       return { success: true };
-    } else if (responseCode === 429) {
-      console.log('Rate limit hit');
-      throw new Error('Rate limit exceeded. Please try again in a few minutes.');
     } else {
-      console.log(`Failed with status code: ${responseCode}`);
-      throw new Error(`Connection failed (${responseCode}). Please check your API key.`);
+      console.log('API connection failed:', testResult.error);
+      throw new Error(testResult.error || 'Connection failed. Please check your API key.');
     }
-    
   } catch (error) {
     console.error('API request failed:', {
       'error': error.toString(),
@@ -57,30 +43,6 @@ function saveApiConfig(apiKey, environment) {
     });
     throw error; // Re-throw to be handled by the client
   }
-}
-
-/**
- * Makes the actual API request
- */
-function makeInitialApiRequest(url, apiKey) {
-  return UrlFetchApp.fetch(url, {
-    method: 'GET',
-    headers: {
-      'Authorization': apiKey,
-      'Content-Type': 'application/json'
-    },
-    muteHttpExceptions: true
-  });
-}
-
-/**
- * Saves the credentials after successful validation
- */
-function saveCredentials(apiKey, environment) {
-  PropertiesService.getUserProperties().setProperties({
-    'API_KEY': apiKey,
-    'SELECTED_ENVIRONMENT': environment
-  });
 }
 
 /**
