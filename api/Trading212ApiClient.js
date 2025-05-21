@@ -382,6 +382,22 @@ class Trading212ApiClient {
     Logger.log(`Fetching pies from endpoint: ${endpoint} with params: ${JSON.stringify(params)}`);
     return this.fetchAllPages(endpoint, params, cacheOptions);
   }
+
+  /**
+   * Fetches details for a specific pie by ID.
+   * @param {string|number} pieId - The ID of the pie to fetch.
+   * @param {Object} [params={}] - Optional query parameters.
+   * @param {Object} [cacheOptions={ enabled: true, ttl: 300 }] - Cache configuration.
+   * @returns {Promise<Object>} - A promise that resolves to the pie details.
+   */
+  async getPieDetails(pieId, params = {}, cacheOptions = { enabled: true, ttl: 300 }) {
+    if (!pieId) {
+      throw new Error("Pie ID is required to fetch pie details.");
+    }
+    const endpoint = `equity/pies/${pieId}`;
+    Logger.log(`Fetching pie details from endpoint: ${endpoint} with params: ${JSON.stringify(params)}`);
+    return this.get(endpoint, params, cacheOptions);
+  }
 }
 
 /**
