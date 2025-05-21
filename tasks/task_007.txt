@@ -1,6 +1,6 @@
 # Task ID: 7
 # Title: Data Refresh Dashboard
-# Status: pending
+# Status: deferred
 # Dependencies: 1
 # Priority: medium
 # Description: Create a centralized dashboard for refreshing data with status indicators.

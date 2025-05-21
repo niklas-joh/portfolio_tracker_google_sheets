@@ -110,50 +110,102 @@ class PieItemModel {
 
   /**
    * Returns a representation of the pie item suitable for writing to a Google Sheet row.
+   * @param {Array<{originalPath: string, transformedName: string}>} [headers] Optional array of header definitions.
    * @returns {Array<any>}
    */
-  toSheetRow() {
-    // Order should match the sheet columns for pie items
-    return [
-      this.pieId,
-      this.id,
-      this.ticker,
-      (this.expectedShare * 100).toFixed(2) + '%',
-      (this.currentShare * 100).toFixed(2) + '%',
-      this.currentValue,
-      this.investedValue,
-      this.quantity,
-      this.result,
-      this.resultCurrency,
-    ];
+  toSheetRow(headers) {
+    if (!headers) {
+      // Fallback to old behavior if no headers provided
+      return [
+        this.pieId,
+        this.id,
+        this.ticker,
+        (this.expectedShare * 100).toFixed(2) + '%',
+        (this.currentShare * 100).toFixed(2) + '%',
+        this.currentValue,
+        this.investedValue,
+        this.quantity,
+        this.result,
+        this.resultCurrency,
+      ];
+    }
+    
+    // Create an object structure matching the original API response
+    const rawObject = this.toObject();
+    
+    // Ensure percentages are correctly formatted
+    rawObject.expectedShare = (rawObject.expectedShare * 100).toFixed(2) + '%';
+    rawObject.currentShare = (rawObject.currentShare * 100).toFixed(2) + '%';
+    
+    // Map each header to a value using the originalPath
+    return headers.map(header => {
+      try {
+        return resolveNestedField(rawObject, header.originalPath);
+      } catch (e) {
+        Logger.log(`Error resolving field ${header.originalPath} for PieItemModel: ${e.message}`);
+        return '';
+      }
+    });
   }
 
   /**
    * Creates a PieItemModel instance from a Google Sheet row.
    * @param {Array<any>} rowData The array of data from a sheet row.
-   * @param {Array<string>} headers The array of header names corresponding to rowData.
+   * @param {Array<{originalPath: string, transformedName: string}>} headers The array of header definitions.
    * @returns {PieItemModel}
    * @static
    */
   static fromSheetRow(rowData, headers) {
-    const rawData = headers.reduce((obj, header, index) => {
+    // If headers is an array of strings (old format), convert to expected format
+    if (headers && headers.length > 0 && typeof headers[0] === 'string') {
+      const headerNames = headers;
+      const raw = headerNames.reduce((obj, header, index) => {
+        let value = rowData[index];
+        // Transformations from sheet format to rawData format
+        if (['id', 'pieId', 'currentValue', 'investedValue', 'quantity', 'result'].includes(header)) {
+          value = value !== '' && value !== null && !isNaN(parseFloat(value)) ? parseFloat(value) : null;
+        } else if (['expectedShare', 'currentShare'].includes(header) && typeof value === 'string' && value.endsWith('%')) {
+          value = parseFloat(value.replace('%', '')) / 100;
+        } else if (header === 'issues' && typeof value === 'string') {
+          try {
+            value = JSON.parse(value);
+          } catch (e) {
+            Logger.log(`Error parsing issues JSON from sheet for ticker ${obj.ticker || 'unknown'}: ${value}`);
+            value = null; // Or an empty array, or keep as string if preferred
+          }
+        }
+        obj[header] = value;
+        return obj;
+      }, {});
+      return new PieItemModel(raw);
+    }
+    
+    // New format with dynamic headers
+    const rawData = {};
+    
+    // Handle each field based on its path
+    headers.forEach((header, index) => {
+      const path = header.originalPath;
       let value = rowData[index];
-      // Transformations from sheet format to rawData format
-      if (['id', 'pieId', 'currentValue', 'investedValue', 'quantity', 'result'].includes(header)) {
+      
+      // Process specific fields
+      if (['id', 'pieId', 'currentValue', 'investedValue', 'quantity', 'result'].includes(path)) {
         value = value !== '' && value !== null && !isNaN(parseFloat(value)) ? parseFloat(value) : null;
-      } else if (['expectedShare', 'currentShare'].includes(header) && typeof value === 'string' && value.endsWith('%')) {
+      } else if (['expectedShare', 'currentShare'].includes(path) && typeof value === 'string' && value.endsWith('%')) {
         value = parseFloat(value.replace('%', '')) / 100;
-      } else if (header === 'issues' && typeof value === 'string') {
+      } else if (path === 'issues' && typeof value === 'string') {
         try {
           value = JSON.parse(value);
         } catch (e) {
-          Logger.log(`Error parsing issues JSON from sheet for ticker ${obj.ticker || 'unknown'}: ${value}`);
-          value = null; // Or an empty array, or keep as string if preferred
+          Logger.log(`Error parsing issues JSON from sheet: ${value}`);
+          value = null;
         }
       }
-      obj[header] = value;
-      return obj;
-    }, {});
+      
+      // Set the value in the nested structure
+      setNestedProperty(rawData, path, value);
+    });
+    
     return new PieItemModel(rawData);
   }
 
@@ -174,6 +226,27 @@ class PieItemModel {
     // This assumes the currency of the item is the same as the pie or a default.
     // For multi-currency pies, this might need adjustment or currency info from parent pie.
     return `${currencySymbol}${this.currentValue.toFixed(2)}`;
+  }
+  
+  /**
+   * Returns an array of all expected API field paths for this model.
+   * Used by HeaderMappingService and BaseRepository as a fallback when API response is not available.
+   * @returns {Array<string>} Array of field paths.
+   * @static
+   */
+  static getExpectedApiFieldPaths() {
+    return [
+      'pieId',
+      'id',
+      'ticker',
+      'expectedShare',
+      'currentShare',
+      'currentValue',
+      'investedValue',
+      'quantity',
+      'result',
+      'resultCurrency'
+    ];
   }
 }
 

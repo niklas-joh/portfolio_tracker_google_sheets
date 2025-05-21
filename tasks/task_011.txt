@@ -1,6 +1,6 @@
 # Task ID: 11
 # Title: Portfolio Report Generation
-# Status: pending
+# Status: deferred
 # Dependencies: 4, 5
 # Priority: medium
 # Description: Create customizable portfolio reports that can be exported or emailed.

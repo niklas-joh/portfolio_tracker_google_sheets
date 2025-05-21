@@ -1,6 +1,6 @@
 # Task ID: 15
 # Title: Context-Sensitive Help
-# Status: pending
+# Status: deferred
 # Dependencies: None
 # Priority: medium
 # Description: Add in-app help and guidance for users.

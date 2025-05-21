@@ -335,6 +335,34 @@ function fetchDividendsAndSave_() {
 }
 
 /**
+ * Shows the Header Management UI for customizing header mappings between API fields and displayed headers.
+ * Triggered by menu item.
+ */
+function showHeaderManagementUI_() {
+  try {
+    Logger.log("UI: Starting showHeaderManagementUI_...");
+    
+    const sheetManager = getSheetManagerForUi_();
+    const errorHandler = getErrorHandlerForUi_();
+    
+    // Ensure HeaderMappingService is available
+    if (typeof HeaderMappingService === 'undefined') {
+      throw new Error("HeaderMappingService class is not defined. Ensure data/headerMappingService.js is loaded.");
+    }
+    
+    const headerMappingService = new HeaderMappingService(sheetManager, errorHandler);
+    
+    // Show the UI
+    showHeaderManagementUI(headerMappingService);
+    
+    Logger.log("UI: showHeaderManagementUI_ completed successfully.");
+  } catch (e) {
+    const errorHandler = getErrorHandlerForUi_();
+    errorHandler.displayError(e, 'Failed to open header management UI.');
+  }
+}
+
+/**
  * @description Validates an API key with the selected environment
  * @param {string} apiKey - The API key to validate
  * @param {string} environment - The environment to validate against

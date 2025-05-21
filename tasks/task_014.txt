@@ -1,6 +1,6 @@
 # Task ID: 14
 # Title: Mobile-Friendly UI Improvements
-# Status: pending
+# Status: deferred
 # Dependencies: None
 # Priority: medium
 # Description: Enhance the UI to be more usable on mobile devices, within the limitations of Google Sheets.

@@ -1,54 +1,86 @@
 /**
  * @fileoverview Defines the DividendRepository class for managing dividend data.
+ * 
+ * This repository extends BaseRepository to leverage the dynamic header management system,
+ * and handles dividend-specific data operations.
  */
 
-// Assuming ApiClient, DividendModel, and SheetManager are globally available.
+// Assuming ApiClient, DividendModel, SheetManager, and BaseRepository are globally available.
 // For GAS, ensure relevant .js files are loaded.
 
 /**
  * Repository class for fetching and managing Dividend data.
  * It uses the Trading212ApiClient to interact with the API and
  * transforms data into DividendModel instances. It also handles
- * persisting data to Google Sheets via SheetManager.
+ * persisting data to Google Sheets via SheetManager and manages
+ * headers using HeaderMappingService.
+ * @extends BaseRepository
  */
-class DividendRepository {
+class DividendRepository extends BaseRepository {
   /**
    * Creates an instance of DividendRepository.
    * @param {Trading212ApiClient} apiClient The API client for fetching data.
    * @param {SheetManager} sheetManager The manager for interacting with Google Sheets.
    * @param {ErrorHandler} errorHandler The error handler instance.
+   * @param {HeaderMappingService} headerMappingService The service for managing dynamic headers.
    * @param {string} [sheetName='Dividends'] The name of the Google Sheet where dividend data is stored.
    */
-  constructor(apiClient, sheetManager, errorHandler, sheetName = 'Dividends') {
-    if (!apiClient) {
-      throw new Error('DividendRepository: apiClient is required.');
+  constructor(apiClient, sheetManager, errorHandler, headerMappingService, sheetName = 'Dividends') {
+    if (!headerMappingService) {
+      throw new Error('DividendRepository: headerMappingService is required.');
     }
-    if (!sheetManager) {
-      throw new Error('DividendRepository: sheetManager is required.');
-    }
-    if (!errorHandler) {
-      // Attempt to get a default ErrorHandler if not provided, or throw
-      if (typeof ErrorHandler !== 'undefined') {
-        this.errorHandler = new ErrorHandler('DividendRepository_Default');
-        this.errorHandler.log('ErrorHandler not provided to DividendRepository constructor, using default.', 'WARN');
-      } else {
-        throw new Error('DividendRepository: errorHandler is required and ErrorHandler class is not available.');
-      }
-    } else {
-      /** @private @const {ErrorHandler} */
-      this.errorHandler = errorHandler;
-    }
-    /** @private @const {Trading212ApiClient} */
-    this.apiClient = apiClient;
-    /** @private @const {SheetManager} */
-    this.sheetManager = sheetManager;
-    /** @private @const {string} */
-    this.sheetName = sheetName;
-    /** @private @const {Array<string>} */
-    this.sheetHeaders = ['ID', 'Type', 'Ticker', 'Timestamp', 'Amount Value', 'Amount Currency', 'Quantity', 'Tax Amount', 'Tax Currency', 'Source Transaction ID'];
     
-    this.sheetManager.ensureSheetExists(this.sheetName);
-    this.sheetManager.setHeaders(this.sheetName, this.sheetHeaders);
+    // Get the resource identifier from API_RESOURCES if available
+    const resourceIdentifier = API_RESOURCES && API_RESOURCES.DIVIDENDS ? 
+      API_RESOURCES.DIVIDENDS.sheetName || 'DIVIDENDS' : 'DIVIDENDS';
+    
+    // Call the parent constructor with all required parameters
+    super(apiClient, sheetManager, errorHandler, headerMappingService, resourceIdentifier, sheetName);
+    
+    // Try to initialize headers from storage if they exist
+    this._tryInitializeHeadersFromStored(DividendModel.getExpectedApiFieldPaths);
+  }
+
+  /**
+   * Transform raw API dividend data to the structure expected by DividendModel.
+   * @private
+   * @param {Object} rawDividend Raw dividend data from the API.
+   * @returns {Object|null} Transformed data suitable for DividendModel constructor, or null if invalid.
+   */
+  _transformApiDividendData(rawDividend) {
+    try {
+      // Validate the structure of raw API dividend data before transformation
+      const isValidApiData = rawDividend &&
+        typeof rawDividend.reference === 'string' && rawDividend.reference.trim() !== '' && // for id
+        typeof rawDividend.ticker === 'string' && rawDividend.ticker.trim() !== '' &&
+        typeof rawDividend.paidOn === 'string' && // for timestamp (basic check, model validates further)
+        typeof rawDividend.amountInEuro === 'number'; // for amount.value
+
+      if (!isValidApiData) {
+        const warningMsg = `Skipping invalid or incomplete dividend data structure: ${JSON.stringify(rawDividend)}`;
+        this._log(warningMsg, 'WARN');
+        return null;
+      }
+
+      // Transform raw API data to the structure expected by DividendModel
+      return {
+        id: rawDividend.reference,
+        ticker: rawDividend.ticker,
+        timestamp: rawDividend.paidOn,
+        amount: {
+          value: rawDividend.amountInEuro,
+          currency: 'EUR' // Assuming EUR based on 'amountInEuro' field
+        },
+        quantity: typeof rawDividend.quantity === 'number' ? rawDividend.quantity : null,
+        // Map other optional fields if they exist in rawDividend and are expected by DividendModel
+        taxAmount: rawDividend.taxAmount,
+        taxCurrency: rawDividend.taxCurrency,
+        sourceTransactionId: rawDividend.sourceTransactionId
+      };
+    } catch (error) {
+      this._logError(error, `Error transforming API dividend data: ${JSON.stringify(rawDividend)}`);
+      return null;
+    }
   }
 
   /**
@@ -61,65 +93,39 @@ class DividendRepository {
    */
   async fetchAllDividends(startDate, endDate, limit) {
     try {
-      // Assuming apiClient.getDividends can take optional parameters
-      // This might be part of getTransactions with type 'DIVIDEND' or a separate endpoint.
-      // For this example, let's assume a dedicated getDividends method exists.
-      // If not, this method would filter results from getTransactions.
+      // Set up API parameters
       const apiParams = {};
-      if (startDate) apiParams.timeFrom = startDate.toISOString(); // Assuming API expects ISO string for date filtering
+      if (startDate) apiParams.timeFrom = startDate.toISOString();
       if (endDate) apiParams.timeTo = endDate.toISOString();
       if (limit) apiParams.limit = limit;
       
-      const rawDividendsData = await this.apiClient.getDividends(apiParams); // Calling the new method
+      // Fetch data and ensure headers are initialized
+      const apiCallFunction = () => this.apiClient.getDividends(apiParams);
+      const rawDividendsData = await this._fetchDataAndInitializeHeaders(
+        apiCallFunction, DividendModel.getExpectedApiFieldPaths);
 
       if (!Array.isArray(rawDividendsData)) {
         const errorMsg = `Expected an array from apiClient.getDividends(), but got: ${typeof rawDividendsData}`;
-        Logger.log(errorMsg);
-        this.errorHandler.logError(new Error('Invalid data format received from API for dividends.'), errorMsg);
+        this._log(errorMsg, 'ERROR');
         return []; // Return empty array on format error to prevent downstream issues
       }
-      // Safely map raw data to DividendModel instances
+      
+      // Transform raw API data to model-compatible format and create model instances
       return rawDividendsData
         .map(rawDividend => {
-          // Validate the structure of raw API dividend data before transformation
-          const isValidApiData = rawDividend &&
-            typeof rawDividend.reference === 'string' && rawDividend.reference.trim() !== '' && // for id
-            typeof rawDividend.ticker === 'string' && rawDividend.ticker.trim() !== '' &&
-            typeof rawDividend.paidOn === 'string' && // for timestamp (basic check, model validates further)
-            typeof rawDividend.amountInEuro === 'number'; // for amount.value
-
-          if (isValidApiData) {
-            // Transform raw API data to the structure expected by DividendModel
-            const transformedData = {
-              id: rawDividend.reference,
-              ticker: rawDividend.ticker,
-              timestamp: rawDividend.paidOn,
-              amount: {
-                value: rawDividend.amountInEuro,
-                currency: 'EUR' // Assuming EUR based on 'amountInEuro' field
-              },
-              quantity: typeof rawDividend.quantity === 'number' ? rawDividend.quantity : null,
-              // Map other optional fields if they exist in rawDividend and are expected by DividendModel
-              // e.g., taxAmount: rawDividend.taxAmount, taxCurrency: rawDividend.taxCurrency (if API provides them directly)
-            };
-
-            try {
-              return new DividendModel(transformedData);
-            } catch (modelError) {
-              // This catch is specifically for errors during DividendModel instantiation
-              this.errorHandler.logError(modelError, `Error constructing DividendModel for transformed data: ${JSON.stringify(transformedData)} (original: ${JSON.stringify(rawDividend)})`);
-              return null; // Skip this problematic item
-            }
-          } else {
-            const warningMsg = `Skipping invalid or incomplete dividend data structure: ${JSON.stringify(rawDividend)}`;
-            Logger.log(warningMsg);
-            this.errorHandler.log(warningMsg, 'WARN');
+          const transformedData = this._transformApiDividendData(rawDividend);
+          if (!transformedData) return null; // Skip invalid data
+          
+          try {
+            return new DividendModel(transformedData);
+          } catch (modelError) {
+            this._logError(modelError, `Error constructing DividendModel for transformed data: ${JSON.stringify(transformedData)}`);
             return null; // Skip this problematic item
           }
         })
         .filter(dividend => dividend !== null); // Remove any nulls that resulted from invalid data
     } catch (error) {
-      this.errorHandler.logError(error, 'Failed to fetch all dividends from API in DividendRepository.');
+      this._logError(error, 'Failed to fetch all dividends from API.');
       throw error; // Re-throw to allow calling function to handle
     }
   }
@@ -143,12 +149,27 @@ class DividendRepository {
     if (!Array.isArray(dividends) || !dividends.every(d => d instanceof DividendModel)) {
       throw new Error('Invalid input: dividends must be an array of DividendModel instances.');
     }
+    
     try {
-      const dataRows = dividends.map(dividend => dividend.toSheetRow());
-      await this.sheetManager.updateSheetData(this.sheetName, dataRows, this.sheetHeaders);
-      this.errorHandler.log(`${dividends.length} dividends saved to sheet '${this.sheetName}'.`, 'INFO');
+      // Ensure headers are initialized
+      if (!this.effectiveHeaders) {
+        const success = await this._tryInitializeHeadersFromStored(DividendModel.getExpectedApiFieldPaths);
+        if (!success) {
+          throw new Error('Failed to initialize headers for dividend data. Fetch data first.');
+        }
+      }
+      
+      // Convert models to rows using our dynamic headers
+      const dataRows = dividends.map(dividend => dividend.toSheetRow(this.effectiveHeaders));
+      
+      // Get the transformed header names for display
+      const transformedHeaderNames = this.effectiveHeaders.map(h => h.transformedName);
+      
+      // Update the sheet
+      await this.sheetManager.updateSheetData(this.sheetName, dataRows, transformedHeaderNames);
+      this._log(`${dividends.length} dividends saved to sheet '${this.sheetName}'.`, 'INFO');
     } catch (error) {
-      this.errorHandler.logError(error, 'Failed to save dividends to Google Sheet. Error will be re-thrown.');
+      this._logError(error, 'Failed to save dividends to Google Sheet.');
       throw error; // Re-throw
     }
   }
@@ -165,9 +186,12 @@ class DividendRepository {
     if (dividends.length > 0) {
       await this.saveDividendsToSheet(dividends);
     } else {
-      Logger.log('No dividends fetched from API, sheet not updated.');
+      this._log('No dividends fetched from API, sheet not updated.', 'INFO');
       // Optionally clear the sheet if no dividends are found
-      // await this.sheetManager.updateSheetData(this.sheetName, [], this.sheetHeaders);
+      // if (this.effectiveHeaders) {
+      //   const transformedHeaderNames = this.effectiveHeaders.map(h => h.transformedName);
+      //   await this.sheetManager.updateSheetData(this.sheetName, [], transformedHeaderNames);
+      // }
     }
     return dividends;
   }
@@ -178,10 +202,21 @@ class DividendRepository {
    */
   async getAllDividendsFromSheet() {
     try {
+      // Ensure headers are initialized from storage if not already done
+      if (!this.effectiveHeaders) {
+        const success = await this._tryInitializeHeadersFromStored(DividendModel.getExpectedApiFieldPaths);
+        if (!success) {
+          throw new Error('Failed to initialize headers for dividend data. Fetch data first.');
+        }
+      }
+      
+      // Get the sheet data
       const dataRows = await this.sheetManager.getSheetData(this.sheetName);
-      return dataRows.map(row => DividendModel.fromSheetRow(row, this.sheetHeaders));
+      
+      // Transform rows to model instances
+      return this._transformSheetRowsToModels(dataRows, DividendModel);
     } catch (error) {
-      this.errorHandler.logError(error, 'Failed to retrieve dividends from Google Sheet. Error will be re-thrown.');
+      this._logError(error, 'Failed to retrieve dividends from Google Sheet.');
       throw error; // Re-throw
     }
   }
@@ -196,7 +231,7 @@ class DividendRepository {
       const allDividends = await this.getAllDividendsFromSheet();
       return allDividends.filter(div => div.ticker.toUpperCase() === ticker.toUpperCase());
     } catch (error) {
-      this.errorHandler.logError(error, `Error retrieving dividends for ticker ${ticker} from sheet. Error will be re-thrown.`);
+      this._logError(error, `Error retrieving dividends for ticker ${ticker} from sheet.`);
       throw error; // Re-throw
     }
   }

@@ -1,6 +1,6 @@
 # Task ID: 12
 # Title: Interactive Charts & Visualizations
-# Status: pending
+# Status: deferred
 # Dependencies: 4, 5, 9
 # Priority: medium
 # Description: Add interactive charts and visualizations for better data exploration.

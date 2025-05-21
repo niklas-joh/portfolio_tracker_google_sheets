@@ -110,51 +110,97 @@ class DividendModel {
 
   /**
    * Returns a representation of the dividend suitable for writing to a Google Sheet row.
+   * @param {Array<{originalPath: string, transformedName: string}>} [headers] Optional array of header definitions.
    * @returns {Array<any>}
    */
-  toSheetRow() {
-    // Order should match the sheet columns for dividends
-    return [
-      this.id,
-      this.type, // Including type for consistency with TransactionModel if they share a sheet
-      this.ticker,
-      Utilities.formatDate(this.timestamp, Session.getScriptTimeZone(), "yyyy-MM-dd HH:mm:ss"),
-      this.amountValue,
-      this.amountCurrency,
-      this.quantity,
-      this.taxAmount,
-      this.taxCurrency,
-      this.sourceTransactionId,
-    ];
+  toSheetRow(headers) {
+    if (!headers) {
+      // Fallback to old behavior if no headers provided
+      return [
+        this.id,
+        this.type,
+        this.ticker,
+        Utilities.formatDate(this.timestamp, Session.getScriptTimeZone(), "yyyy-MM-dd HH:mm:ss"),
+        this.amountValue,
+        this.amountCurrency,
+        this.quantity,
+        this.taxAmount,
+        this.taxCurrency,
+        this.sourceTransactionId,
+      ];
+    }
+    
+    // Create an object structure matching the original API response
+    const rawObject = this.toObject();
+    
+    // Map each header to a value using the originalPath
+    return headers.map(header => {
+      try {
+        return resolveNestedField(rawObject, header.originalPath);
+      } catch (e) {
+        Logger.log(`Error resolving field ${header.originalPath} for DividendModel: ${e.message}`);
+        return '';
+      }
+    });
   }
 
   /**
    * Creates a DividendModel instance from a Google Sheet row.
    * @param {Array<any>} rowData The array of data from a sheet row.
-   * @param {Array<string>} headers The array of header names corresponding to rowData.
+   * @param {Array<{originalPath: string, transformedName: string}>} headers The array of header definitions.
    * @returns {DividendModel}
    * @static
    */
   static fromSheetRow(rowData, headers) {
-    const raw = headers.reduce((obj, header, index) => {
-      obj[header] = rowData[index];
-      return obj;
-    }, {});
+    // If headers is an array of strings (old format), convert to expected format
+    if (headers && headers.length > 0 && typeof headers[0] === 'string') {
+      const headerNames = headers;
+      const raw = headerNames.reduce((obj, header, index) => {
+        obj[header] = rowData[index];
+        return obj;
+      }, {});
 
-    // Reconstruct the 'amount' object for the constructor
-    const rawData = {
-      id: raw.id,
-      ticker: raw.ticker,
-      timestamp: raw.timestamp ? new Date(raw.timestamp).toISOString() : null,
-      amount: {
-        value: raw.amountValue !== '' && raw.amountValue !== null ? parseFloat(raw.amountValue) : null,
-        currency: raw.amountCurrency,
-      },
-      quantity: raw.quantity !== '' && raw.quantity !== null ? parseFloat(raw.quantity) : null,
-      taxAmount: raw.taxAmount !== '' && raw.taxAmount !== null ? parseFloat(raw.taxAmount) : null,
-      taxCurrency: raw.taxCurrency,
-      sourceTransactionId: raw.sourceTransactionId,
-    };
+      // Reconstruct the 'amount' object for the constructor using the old format
+      const rawData = {
+        id: raw.ID || raw.id,
+        ticker: raw.Ticker || raw.ticker,
+        timestamp: raw.Timestamp || raw.timestamp ? new Date(raw.Timestamp || raw.timestamp).toISOString() : null,
+        amount: {
+          value: (raw['Amount Value'] || raw.amountValue) !== '' && (raw['Amount Value'] || raw.amountValue) !== null 
+            ? parseFloat(raw['Amount Value'] || raw.amountValue) : null,
+          currency: raw['Amount Currency'] || raw.amountCurrency,
+        },
+        quantity: (raw.Quantity || raw.quantity) !== '' && (raw.Quantity || raw.quantity) !== null 
+          ? parseFloat(raw.Quantity || raw.quantity) : null,
+        taxAmount: (raw['Tax Amount'] || raw.taxAmount) !== '' && (raw['Tax Amount'] || raw.taxAmount) !== null 
+          ? parseFloat(raw['Tax Amount'] || raw.taxAmount) : null,
+        taxCurrency: raw['Tax Currency'] || raw.taxCurrency,
+        sourceTransactionId: raw['Source Transaction ID'] || raw.sourceTransactionId,
+      };
+      return new DividendModel(rawData);
+    }
+    
+    // New format with dynamic headers
+    const rawData = {};
+    
+    // Handle nested properties based on header paths
+    headers.forEach((header, index) => {
+      setNestedProperty(rawData, header.originalPath, rowData[index]);
+    });
+    
+    // Ensure proper types for numeric fields
+    if (rawData.amount && rawData.amount.value !== undefined && rawData.amount.value !== null) {
+      rawData.amount.value = parseFloat(rawData.amount.value);
+    }
+    
+    if (rawData.quantity !== undefined && rawData.quantity !== null) {
+      rawData.quantity = parseFloat(rawData.quantity);
+    }
+    
+    if (rawData.taxAmount !== undefined && rawData.taxAmount !== null) {
+      rawData.taxAmount = parseFloat(rawData.taxAmount);
+    }
+    
     // Note: 'type' is fixed for DividendModel, so not taken from sheet row for constructor logic.
     return new DividendModel(rawData);
   }
@@ -198,6 +244,27 @@ class DividendModel {
       Logger.log(`Currency formatting error for ${this.taxCurrency}: ${e.message}. Using fallback.`);
       return `${this.taxCurrency} ${this.taxAmount.toFixed(2)}`;
     }
+  }
+  
+  /**
+   * Returns an array of all expected API field paths for this model.
+   * Used by HeaderMappingService and BaseRepository as a fallback when API response is not available.
+   * @returns {Array<string>} Array of field paths.
+   * @static
+   */
+  static getExpectedApiFieldPaths() {
+    return [
+      'id',
+      'type',
+      'ticker',
+      'timestamp',
+      'amount.value',
+      'amount.currency',
+      'quantity',
+      'taxAmount',
+      'taxCurrency',
+      'sourceTransactionId'
+    ];
   }
 }
 

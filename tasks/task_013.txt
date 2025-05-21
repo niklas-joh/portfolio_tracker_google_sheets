@@ -1,6 +1,6 @@
 # Task ID: 13
 # Title: Theme Customization
-# Status: pending
+# Status: deferred
 # Dependencies: None
 # Priority: medium
 # Description: Add options for customizing the application theme.

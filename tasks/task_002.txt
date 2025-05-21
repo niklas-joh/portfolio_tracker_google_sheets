@@ -1,6 +1,6 @@
 # Task ID: 2
 # Title: Data Model & Repository Implementation
-# Status: pending
+# Status: deferred
 # Dependencies: 1
 # Priority: high
 # Description: Create proper data models and repository classes for different entity types.

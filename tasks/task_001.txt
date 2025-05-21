@@ -1,6 +1,6 @@
 # Task ID: 1
 # Title: API Client Refactoring
-# Status: pending
+# Status: deferred
 # Dependencies: None
 # Priority: high
 # Description: Centralize API interactions into a robust client that handles errors, retries, and caching consistently.

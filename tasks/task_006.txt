@@ -1,6 +1,6 @@
 # Task ID: 6
 # Title: Streamlined Setup Wizard
-# Status: pending
+# Status: deferred
 # Dependencies: 3
 # Priority: medium
 # Description: Enhance the setup process with clearer steps, better guidance, and improved error handling.

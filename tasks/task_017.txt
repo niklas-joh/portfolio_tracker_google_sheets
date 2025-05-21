@@ -1,6 +1,6 @@
 # Task ID: 17
 # Title: Data Model & Repository Implementation
-# Status: pending
+# Status: done
 # Dependencies: 16
 # Priority: medium
 # Description: Create proper data models and repository classes for different entity types to standardize data handling across the application.

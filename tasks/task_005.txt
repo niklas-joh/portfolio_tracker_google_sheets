@@ -1,6 +1,6 @@
 # Task ID: 5
 # Title: Investment Performance Analysis
-# Status: pending
+# Status: deferred
 # Dependencies: 2, 4
 # Priority: high
 # Description: Add tools for analyzing investment performance across different time periods.

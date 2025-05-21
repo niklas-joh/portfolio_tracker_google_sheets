@@ -1,6 +1,6 @@
 # Task ID: 4
 # Title: Portfolio Overview Dashboard
-# Status: pending
+# Status: deferred
 # Dependencies: 2
 # Priority: high
 # Description: Create a comprehensive dashboard sheet with key portfolio metrics.

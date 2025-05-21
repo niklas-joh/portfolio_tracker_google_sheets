@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <?!= include('css/styles'); ?>
+  <style>
+    .header-management-container {
+      padding: 20px;
+    }
+    .user-override {
+      font-weight: bold;
+      color: #26a69a;
+    }
+    .changes-section {
+      background-color: #f5f5f5;
+      padding: 15px;
+      border-radius: 4px;
+      margin-bottom: 20px;
+    }
+    .added {
+      color: #4CAF50;
+    }
+    .removed {
+      color: #F44336;
+    }
+  </style>
+</head>
+<body>
+  <div class="header-management-container">
+    <h4 class="center-align">Header Management</h4>
+    
+    <div class="row">
+      <div class="input-field col s12">
+        <select id="resource-select">
+          <option value="" disabled selected>Choose a resource</option>
+        </select>
+        <label>Select API Resource</label>
+      </div>
+    </div>
+    
+    <div id="changes-container" class="changes-section" style="display: none;">
+      <h5>API Change Detection</h5>
+      <div id="changes-content"></div>
+    </div>
+    
+    <div id="message-container" class="card-panel" style="display: none;"></div>
+    
+    <div id="loading-data" class="center-align" style="display: none;">
+      <div class="preloader-wrapper small active">
+        <div class="spinner-layer spinner-green-only">
+          <div class="circle-clipper left">
+            <div class="circle"></div>
+          </div>
+          <div class="gap-patch">
+            <div class="circle"></div>
+          </div>
+          <div class="circle-clipper right">
+            <div class="circle"></div>
+          </div>
+        </div>
+      </div>
+      <p>Loading headers...</p>
+    </div>
+    
+    <div id="headers-container" style="display: none;">
+      <table class="striped responsive-table">
+        <thead>
+          <tr>
+            <th>API Field Path</th>
+            <th>Displayed Header</th>
+            <th>Override</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="headers-tbody">
+          <!-- Header rows will be dynamically added here -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+  
+  <?!= include('js/scripts'); ?>
+  <script>
+    // Initialize with resources passed from server
+    const resources = JSON.parse('<?= resources ?>');
+    let currentResource = '';
+    let headerMappings = [];
+    
+    // Initialize the UI when document is ready
+    document.addEventListener('DOMContentLoaded', function() {
+      // Initialize Materialize components
+      M.AutoInit();
+      
+      // Populate resource dropdown
+      const select = document.getElementById('resource-select');
+      resources.forEach(resource => {
+        const option = document.createElement('option');
+        option.value = resource.id;
+        option.textContent = resource.name;
+        select.appendChild(option);
+      });
+      
+      // Initialize the select dropdown
+      const selectInstance = M.FormSelect.init(select);
+      
+      // Set up event listeners
+      select.addEventListener('change', function() {
+        currentResource = this.value;
+        if (currentResource) {
+          loadHeaderMappings(currentResource);
+          checkForHeaderChanges(currentResource);
+        } else {
+          hideHeadersTable();
+        }
+      });
+    });
+    
+    // Load header mappings for the selected resource
+    function loadHeaderMappings(resourceIdentifier) {
+      showLoadingSpinner();
+      
+      google.script.run
+        .withSuccessHandler(function(result) {
+          headerMappings = result;
+          renderHeaderMappings(headerMappings);
+          hideLoadingSpinner();
+        })
+        .withFailureHandler(function(error) {
+          showError('Failed to load header mappings: ' + error.message);
+          hideLoadingSpinner();
+        })
+        .getHeaderMappingsForResource(resourceIdentifier);
+    }
+    
+    // Render header mappings in the table
+    function renderHeaderMappings(mappings) {
+      const tbody = document.getElementById('headers-tbody');
+      tbody.innerHTML = '';
+      
+      if (mappings.length === 0) {
+        showMessage('No header mappings found for this resource. They will be created when data is first fetched.', 'orange');
+        hideHeadersTable();
+        return;
+      }
+      
+      mappings.forEach((mapping, index) => {
+        const row = document.createElement('tr');
+        row.dataset.index = index;
+        row.dataset.path = mapping.originalPath;
+        
+        // API Field Path
+        const pathCell = document.createElement('td');
+        pathCell.textContent = mapping.originalPath;
+        row.appendChild(pathCell);
+        
+        // Displayed Header
+        const nameCell = document.createElement('td');
+        const nameInput = document.createElement('input');
+        nameInput.type = 'text';
+        nameInput.value = mapping.transformedName;
+        nameInput.dataset.original = mapping.transformedName;
+        nameInput.className = mapping.isOverride ? 'user-override' : '';
+        nameInput.addEventListener('change', function() {
+          updateHeaderMapping(mapping.originalPath, this.value, row);
+        });
+        nameCell.appendChild(nameInput);
+        row.appendChild(nameCell);
+        
+        // Override Status
+        const overrideCell = document.createElement('td');
+        overrideCell.textContent = mapping.isOverride ? 'Yes' : 'No';
+        row.appendChild(overrideCell);
+        
+        // Actions
+        const actionsCell = document.createElement('td');
+        const resetButton = document.createElement('button');
+        resetButton.textContent = 'Reset';
+        resetButton.className = 'btn waves-effect waves-light red';
+        resetButton.disabled = !mapping.isOverride;
+        resetButton.addEventListener('click', function() {
+          resetHeaderMapping(mapping.originalPath, row);
+        });
+        actionsCell.appendChild(resetButton);
+        row.appendChild(actionsCell);
+        
+        tbody.appendChild(row);
+      });
+      
+      showHeadersTable();
+    }
+    
+    // Update a header mapping with user override
+    function updateHeaderMapping(originalPath, newTransformedName, row) {
+      const params = {
+        resourceIdentifier: currentResource,
+        originalPath: originalPath,
+        newTransformedName: newTransformedName
+      };
+      
+      row.querySelector('td:last-child button').disabled = true;
+      
+      google.script.run
+        .withSuccessHandler(function(result) {
+          if (result) {
+            showSuccess('Header updated successfully');
+            row.querySelector('td:nth-child(3)').textContent = 'Yes';
+            row.querySelector('input').className = 'user-override';
+            row.querySelector('td:last-child button').disabled = false;
+          } else {
+            showError('Failed to update header');
+            // Revert the input to its original value
+            row.querySelector('input').value = row.querySelector('input').dataset.original;
+          }
+        })
+        .withFailureHandler(function(error) {
+          showError('Error: ' + error.message);
+          // Revert the input to its original value
+          row.querySelector('input').value = row.querySelector('input').dataset.original;
+          row.querySelector('td:last-child button').disabled = false;
+        })
+        .updateHeaderMapping(params);
+    }
+    
+    // Reset a header mapping to its default
+    function resetHeaderMapping(originalPath, row) {
+      const params = {
+        resourceIdentifier: currentResource,
+        originalPath: originalPath
+      };
+      
+      row.querySelector('td:last-child button').disabled = true;
+      
+      google.script.run
+        .withSuccessHandler(function(result) {
+          if (result) {
+            // Reload header mappings to get the updated default value
+            loadHeaderMappings(currentResource);
+            showSuccess('Header reset to default');
+          } else {
+            showError('Failed to reset header');
+            row.querySelector('td:last-child button').disabled = false;
+          }
+        })
+        .withFailureHandler(function(error) {
+          showError('Error: ' + error.message);
+          row.querySelector('td:last-child button').disabled = false;
+        })
+        .resetHeaderMapping(params);
+    }
+    
+    // Check for any detected header changes
+    function checkForHeaderChanges(resourceIdentifier) {
+      google.script.run
+        .withSuccessHandler(function(result) {
+          if (result.added.length > 0 || result.removed.length > 0) {
+            displayHeaderChanges(result);
+          } else {
+            hideChangesSection();
+          }
+        })
+        .withFailureHandler(function(error) {
+          console.error('Error checking for header changes:', error);
+          hideChangesSection();
+        })
+        .getDetectedHeaderChanges(resourceIdentifier);
+    }
+    
+    // Display detected header changes
+    function displayHeaderChanges(changes) {
+      const container = document.getElementById('changes-container');
+      const content = document.getElementById('changes-content');
+      content.innerHTML = '';
+      
+      if (changes.added.length > 0) {
+        const addedDiv = document.createElement('div');
+        addedDiv.innerHTML = '<strong>New fields detected:</strong> ' + 
+          changes.added.map(field => `<span class="added">${field}</span>`).join(', ');
+        content.appendChild(addedDiv);
+      }
+      
+      if (changes.removed.length > 0) {
+        const removedDiv = document.createElement('div');
+        removedDiv.innerHTML = '<strong>Fields no longer present:</strong> ' + 
+          changes.removed.map(field => `<span class="removed">${field}</span>`).join(', ');
+        content.appendChild(removedDiv);
+      }
+      
+      container.style.display = 'block';
+    }
+    
+    // Helper functions for UI states
+    function showLoadingSpinner() {
+      document.getElementById('loading-data').style.display = 'block';
+      document.getElementById('headers-container').style.display = 'none';
+    }
+    
+    function hideLoadingSpinner() {
+      document.getElementById('loading-data').style.display = 'none';
+    }
+    
+    function showHeadersTable() {
+      document.getElementById('headers-container').style.display = 'block';
+    }
+    
+    function hideHeadersTable() {
+      document.getElementById('headers-container').style.display = 'none';
+    }
+    
+    function hideChangesSection() {
+      document.getElementById('changes-container').style.display = 'none';
+    }
+    
+    function showMessage(message, color) {
+      const container = document.getElementById('message-container');
+      container.textContent = message;
+      container.className = 'card-panel ' + color;
+      container.style.display = 'block';
+      
+      // Auto-hide after 5 seconds
+      setTimeout(function() {
+        container.style.display = 'none';
+      }, 5000);
+    }
+    
+    function showSuccess(message) {
+      showMessage(message, 'green lighten-4');
+    }
+    
+    function showError(message) {
+      showMessage(message, 'red lighten-4');
+    }
+  </script>
+</body>
+</html>

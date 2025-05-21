@@ -1,6 +1,6 @@
 # Task ID: 9
 # Title: Dividend & Income Tracker
-# Status: pending
+# Status: deferred
 # Dependencies: 2
 # Priority: high
 # Description: Create specialized tools for tracking and analyzing dividend income.

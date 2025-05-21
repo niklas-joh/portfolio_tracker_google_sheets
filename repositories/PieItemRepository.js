@@ -1,8 +1,11 @@
 /**
  * @fileoverview Defines the PieItemRepository class for managing pie item data.
+ * 
+ * This repository extends BaseRepository to leverage the dynamic header management system,
+ * and handles pie item-specific data operations.
  */
 
-// Assuming ApiClient, PieItemModel, PieModel, and SheetManager are globally available.
+// Assuming ApiClient, PieItemModel, PieModel, SheetManager, and BaseRepository are globally available.
 // For GAS, ensure relevant .js files are loaded.
 
 /**
@@ -10,45 +13,56 @@
  * Pie items are typically part of a Pie's details. This repository
  * might fetch them via the PieRepository or directly if an endpoint exists.
  * It transforms data into PieItemModel instances and handles persistence.
+ * @extends BaseRepository
  */
-class PieItemRepository {
+class PieItemRepository extends BaseRepository {
   /**
    * Creates an instance of PieItemRepository.
    * @param {Trading212ApiClient} apiClient The API client for fetching data.
    * @param {SheetManager} sheetManager The manager for interacting with Google Sheets.
    * @param {ErrorHandler} errorHandler The error handler instance.
+   * @param {HeaderMappingService} headerMappingService The service for managing dynamic headers.
    * @param {string} [sheetName='PieItems'] The name of the Google Sheet where pie item data is stored.
    */
-  constructor(apiClient, sheetManager, errorHandler, sheetName = 'PieItems') {
-    if (!apiClient) {
-      throw new Error('PieItemRepository: apiClient is required.');
+  constructor(apiClient, sheetManager, errorHandler, headerMappingService, sheetName = 'PieItems') {
+    if (!headerMappingService) {
+      throw new Error('PieItemRepository: headerMappingService is required.');
     }
-    if (!sheetManager) {
-      throw new Error('PieItemRepository: sheetManager is required.');
-    }
-    if (!errorHandler) {
-      // Attempt to get a default ErrorHandler if not provided, or throw
-      if (typeof ErrorHandler !== 'undefined') {
-        this.errorHandler = new ErrorHandler('PieItemRepository_Default');
-        this.errorHandler.log('ErrorHandler not provided to PieItemRepository constructor, using default.', 'WARN');
-      } else {
-        throw new Error('PieItemRepository: errorHandler is required and ErrorHandler class is not available.');
-      }
-    } else {
-      /** @private @const {ErrorHandler} */
-      this.errorHandler = errorHandler;
-    }
-    /** @private @const {Trading212ApiClient} */
-    this.apiClient = apiClient; // May not be used directly if items always come via Pie details
-    /** @private @const {SheetManager} */
-    this.sheetManager = sheetManager;
-    /** @private @const {string} */
-    this.sheetName = sheetName;
-    /** @private @const {Array<string>} */
-    this.sheetHeaders = ['Pie ID', 'Item ID', 'Ticker', 'Expected Share', 'Current Share', 'Current Value', 'Invested Value', 'Quantity', 'Result', 'Result Currency'];
     
-    this.sheetManager.ensureSheetExists(this.sheetName);
-    this.sheetManager.setHeaders(this.sheetName, this.sheetHeaders);
+    // Get the resource identifier from API_RESOURCES if available
+    const resourceIdentifier = API_RESOURCES && API_RESOURCES.PIE_ITEMS ? 
+      API_RESOURCES.PIE_ITEMS.sheetName || 'PIE_ITEMS' : 'PIE_ITEMS';
+    
+    // Call the parent constructor with all required parameters
+    super(apiClient, sheetManager, errorHandler, headerMappingService, resourceIdentifier, sheetName);
+    
+    // Try to initialize headers from storage if they exist
+    this._tryInitializeHeadersFromStored(PieItemModel.getExpectedApiFieldPaths);
+  }
+
+  /**
+   * Transform raw API pie item data to the structure expected by PieItemModel.
+   * @private
+   * @param {Object} rawItem Raw pie item data from the API.
+   * @param {number} pieId The ID of the parent pie.
+   * @param {string} pieCurrency The currency of the parent pie.
+   * @returns {Object} Transformed data suitable for PieItemModel constructor.
+   */
+  _transformApiPieItemData(rawItem, pieId, pieCurrency) {
+    return {
+      pieId: pieId,
+      ticker: rawItem.ticker,
+      expectedShare: rawItem.expectedShare,
+      currentShare: rawItem.currentShare,
+      // Map from nested API 'result' object and 'ownedQuantity'
+      currentValue: rawItem.result ? rawItem.result.priceAvgValue : 0,
+      investedValue: rawItem.result ? rawItem.result.priceAvgInvestedValue : 0,
+      result: rawItem.result ? rawItem.result.priceAvgResult : 0,
+      quantity: typeof rawItem.ownedQuantity === 'number' ? rawItem.ownedQuantity : 0,
+      // 'id' (item id) is not in API instrument data, PieItemModel handles it as potentially null.
+      resultCurrency: pieCurrency, // Set based on parent pie's currency
+      issues: rawItem.issues // Pass along issues
+    };
   }
 
   /**
@@ -60,9 +74,12 @@ class PieItemRepository {
   async fetchPieItemsForPie(pieId) {
     try {
       // Assumes pie details from API client include instrument data
-      const rawPieData = await this.apiClient.getPieDetails(pieId);
+      const apiCallFunction = () => this.apiClient.getPieDetails(pieId);
+      const rawPieData = await this._fetchDataAndInitializeHeaders(
+        apiCallFunction, PieItemModel.getExpectedApiFieldPaths);
+      
       if (!rawPieData || !rawPieData.instruments || !Array.isArray(rawPieData.instruments)) {
-        Logger.log(`No instruments data found for pie ID ${pieId} or data is not an array.`);
+        this._log(`No instruments data found for pie ID ${pieId} or data is not an array.`, 'WARN');
         return [];
       }
 
@@ -73,24 +90,17 @@ class PieItemRepository {
 
       return rawPieData.instruments.map(rawItem => {
         // Transform rawItem to match PieItemModel constructor expectations
-        const transformedRawItem = {
-          pieId: pieId,
-          ticker: rawItem.ticker,
-          expectedShare: rawItem.expectedShare,
-          currentShare: rawItem.currentShare,
-          // Map from nested API 'result' object and 'ownedQuantity'
-          currentValue: rawItem.result ? rawItem.result.priceAvgValue : 0,
-          investedValue: rawItem.result ? rawItem.result.priceAvgInvestedValue : 0,
-          result: rawItem.result ? rawItem.result.priceAvgResult : 0,
-          quantity: typeof rawItem.ownedQuantity === 'number' ? rawItem.ownedQuantity : 0,
-          // 'id' (item id) is not in API instrument data, PieItemModel handles it as potentially null.
-          resultCurrency: pieCurrency, // Set based on parent pie's currency
-          issues: rawItem.issues // Pass along issues
-        };
-        return new PieItemModel(transformedRawItem);
-      });
+        const transformedRawItem = this._transformApiPieItemData(rawItem, pieId, pieCurrency);
+        
+        try {
+          return new PieItemModel(transformedRawItem);
+        } catch (error) {
+          this._logError(error, `Error creating PieItemModel for ${transformedRawItem.ticker}`);
+          return null;
+        }
+      }).filter(model => model !== null); // Filter out null items
     } catch (error) {
-      this.errorHandler.logError(error, `Failed to fetch pie items for pie ID ${pieId}. Error will be re-thrown.`);
+      this._logError(error, `Failed to fetch pie items for pie ID ${pieId}.`);
       throw error; // Re-throw
     }
   }
@@ -106,56 +116,63 @@ class PieItemRepository {
     try {
       // Validate input
       if (!Array.isArray(pieItems)) {
-        Logger.log('Invalid input: pieItems must be an array.');
+        this._log('Invalid input: pieItems must be an array.', 'WARN');
         return false;
       }
       
       // Check if all items are PieItemModel instances
       if (!pieItems.every(item => item instanceof PieItemModel)) {
-        Logger.log('Invalid input: Not all items in pieItems array are PieItemModel instances.');
+        this._log('Invalid input: Not all items in pieItems array are PieItemModel instances.', 'WARN');
         return false;
       }
       
       // Handle empty array case
       if (pieItems.length === 0) {
-        Logger.log('No pie items to save to sheet. Sheet will not be updated.');
+        this._log('No pie items to save to sheet. Sheet will not be updated.', 'INFO');
         return true; // Return true as this is not an error condition
       }
       
-      // Log the number of items being saved
-      Logger.log(`Preparing to save ${pieItems.length} pie items to sheet '${this.sheetName}'...`);
+      // Ensure headers are initialized
+      if (!this.effectiveHeaders) {
+        const success = await this._tryInitializeHeadersFromStored(PieItemModel.getExpectedApiFieldPaths);
+        if (!success) {
+          throw new Error('Failed to initialize headers for pie item data. Fetch data first.');
+        }
+      }
       
-      // Transform items to sheet rows
+      // Log the number of items being saved
+      this._log(`Preparing to save ${pieItems.length} pie items to sheet '${this.sheetName}'...`, 'INFO');
+      
+      // Transform items to sheet rows using our dynamic headers
       const dataRows = pieItems.map(item => {
         try {
-          return item.toSheetRow();
+          return item.toSheetRow(this.effectiveHeaders);
         } catch (rowError) {
-          Logger.log(`Error converting pie item to sheet row: ${rowError.message}`);
-          // Return a row with the pieId and error message, rest empty
-          return [
-            item.pieId || 'Unknown',
-            item.id || 'Unknown',
-            item.ticker || 'Error',
-            'Error',
-            'Error',
-            0,
-            0,
-            0,
-            0,
-            'Error: ' + rowError.message
-          ];
+          this._log(`Error converting pie item to sheet row: ${rowError.message}`, 'WARN');
+          
+          // Create a row with all empty values except for basic identification
+          const emptyRow = Array(this.effectiveHeaders.length).fill('');
+          
+          // Try to add some basic identification to the empty row
+          const pieIdIndex = this.effectiveHeaders.findIndex(h => h.originalPath === 'pieId');
+          const tickerIndex = this.effectiveHeaders.findIndex(h => h.originalPath === 'ticker');
+          
+          if (pieIdIndex !== -1) emptyRow[pieIdIndex] = item.pieId || 'Unknown';
+          if (tickerIndex !== -1) emptyRow[tickerIndex] = item.ticker || 'Error';
+          
+          return emptyRow;
         }
       });
       
+      // Get the transformed header names for display
+      const transformedHeaderNames = this.effectiveHeaders.map(h => h.transformedName);
+      
       // Save to sheet
-      await this.sheetManager.updateSheetData(this.sheetName, dataRows, this.sheetHeaders);
-      Logger.log(`Successfully saved ${pieItems.length} pie items to sheet '${this.sheetName}'.`);
+      await this.sheetManager.updateSheetData(this.sheetName, dataRows, transformedHeaderNames);
+      this._log(`Successfully saved ${pieItems.length} pie items to sheet '${this.sheetName}'.`, 'INFO');
       return true;
     } catch (error) {
-      this.errorHandler.logError(error, 'Failed to save pie items to Google Sheet. Error will be re-thrown.');
-      // Note: The original code returned false here. By re-throwing, the caller (uiFunctions)
-      // will handle the UI notification. If this method is called directly and needs to indicate
-      // failure without throwing, the design might need adjustment, but for now, re-throwing is consistent.
+      this._logError(error, 'Failed to save pie items to Google Sheet.');
       throw error; 
     }
   }
@@ -175,10 +192,13 @@ class PieItemRepository {
       // or implement a more complex update logic in sheetManager.
       await this.savePieItemsToSheet(items);
     } else {
-      Logger.log(`No items fetched for pie ID ${pieId}, sheet not updated.`);
+      this._log(`No items fetched for pie ID ${pieId}, sheet not updated.`, 'INFO');
       // If this means "clear items for this pie", that logic is more complex with a shared sheet.
       // If the sheet is ONLY for one pie's items at a time, then clearing is fine:
-      // await this.sheetManager.updateSheetData(this.sheetName, [], this.sheetHeaders);
+      // if (this.effectiveHeaders) {
+      //   const transformedHeaderNames = this.effectiveHeaders.map(h => h.transformedName);
+      //   await this.sheetManager.updateSheetData(this.sheetName, [], transformedHeaderNames);
+      // }
     }
     return items;
   }
@@ -189,10 +209,21 @@ class PieItemRepository {
    */
   async getAllPieItemsFromSheet() {
     try {
+      // Ensure headers are initialized from storage if not already done
+      if (!this.effectiveHeaders) {
+        const success = await this._tryInitializeHeadersFromStored(PieItemModel.getExpectedApiFieldPaths);
+        if (!success) {
+          throw new Error('Failed to initialize headers for pie item data. Fetch data first.');
+        }
+      }
+      
+      // Get the sheet data
       const dataRows = await this.sheetManager.getSheetData(this.sheetName);
-      return dataRows.map(row => PieItemModel.fromSheetRow(row, this.sheetHeaders));
+      
+      // Transform rows to model instances
+      return this._transformSheetRowsToModels(dataRows, PieItemModel);
     } catch (error) {
-      this.errorHandler.logError(error, 'Failed to retrieve pie items from Google Sheet. Error will be re-thrown.');
+      this._logError(error, 'Failed to retrieve pie items from Google Sheet.');
       throw error; // Re-throw
     }
   }
@@ -207,9 +238,7 @@ class PieItemRepository {
       const allItems = await this.getAllPieItemsFromSheet();
       return allItems.filter(item => item.pieId === pieId);
     } catch (error) {
-      // If getAllPieItemsFromSheet re-throws, this catch might not be strictly necessary
-      // unless there's an error in the .filter() part, which is unlikely.
-      this.errorHandler.logError(error, `Error filtering pie items for pie ID ${pieId} from sheet. Error will be re-thrown.`);
+      this._logError(error, `Error filtering pie items for pie ID ${pieId} from sheet.`);
       throw error; // Re-throw
     }
   }
