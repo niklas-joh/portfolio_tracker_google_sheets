@@ -35,8 +35,8 @@ function fetchDataAndWriteToSheet(endpoint, sheetName, params = {}, startRow = 2
   
   // Start fetching data
   fetchAndHandleData(url, sheetName, startRow, endpoint);
-  //const formatter = new SheetFormattingManager();
-  //formatter.formatSheet(sheetName);
+  // Format sheet
+  formatSheet(sheetName);
 }
 
 /**
@@ -219,12 +219,12 @@ function fetchDividends(params = {}) {
 */
 function fetchSelectedTrading212Data(selectedOptions) {
   const fetchFunctions = {
-    Pies: fetchPies,
+    'Pies': fetchPies,
     'Account Info': fetchAccountInfo,
     'Cash Balance': fetchAccountCash,
-    transactions: fetchTransactions,
-    orderHistory: fetchOrderHistory,
-    dividends: fetchDividends
+    'Transactions': fetchTransactions,
+    'Order History': fetchOrderHistory,
+    'Dividends': fetchDividends
   };
 
   // Iterate through each selected option
