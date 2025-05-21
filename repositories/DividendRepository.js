@@ -65,15 +65,23 @@ class DividendRepository {
       // This might be part of getTransactions with type 'DIVIDEND' or a separate endpoint.
       // For this example, let's assume a dedicated getDividends method exists.
       // If not, this method would filter results from getTransactions.
-      const rawDividendsData = await this.apiClient.getDividends({ startDate, endDate, limit });
+      const apiParams = {};
+      if (startDate) apiParams.timeFrom = startDate.toISOString(); // Assuming API expects ISO string for date filtering
+      if (endDate) apiParams.timeTo = endDate.toISOString();
+      if (limit) apiParams.limit = limit;
+      
+      const rawDividendsData = await this.apiClient.getDividends(apiParams); // Calling the new method
+
       if (!Array.isArray(rawDividendsData)) {
-        Logger.log(`Expected an array from apiClient.getDividends(), but got: ${typeof rawDividendsData}`);
-        throw new Error('Invalid data format received from API for dividends.');
+        const errorMsg = `Expected an array from apiClient.getDividends(), but got: ${typeof rawDividendsData}`;
+        Logger.log(errorMsg);
+        this.errorHandler.logError(new Error('Invalid data format received from API for dividends.'), errorMsg);
+        return []; // Return empty array on format error to prevent downstream issues
       }
       return rawDividendsData.map(rawDividend => new DividendModel(rawDividend));
     } catch (error) {
-      this.errorHandler.logError(error, 'Failed to fetch all dividends from API. Error will be re-thrown.');
-      throw error; // Re-throw
+      this.errorHandler.logError(error, 'Failed to fetch all dividends from API in DividendRepository.');
+      throw error; // Re-throw to allow calling function to handle
     }
   }
   

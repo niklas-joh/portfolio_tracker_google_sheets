@@ -361,6 +361,116 @@ class Trading212ApiClient {
   }
 
   /**
+   * Fetches account information from the Trading212 API.
+   * @param {Object} [params={}] - Optional query parameters.
+   * @param {Object} [cacheOptions={ enabled: true, ttl: 300 }] - Cache configuration.
+   * @returns {Promise<Object>} - A promise that resolves to the account information.
+   */
+  async getAccountInfo(params = {}, cacheOptions = { enabled: true, ttl: 300 }) {
+    const endpoint = API_RESOURCES.ACCOUNT_INFO.endpoint;
+    if (!endpoint) {
+      Logger.log("API endpoint for ACCOUNT_INFO is not defined in API_RESOURCES.");
+      throw new Error("Account Info API endpoint not configured.");
+    }
+    Logger.log(`Fetching account info from endpoint: ${endpoint} with params: ${JSON.stringify(params)}`);
+    return this.get(endpoint, params, cacheOptions);
+  }
+
+  /**
+   * Fetches account cash balance from the Trading212 API.
+   * @param {Object} [params={}] - Optional query parameters.
+   * @param {Object} [cacheOptions={ enabled: true, ttl: 300 }] - Cache configuration.
+   * @returns {Promise<Object>} - A promise that resolves to the account cash balance.
+   */
+  async getAccountCash(params = {}, cacheOptions = { enabled: true, ttl: 300 }) {
+    const endpoint = API_RESOURCES.ACCOUNT_CASH.endpoint;
+    if (!endpoint) {
+      Logger.log("API endpoint for ACCOUNT_CASH is not defined in API_RESOURCES.");
+      throw new Error("Account Cash API endpoint not configured.");
+    }
+    Logger.log(`Fetching account cash from endpoint: ${endpoint} with params: ${JSON.stringify(params)}`);
+    return this.get(endpoint, params, cacheOptions);
+  }
+
+  /**
+   * Fetches the list of instruments from the Trading212 API.
+   * Uses fetchAllPages to handle potential pagination.
+   * @param {Object} [params={}] - Optional query parameters.
+   * @param {Object} [cacheOptions={ enabled: true, ttl: 300 }] - Cache configuration.
+   * @returns {Promise<Array<Object>>} - A promise that resolves to an array of instrument objects.
+   */
+  async getInstrumentsList(params = {}, cacheOptions = { enabled: true, ttl: 300 }) {
+    const endpoint = API_RESOURCES.INSTRUMENTS_LIST.endpoint;
+    if (!endpoint) {
+      Logger.log("API endpoint for INSTRUMENTS_LIST is not defined in API_RESOURCES.");
+      throw new Error("Instruments List API endpoint not configured.");
+    }
+    Logger.log(`Fetching instruments list from endpoint: ${endpoint} with params: ${JSON.stringify(params)}`);
+    return this.fetchAllPages(endpoint, params, cacheOptions);
+  }
+
+  /**
+   * Fetches transactions from the Trading212 API.
+   * Uses fetchAllPages to handle potential pagination.
+   * @param {Object} [params={}] - Optional query parameters (e.g., limit, cursor).
+   * @param {Object} [cacheOptions={ enabled: true, ttl: 300 }] - Cache configuration.
+   * @returns {Promise<Array<Object>>} - A promise that resolves to an array of transaction objects.
+   */
+  async getTransactions(params = {}, cacheOptions = { enabled: true, ttl: 300 }) {
+    const endpoint = API_RESOURCES.TRANSACTIONS.endpoint;
+    if (!endpoint) {
+      Logger.log("API endpoint for TRANSACTIONS is not defined in API_RESOURCES.");
+      throw new Error("Transactions API endpoint not configured.");
+    }
+    Logger.log(`Fetching transactions from endpoint: ${endpoint} with params: ${JSON.stringify(params)}`);
+    return this.fetchAllPages(endpoint, params, cacheOptions);
+  }
+
+  /**
+   * Fetches order history from the Trading212 API.
+   * Uses fetchAllPages to handle potential pagination.
+   * @param {Object} [params={}] - Optional query parameters (e.g., limit, cursor, ticker).
+   * @param {Object} [cacheOptions={ enabled: true, ttl: 300 }] - Cache configuration.
+   * @returns {Promise<Array<Object>>} - A promise that resolves to an array of order history objects.
+   */
+  async getOrderHistory(params = {}, cacheOptions = { enabled: true, ttl: 300 }) {
+    const endpoint = API_RESOURCES.ORDER_HISTORY.endpoint;
+    if (!endpoint) {
+      Logger.log("API endpoint for ORDER_HISTORY is not defined in API_RESOURCES.");
+      throw new Error("Order History API endpoint not configured.");
+    }
+    const queryParams = {
+      limit: params.limit || 20, // API default
+      ...(params.cursor && { cursor: params.cursor }),
+      ...(params.ticker && { ticker: params.ticker }),
+    };
+    Logger.log(`Fetching order history from endpoint: ${endpoint} with params: ${JSON.stringify(queryParams)}`);
+    return this.fetchAllPages(endpoint, queryParams, cacheOptions);
+  }
+
+  /**
+   * Fetches dividends from the Trading212 API.
+   * Uses fetchAllPages to handle potential pagination.
+   * @param {Object} [params={}] - Optional query parameters (e.g., limit, cursor, ticker).
+   * @param {Object} [cacheOptions={ enabled: true, ttl: 300 }] - Cache configuration.
+   * @returns {Promise<Array<Object>>} - A promise that resolves to an array of dividend objects.
+   */
+  async getDividends(params = {}, cacheOptions = { enabled: true, ttl: 300 }) {
+    const endpoint = API_RESOURCES.DIVIDENDS.endpoint;
+    if (!endpoint) {
+      Logger.log("API endpoint for DIVIDENDS is not defined in API_RESOURCES.");
+      throw new Error("Dividends API endpoint not configured.");
+    }
+    const queryParams = {
+      limit: params.limit || 20, // API default
+      ...(params.cursor && { cursor: params.cursor }),
+      ...(params.ticker && { ticker: params.ticker }),
+    };
+    Logger.log(`Fetching dividends from endpoint: ${endpoint} with params: ${JSON.stringify(queryParams)}`);
+    return this.fetchAllPages(endpoint, queryParams, cacheOptions);
+  }
+
+  /**
    * Fetches details for a specific pie by ID.
    * @param {string|number} pieId - The ID of the pie to fetch.
    * @param {Object} [params={}] - Optional query parameters.
