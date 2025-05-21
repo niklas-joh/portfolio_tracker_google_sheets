@@ -53,13 +53,69 @@ class PieRepository {
    */
   async fetchAllPies() {
     try {
-      const rawPiesData = await this.apiClient.getPies(); // Assumes getPies() returns array of raw pie objects
-      if (!Array.isArray(rawPiesData)) {
-        this.errorHandler.logError(new Error('Invalid data format for pies'), `Expected an array from apiClient.getPies(), but got: ${typeof rawPiesData}`);
-        throw new Error('Invalid data format received from API for pies.');
+      // Step 1: Get all pie summaries (which include IDs)
+      const pieSummaries = await this.apiClient.getPies();
+      if (!Array.isArray(pieSummaries)) {
+        this.errorHandler.logError(new Error('Invalid data format for pie summaries'), `Expected an array from apiClient.getPies(), but got: ${typeof pieSummaries}`);
+        return []; // Return empty array on error
       }
-      return rawPiesData.map(rawPie => new PieModel(rawPie));
+
+      if (pieSummaries.length === 0) {
+        Logger.log('No pie summaries found from API.');
+        return [];
+      }
+
+      // Step 2: For each pie ID, fetch its full details
+      const detailedPiesPromises = pieSummaries.map(summary => {
+        if (summary && typeof summary.id !== 'undefined') {
+          return this.apiClient.getPieDetails(summary.id)
+            .then(detail => ({ detail, summary })) // Pass summary along with detail
+            .catch(err => {
+              this.errorHandler.logError(err, `Failed to fetch details for pie ID ${summary.id}. Skipping this pie.`);
+              return null; // Indicate failure for this pie
+            });
+        }
+        this.errorHandler.logError(new Error('Invalid pie summary object'), `Summary: ${JSON.stringify(summary)}`);
+        return Promise.resolve(null); // Skip if summary is invalid
+      });
+
+      const results = await Promise.all(detailedPiesPromises);
+
+      // Step 3: Create PieModel instances from the detailed data combined with summary data
+      return results
+        .filter(result => result && result.detail) // Filter out nulls or those where detail fetch failed
+        .map(result => {
+          const { detail: rawPieDetail, summary: rawPieSummary } = result;
+          
+          // Construct modelData by combining details and summary
+          // PieModel expects: id, name, value, currency, creationDate?, lastUpdateDate?, icon?, progress?, instruments?
+          const modelData = {
+            id: rawPieDetail.settings.id,
+            name: rawPieDetail.settings.name,
+            creationDate: rawPieDetail.settings.creationDate,
+            lastUpdateDate: rawPieDetail.settings.endDate, // Assuming endDate from settings is lastUpdateDate
+            icon: rawPieDetail.settings.icon,
+            progress: rawPieSummary.progress, // Progress from summary
+            value: rawPieSummary.result ? rawPieSummary.result.priceAvgValue : 0, // Value from summary's result
+            currency: rawPieDetail.settings.currencyCode || 'USD', // ASSUMPTION: currencyCode in settings. Defaulting to USD.
+            instruments: rawPieDetail.instruments || []
+          };
+
+          if (!rawPieDetail.settings.currencyCode) {
+            Logger.log(`PieModel for ID ${modelData.id}: Currency defaulted to USD as 'currencyCode' was not found in pie settings. API detail: ${JSON.stringify(rawPieDetail.settings)}`);
+          }
+          
+          try {
+            return new PieModel(modelData);
+          } catch (modelError) {
+            this.errorHandler.logError(modelError, `Error creating PieModel for ID ${modelData.id}. Raw modelData: ${JSON.stringify(modelData)}`);
+            return null; // Skip this pie if model creation fails
+          }
+        })
+        .filter(pieModel => pieModel !== null); // Filter out models that failed instantiation
+
     } catch (error) {
+      // Catch errors from the initial getPies() call or Promise.all() itself
       this.errorHandler.handleError(error, 'Failed to fetch all pies from API.');
       return []; // Return empty array or rethrow as per error handling strategy
     }

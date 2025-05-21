@@ -53,9 +53,23 @@ class PieItemRepository {
         return [];
       }
       return rawPieData.instruments.map(rawItem => {
-        // Add pieId to each item if not already present from API
-        const itemDataWithPieId = { ...rawItem, pieId: pieId };
-        return new PieItemModel(itemDataWithPieId);
+        // Transform rawItem to match PieItemModel constructor expectations
+        const transformedRawItem = {
+          pieId: pieId,
+          ticker: rawItem.ticker,
+          expectedShare: rawItem.expectedShare,
+          currentShare: rawItem.currentShare,
+          // Map from nested API 'result' object and 'ownedQuantity'
+          currentValue: rawItem.result ? rawItem.result.priceAvgValue : 0,
+          investedValue: rawItem.result ? rawItem.result.priceAvgInvestedValue : 0,
+          result: rawItem.result ? rawItem.result.priceAvgResult : 0,
+          quantity: typeof rawItem.ownedQuantity === 'number' ? rawItem.ownedQuantity : 0,
+          // 'id' (item id) is not in API instrument data, PieItemModel handles it as potentially null.
+          // 'resultCurrency' is not in API instrument data, PieItemModel handles it as potentially null.
+          // It could be enhanced later to take currency from the parent pie if needed.
+          issues: rawItem.issues // Pass along issues, though constructor doesn't explicitly use it
+        };
+        return new PieItemModel(transformedRawItem);
       });
     } catch (error) {
       Logger.log(`Error fetching pie items for pie ID ${pieId}: ${error.message}`);

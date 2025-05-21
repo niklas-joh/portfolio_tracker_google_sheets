@@ -143,29 +143,65 @@ function fetchPiesAndSave_() {
 }
 
 /**
- * Fetches and saves all pie items (instruments) to the 'PieInstruments' sheet.
+ * Fetches and saves all pie items (instruments) to the 'PieItems' sheet.
  * Triggered by menu item.
  */
-function fetchPieItemsAndSave_() {
+async function fetchPieItemsAndSave_() {
   try {
     Logger.log("UI: Starting fetchPieItemsAndSave_...");
     SpreadsheetApp.getUi().showModalDialog(HtmlService.createHtmlOutputFromFile('html/fetchData.html').setWidth(300).setHeight(100), 'Fetching Pie Items...');
 
     const apiClient = getApiClientForUi_();
     const sheetManager = getSheetManagerForUi_();
-    const errorHandler = getErrorHandlerForUi_();
-    
-    // Ensure PieItemRepository is available
+    const errorHandler = getErrorHandlerForUi_(); // errorHandler can be used for general UI errors if needed
+
+    // Ensure Repositories are available
+    if (typeof PieRepository === 'undefined') throw new Error("PieRepository class is not defined.");
     if (typeof PieItemRepository === 'undefined') throw new Error("PieItemRepository class is not defined.");
 
-    const pieItemRepository = new PieItemRepository(apiClient, sheetManager, errorHandler);
-    pieItemRepository.fetchAndSaveAllPieItems(); // Assumes Pies sheet is populated
+    const pieRepository = new PieRepository(apiClient, sheetManager, errorHandler); // PieRepository uses errorHandler
+    const pieItemRepository = new PieItemRepository(apiClient, sheetManager); // PieItemRepository does not use errorHandler in constructor
 
-    Logger.log("UI: fetchPieItemsAndSave_ completed successfully.");
-    SpreadsheetApp.getUi().alert("Fetch & Save Pie Items completed. Check logs and the 'PieInstruments' sheet.");
+    Logger.log("UI: Fetching all pies from sheet...");
+    const pies = await pieRepository.getAllPiesFromSheet();
+
+    if (!pies || pies.length === 0) {
+      Logger.log("UI: No pies found in the 'Pies' sheet. Cannot fetch pie items.");
+      SpreadsheetApp.getUi().alert("No pies found. Please fetch pies first.");
+      return;
+    }
+
+    Logger.log(`UI: Found ${pies.length} pies. Fetching items for each...`);
+    const fetchPromises = pies.map(pie => {
+      if (pie && typeof pie.id !== 'undefined') {
+        return pieItemRepository.fetchPieItemsForPie(pie.id);
+      }
+      Logger.log(`UI: Pie object or pie.id is undefined for a pie: ${JSON.stringify(pie)}. Skipping.`);
+      return Promise.resolve([]); // Resolve with empty array for invalid pie objects
+    });
+    
+    const pieItemsArrays = await Promise.all(fetchPromises);
+    const allPieItems = pieItemsArrays.flat().filter(item => item); // Flatten and remove any null/undefined items
+
+    if (allPieItems.length > 0) {
+      Logger.log(`UI: Total ${allPieItems.length} pie items fetched. Saving to sheet...`);
+      await pieItemRepository.savePieItemsToSheet(allPieItems);
+      Logger.log("UI: fetchPieItemsAndSave_ completed successfully.");
+      SpreadsheetApp.getUi().alert(`Fetch & Save Pie Items completed. ${allPieItems.length} items saved. Check logs and the 'PieItems' sheet.`);
+    } else {
+      Logger.log("UI: No pie items found for any of the pies.");
+      SpreadsheetApp.getUi().alert("No pie items found for the existing pies.");
+    }
+
   } catch (e) {
     Logger.log(`UI Error in fetchPieItemsAndSave_: ${e.toString()}\nStack: ${e.stack}`);
-    SpreadsheetApp.getUi().alert(`Error fetching Pie Items: ${e.toString()}`);
+    // Use the instantiated errorHandler if available and has a UI-specific method, or fallback
+    const uiErrorHandler = getErrorHandlerForUi_(); // Get it again or ensure it's scoped
+    if (uiErrorHandler && typeof uiErrorHandler.handleError === 'function') {
+       uiErrorHandler.handleError(e, `Error fetching Pie Items`);
+    } else {
+      SpreadsheetApp.getUi().alert(`Error fetching Pie Items: ${e.toString()}`);
+    }
   }
 }
 
