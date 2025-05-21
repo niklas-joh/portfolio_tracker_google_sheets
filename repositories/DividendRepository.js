@@ -81,29 +81,33 @@ class DividendRepository {
       // Safely map raw data to DividendModel instances
       return rawDividendsData
         .map(rawDividend => {
-          // Validate the structure of rawDividend based on DividendModel constructor requirements
-          // The error indicates: id, ticker, timestamp, amount (with value and currency)
-          // Assuming 'reference' maps to 'id' and 'paidOn' to 'timestamp' from HistoryDividendItem
-          // and that DividendModel expects an amount object.
-          const isValidDividendObject = rawDividend &&
-            typeof rawDividend.reference !== 'undefined' && // for id
-            rawDividend.ticker &&
-            rawDividend.paidOn && // for timestamp
-            typeof rawDividend.amount === 'number'; // HistoryDividendItem.amount is a number
+          // Validate the structure of raw API dividend data before transformation
+          const isValidApiData = rawDividend &&
+            typeof rawDividend.reference === 'string' && rawDividend.reference.trim() !== '' && // for id
+            typeof rawDividend.ticker === 'string' && rawDividend.ticker.trim() !== '' &&
+            typeof rawDividend.paidOn === 'string' && // for timestamp (basic check, model validates further)
+            typeof rawDividend.amountInEuro === 'number'; // for amount.value
 
-          // If DividendModel strictly expects rawDividend.amount.value and rawDividend.amount.currency,
-          // and rawDividend.amount is just a number from the API, this check needs adjustment
-          // or DividendModel needs to handle the numeric amount.
-          // For now, let's assume DividendModel can handle rawDividend.amount being a number
-          // and internally gets currency from account settings or similar.
-          // The critical part is that rawDividend itself is an object with the main fields.
+          if (isValidApiData) {
+            // Transform raw API data to the structure expected by DividendModel
+            const transformedData = {
+              id: rawDividend.reference,
+              ticker: rawDividend.ticker,
+              timestamp: rawDividend.paidOn,
+              amount: {
+                value: rawDividend.amountInEuro,
+                currency: 'EUR' // Assuming EUR based on 'amountInEuro' field
+              },
+              quantity: typeof rawDividend.quantity === 'number' ? rawDividend.quantity : null,
+              // Map other optional fields if they exist in rawDividend and are expected by DividendModel
+              // e.g., taxAmount: rawDividend.taxAmount, taxCurrency: rawDividend.taxCurrency (if API provides them directly)
+            };
 
-          if (isValidDividendObject) {
             try {
-              return new DividendModel(rawDividend);
+              return new DividendModel(transformedData);
             } catch (modelError) {
               // This catch is specifically for errors during DividendModel instantiation
-              this.errorHandler.logError(modelError, `Error constructing DividendModel for data: ${JSON.stringify(rawDividend)}`);
+              this.errorHandler.logError(modelError, `Error constructing DividendModel for transformed data: ${JSON.stringify(transformedData)} (original: ${JSON.stringify(rawDividend)})`);
               return null; // Skip this problematic item
             }
           } else {
