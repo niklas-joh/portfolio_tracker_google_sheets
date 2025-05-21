@@ -1,87 +1,34 @@
 # Task ID: 14
-# Title: Implement Data Refresh Automation
+# Title: Mobile-Friendly UI Improvements
 # Status: pending
-# Dependencies: 9, 12
-# Priority: low
-# Description: Create time-based triggers to automatically refresh data at scheduled intervals.
+# Dependencies: None
+# Priority: medium
+# Description: Enhance the UI to be more usable on mobile devices, within the limitations of Google Sheets.
 # Details:
-1. Implement function to create time-based trigger:
-```javascript
-function createDailyTrigger() {
-  // Delete existing triggers first
-  deleteTriggers();
-  
-  // Create new daily trigger
-  ScriptApp.newTrigger('fetchAndWriteAllData')
-    .timeBased()
-    .everyDays(1)
-    .atHour(6) // 6 AM
-    .create();
-    
-  return true;
-}
+Implement mobile-friendly UI improvements:
 
-function deleteTriggers() {
-  const triggers = ScriptApp.getProjectTriggers();
-  for (const trigger of triggers) {
-    if (trigger.getHandlerFunction() === 'fetchAndWriteAllData') {
-      ScriptApp.deleteTrigger(trigger);
-    }
-  }
-}
+1. Responsive CSS for all HTML templates:
+   - Flexible layouts that adapt to screen size
+   - Larger touch targets for mobile
+   - Simplified UI for small screens
 
-function fetchAndWriteAllData() {
-  try {
-    fetchAndWriteData({
-      fetchAccountInfo: true,
-      fetchCashBalance: true,
-      fetchTransactions: true,
-      fetchOrders: true,
-      fetchDividends: true,
-      fetchInstruments: true,
-      fetchPies: true,
-      dateFrom: null,
-      dateTo: null
-    });
-  } catch (error) {
-    handleError(error, 'fetchAndWriteAllData');
-  }
-}
-```
+2. Viewport meta tag for proper scaling
 
-2. Add UI for configuring automatic refresh settings
-3. Implement function to check trigger status
-4. Add notification for successful/failed automatic refreshes
+3. Mobile-optimized form elements:
+   - Larger input fields
+   - Touch-friendly controls
+   - Appropriate font sizes
+
+4. Simplified layouts for small screens:
+   - Stack elements vertically
+   - Reduce padding/margins
+   - Hide non-essential elements
+
+Create a mobile-specific CSS file that will be included in all HTML templates.
 
 # Test Strategy:
-1. Test creating daily trigger
-2. Verify trigger deletion works correctly
-3. Test automatic data refresh functionality
-4. Verify trigger status checking
-5. Test notification system for automatic refreshes
-
-# Subtasks:
-## 1. Implement Time-Based Trigger System [pending]
-### Dependencies: None
-### Description: Create the core functionality for time-based triggers that will initiate data refresh operations
-### Details:
-Develop functions to create time-based triggers using Google Apps Script's ScriptApp service. Implement logic to schedule triggers at specific intervals (hourly, daily, weekly). Create helper functions to handle trigger execution and proper error handling. Ensure triggers are properly scoped to the data refresh operations.
-
-## 2. Develop Trigger Management Functions [pending]
-### Dependencies: 14.1
-### Description: Build functions to create, delete, and modify existing triggers
-### Details:
-Create functions to list all active triggers. Implement methods to delete specific triggers by ID. Develop functionality to modify trigger timing and settings. Add validation to prevent duplicate triggers. Document the trigger management API for future reference.
-
-## 3. Create UI for Refresh Configuration [pending]
-### Dependencies: 14.2
-### Description: Design and implement a user interface for configuring data refresh settings
-### Details:
-Design a sidebar or dialog UI using HTML Service or Card Service. Implement form controls for setting refresh frequency and timing. Create UI elements to display currently active triggers. Add buttons to create, edit, or delete triggers. Ensure the UI is intuitive and provides clear feedback on actions.
-
-## 4. Implement Notification System [pending]
-### Dependencies: 14.1, 14.3
-### Description: Create a notification system to alert users about refresh status and outcomes
-### Details:
-Develop email notification functionality for successful/failed refreshes. Implement in-app notifications using toast messages or alerts. Create a log of refresh activities accessible to users. Add configuration options for users to customize notification preferences. Ensure notifications include relevant details about the refresh operation.
-
+1. Test UI rendering on different screen sizes
+2. Verify touch interactions work well on mobile
+3. Check form usability on small screens
+4. Test with different mobile browsers
+5. Verify viewport scaling works correctly

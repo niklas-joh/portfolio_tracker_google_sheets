@@ -1,35 +1,36 @@
 # Task ID: 5
-# Title: Implement Order History Fetching
-# Status: done
-# Dependencies: 2
-# Priority: medium
-# Description: Create functions to fetch order history from the trading platform API.
+# Title: Investment Performance Analysis
+# Status: pending
+# Dependencies: 2, 4
+# Priority: high
+# Description: Add tools for analyzing investment performance across different time periods.
 # Details:
-1. Implement function to fetch order history:
-```javascript
-function fetchOrders(status = 'all') {
-  try {
-    let endpoint = '/orders';
-    
-    if (status !== 'all') {
-      endpoint += `?status=${status}`;
-    }
-    
-    return makeApiRequest(endpoint);
-  } catch (error) {
-    Logger.log(`Failed to fetch orders: ${error}`);
-    throw error;
-  }
-}
-```
+Create a Performance Analysis sheet with the following features:
 
-2. Process order data to flatten nested structures
-3. Add functions to filter orders by status (open, closed, canceled)
-4. Implement date and time formatting for order timestamps
+1. Performance Overview section:
+   - Total return, return percentage, annualized return
+   - Volatility and Sharpe ratio calculations
+
+2. Time Period Analysis section:
+   - Performance metrics for different time frames (1D, 1W, 1M, 3M, 6M, YTD, 1Y, All)
+   - Comparison chart of returns by time period
+
+3. Top Performers section:
+   - List of best performing holdings with return metrics
+   - Sortable by different metrics
+
+4. Bottom Performers section:
+   - List of worst performing holdings with return metrics
+
+Implement helper functions to calculate:
+- Performance metrics based on historical data
+- Time-weighted returns
+- Performance by timeframe
+- Individual holding performance with cost basis calculation
 
 # Test Strategy:
-1. Test fetching orders with different status filters
-2. Verify handling of empty order sets
-3. Test with mock data to ensure proper processing of different order types
-4. Verify date formatting works correctly
-5. Test error handling for API failures
+1. Test calculations with known portfolio data and verify results
+2. Check edge cases like newly added positions or recently sold positions
+3. Verify time period calculations with different date ranges
+4. Test with various portfolio compositions
+5. Verify that performance metrics match expected financial calculations

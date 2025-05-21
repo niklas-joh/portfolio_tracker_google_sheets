@@ -1,73 +1,39 @@
 # Task ID: 22
-# Title: Refactor: 3.2 Create a Unified API Client
+# Title: Data Refresh Dashboard
 # Status: pending
-# Dependencies: 17, 21
-# Priority: high
-# Description: Develop a unified API client class (e.g., Trading212ApiClient) to handle all interactions with the Trading212 API. This client should use the centralized API configuration and incorporate rate limiting.
+# Dependencies: 16
+# Priority: medium
+# Description: Create a centralized dashboard for refreshing data with status indicators and refresh history.
 # Details:
-Current Issues:
-- Inconsistent API request handling
-- Duplicate API call functions
+Implement a Data Refresh Dashboard that provides a central interface for managing data refreshes:
 
-Recommended Changes:
-Create a Unified API Client. Example:
-```javascript
-/**
- * Unified API client for all Trading212 API interactions.
- */
-class Trading212ApiClient {
-  constructor(environment = 'demo') {
-    this.domain = API_CONFIG.domains[environment];
-    this.baseUrl = `${this.domain}${API_CONFIG.version}`;
-    this.rateLimiter = new RateLimiter(API_CONFIG.rateLimits);
-  }
-  
-  async get(endpoint, params = {}) {
-    const url = this.buildUrl(endpoint, params);
-    const rateLimitStatus = this.rateLimiter.canProceed(endpoint);
-    
-    if (!rateLimitStatus.proceed) {
-      await new Promise(resolve => setTimeout(resolve, rateLimitStatus.waitTime));
-    }
-    
-    return this.fetchWithAuth(url);
-  }
-  
-  // Other methods...
-}
-```
+1. Create a modal interface showing:
+   - Last refresh time for each data type
+   - Status indicators (up-to-date, stale, never refreshed)
+   - Buttons to refresh individual data types or all data
+
+2. Implement refresh status tracking:
+   - Store last refresh timestamps in UserProperties
+   - Calculate staleness based on time since last refresh
+   - Format timestamps in a user-friendly way (e.g., "5 minutes ago")
+
+3. Add a refresh log sheet that records:
+   - Timestamp of refresh attempts
+   - Data types refreshed
+   - Success/failure status
+   - Error messages if applicable
+
+4. Create helper functions to:
+   - Get refresh status for all data types
+   - Format timestamps in relative time
+   - Determine if data is stale based on configurable thresholds
+
+The dashboard should provide clear visual indicators of data freshness and make it easy to update specific data types as needed.
 
 # Test Strategy:
-
-
-# Subtasks:
-## 1. Design API client class structure [pending]
-### Dependencies: None
-### Description: Create the architecture and class hierarchy for the unified API client
-### Details:
-Define the core API client class with appropriate interfaces, abstract classes, and inheritance patterns. Include method signatures for common operations, error handling strategies, and configuration options. Create UML diagrams to visualize the class relationships. Consider extensibility for future API endpoints and backward compatibility requirements.
-
-## 2. Implement request handling functionality [pending]
-### Dependencies: 22.1
-### Description: Build the core request/response handling mechanisms in the API client
-### Details:
-Implement methods for different HTTP verbs (GET, POST, PUT, DELETE), request serialization, response deserialization, and error handling. Include support for different content types, query parameters, request headers, and response parsing. Implement retry logic for failed requests and timeout handling. Add comprehensive logging for debugging purposes.
-
-## 3. Integrate authentication mechanisms [pending]
-### Dependencies: 22.2
-### Description: Add support for various authentication methods in the API client
-### Details:
-Implement authentication strategies including API keys, OAuth, JWT, and session-based authentication. Create interceptors or middleware to automatically apply authentication to requests. Handle token refresh, expiration, and storage. Implement secure credential management and ensure authentication errors are properly handled and reported.
-
-## 4. Implement rate limiting functionality [pending]
-### Dependencies: 22.2
-### Description: Add rate limiting support to prevent API quota exhaustion
-### Details:
-Create rate limiting mechanisms that respect API provider limits. Implement request queuing, throttling, and backoff strategies. Add monitoring for remaining quota and rate limit headers. Implement circuit breakers to prevent cascading failures during rate limit exhaustion. Ensure the client can handle 429 responses appropriately with automatic retries after the specified cooldown period.
-
-## 5. Migrate existing API calls to the new client [pending]
-### Dependencies: 22.1, 22.2, 22.3, 22.4
-### Description: Update all existing API interactions to use the new unified client
-### Details:
-Identify all existing API calls throughout the codebase. Create a migration plan with priority order. Refactor each API call to use the new client while maintaining existing functionality. Write tests to ensure behavior remains consistent. Update documentation to reflect the new API client usage patterns. Monitor performance and error rates after migration to ensure improvement.
-
+1. Test refresh status calculation with various timestamps
+2. Verify staleness detection works correctly
+3. Test refresh logging functionality
+4. Verify UI updates correctly after refreshes
+5. Test with multiple data types to ensure all are tracked correctly
+6. Verify timestamp formatting for different time periods

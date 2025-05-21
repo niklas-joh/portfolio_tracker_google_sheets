@@ -1,44 +1,35 @@
 # Task ID: 4
-# Title: Implement Transaction History Fetching
-# Status: done
+# Title: Portfolio Overview Dashboard
+# Status: pending
 # Dependencies: 2
 # Priority: high
-# Description: Create functions to fetch transaction history from the trading platform API.
+# Description: Create a comprehensive dashboard sheet with key portfolio metrics.
 # Details:
-1. Implement function to fetch transaction history:
-```javascript
-function fetchTransactions(dateFrom = null, dateTo = null) {
-  try {
-    let endpoint = '/transactions';
-    const queryParams = [];
-    
-    if (dateFrom) {
-      queryParams.push(`dateFrom=${dateFrom}`);
-    }
-    
-    if (dateTo) {
-      queryParams.push(`dateTo=${dateTo}`);
-    }
-    
-    if (queryParams.length > 0) {
-      endpoint += '?' + queryParams.join('&');
-    }
-    
-    return makeApiRequest(endpoint);
-  } catch (error) {
-    Logger.log(`Failed to fetch transactions: ${error}`);
-    throw error;
-  }
-}
-```
+Implement a Portfolio Dashboard sheet with the following sections:
 
-2. Process transaction data to flatten nested structures
-3. Add date formatting and categorization of transaction types
-4. Implement pagination if the API supports it for handling large transaction sets
+1. Portfolio Summary section:
+   - Total value, cash balance, invested amount
+   - Total return and return percentage
+   - Key performance metrics
+
+2. Weighted Total Return (WTR) chart:
+   - Calculate WTR based on deposits and withdrawals
+   - Display chart showing portfolio value vs. cumulative deposits
+   - Include time-series visualization
+
+3. Allocation chart section:
+   - Pie chart showing allocation by instrument type
+   - Percentage breakdown of portfolio
+
+4. Recent Activity section:
+   - List of most recent transactions
+   - Summary of recent changes
+
+Ensure all charts and data visualizations are properly formatted and labeled. Use appropriate number formatting for currency values and percentages.
 
 # Test Strategy:
-1. Test fetching transactions with different date ranges
-2. Verify handling of empty transaction sets
-3. Test with mock data to ensure proper processing of different transaction types
-4. Verify pagination works correctly for large transaction sets
-5. Test error handling for API failures
+1. Test with various portfolio data to ensure correct calculations
+2. Verify chart generation works with different data sets
+3. Check formatting and layout on different screen sizes
+4. Test with edge cases (empty portfolio, very large portfolios)
+5. Verify that the dashboard updates correctly when underlying data changes

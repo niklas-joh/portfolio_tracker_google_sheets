@@ -1,65 +1,36 @@
 # Task ID: 18
-# Title: Refactor: 2.1 Implement Singleton Pattern for Service Classes
+# Title: Enhanced Error Handling & Logging
 # Status: pending
-# Dependencies: 17
+# Dependencies: None
 # Priority: medium
-# Description: Implement the Singleton design pattern for service classes like ApiClient to ensure a single instance is used throughout the application. This will help manage shared resources and state.
+# Description: Implement robust error handling with user-friendly messages and comprehensive logging throughout the application.
 # Details:
-Current Issues:
-- Lack of consistent design patterns
-- Mixed approach to similar problems
+Create a centralized error handling system that:
 
-Recommended Changes:
-Implement Singleton Pattern for Service Classes. Example:
-```javascript
-/**
- * Singleton pattern for ApiClient.
- */
-class ApiClient {
-  static instance;
-  
-  static getInstance(config) {
-    if (!ApiClient.instance) {
-      ApiClient.instance = new ApiClient(config);
-    }
-    return ApiClient.instance;
-  }
-  
-  // Rest of the class implementation...
-}
-```
+1. Defines standard error types and codes for the application
+2. Provides user-friendly error messages for different error scenarios
+3. Logs detailed error information for troubleshooting
+4. Creates an error log sheet for persistent error history
+
+Implement an ErrorHandler class with static methods:
+- handle() - Process errors and return appropriate user messages
+- logToSheet() - Record errors to a dedicated error log sheet
+- getUserMessage() - Map technical errors to user-friendly messages
+
+The error handler should categorize errors into types like:
+- API authentication errors
+- Rate limiting errors
+- Network/timeout errors
+- Server errors
+- Data processing errors
+- Permission errors
+
+Each error should have a unique code, user-friendly message, and logging mechanism.
 
 # Test Strategy:
-
-
-# Subtasks:
-## 1. Design singleton pattern for core service classes [pending]
-### Dependencies: None
-### Description: Create the basic structure for implementing the singleton pattern in core service classes
-### Details:
-1. Identify all core service classes that need to be singletons
-2. Modify each class to have a private constructor
-3. Add a private static instance variable to each class
-4. Create a public static getInstance() method for each class
-5. Document the singleton implementation with appropriate comments
-
-## 2. Implement instance management and initialization logic [pending]
-### Dependencies: 18.1
-### Description: Develop the logic for managing singleton instances and handling initialization
-### Details:
-1. Implement thread-safe instance creation (using double-checked locking or other appropriate method)
-2. Add lazy initialization to defer object creation until needed
-3. Handle any required initialization parameters for service instances
-4. Implement proper resource cleanup if needed (e.g., in case of application shutdown)
-5. Add error handling for initialization failures
-
-## 3. Integrate singleton services with existing code [pending]
-### Dependencies: 18.2
-### Description: Update existing code to use the singleton pattern for accessing service instances
-### Details:
-1. Identify all locations in the codebase that create or use service instances
-2. Replace direct instantiation with calls to getInstance()
-3. Update any dependency injection configurations if applicable
-4. Write unit tests to verify singleton behavior
-5. Perform integration testing to ensure services function correctly with the new pattern
-
+1. Test error handling with various error types to verify correct categorization
+2. Verify error logging correctly records to the error log sheet
+3. Test user message generation for different error scenarios
+4. Verify error handling doesn't break application flow
+5. Test integration with API client error handling
+6. Verify error details are properly sanitized for user display

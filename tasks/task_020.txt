@@ -1,71 +1,43 @@
 # Task ID: 20
-# Title: Refactor: 2.3 Implement Observer Pattern for UI Updates
+# Title: Investment Performance Analysis
 # Status: pending
-# Dependencies: 17
-# Priority: medium
-# Description: Implement the Observer design pattern for managing UI updates. This will decouple UI components from data sources and allow for more flexible and maintainable UI logic.
+# Dependencies: 17, 19
+# Priority: high
+# Description: Add tools for analyzing investment performance across different time periods with detailed metrics and visualizations.
 # Details:
-Current Issues:
-- Lack of consistent design patterns
-- Mixed approach to similar problems
+Create a Performance Analysis sheet with comprehensive investment performance metrics:
 
-Recommended Changes:
-Implement Observer Pattern for UI Updates. Example:
-```javascript
-/**
- * Observer pattern for UI updates.
- */
-class EventEmitter {
-  constructor() {
-    this.events = {};
-  }
-  
-  on(event, listener) {
-    if (!this.events[event]) {
-      this.events[event] = [];
-    }
-    this.events[event].push(listener);
-  }
-  
-  emit(event, data) {
-    if (this.events[event]) {
-      this.events[event].forEach(listener => listener(data));
-    }
-  }
-}
-```
+1. Performance Overview section:
+   - Total return (absolute and percentage)
+   - Annualized return
+   - Volatility
+   - Sharpe ratio
+
+2. Performance by Time Period section:
+   - Calculate returns for standard periods (1D, 1W, 1M, 3M, 6M, YTD, 1Y, All)
+   - Show start value, end value, absolute change, and percentage change
+   - Create bar chart comparing performance across periods
+
+3. Top Performers section:
+   - List top 5 holdings by return percentage
+   - Show ticker, name, value, absolute return, and percentage return
+
+4. Bottom Performers section:
+   - List bottom 5 holdings by return percentage
+   - Show ticker, name, value, absolute return, and percentage return
+
+Implement helper functions to:
+- Calculate performance metrics using portfolio history data
+- Determine performance for different time periods
+- Calculate holding-level performance using transaction history
+- Format data appropriately for display
+
+Ensure all calculations handle edge cases (e.g., no data for certain periods, zero values).
 
 # Test Strategy:
-
-
-# Subtasks:
-## 1. Design and implement the EventEmitter class [pending]
-### Dependencies: None
-### Description: Create a core EventEmitter class that will manage subscriptions and event dispatching
-### Details:
-Implement a class that provides methods for subscribing to events (on/addEventListener), unsubscribing (off/removeEventListener), and emitting events (emit/dispatchEvent). Include support for event namespacing, multiple listeners per event, and proper memory management for removing listeners. Document the API with clear examples.
-
-## 2. Implement Observable component base class [pending]
-### Dependencies: 20.1
-### Description: Create a base class or mixin that UI components can extend to become observable
-### Details:
-Build an Observable class or mixin that utilizes the EventEmitter to expose a consistent interface for UI components. Include methods for state changes that automatically trigger appropriate events. Define standard event types and naming conventions. Ensure proper inheritance patterns for existing component hierarchies.
-
-## 3. Implement Observer pattern in UI components [pending]
-### Dependencies: 20.2
-### Description: Modify UI components to observe and react to events from observable components
-### Details:
-Update UI components to subscribe to events from observable components. Implement handler methods that update the UI in response to state changes. Ensure proper lifecycle management (subscribing when mounted, unsubscribing when unmounted). Create helper methods for common observation patterns.
-
-## 4. Integrate with existing UI update code [pending]
-### Dependencies: 20.3
-### Description: Refactor existing UI update mechanisms to use the new observer pattern
-### Details:
-Identify all places in the codebase where direct UI updates occur. Replace imperative update calls with the observer pattern. Ensure backward compatibility during transition. Update documentation to reflect the new pattern. Verify that all UI components receive updates appropriately.
-
-## 5. Test observer pattern implementation [pending]
-### Dependencies: 20.4
-### Description: Create comprehensive tests for the observer pattern implementation
-### Details:
-Write unit tests for the EventEmitter and Observable classes. Create integration tests for observer-observable component pairs. Test edge cases like multiple observers, observer removal, and complex event chains. Implement performance tests to ensure the pattern doesn't introduce significant overhead. Document testing approach and results.
-
+1. Test performance calculations with sample portfolio data
+2. Verify time period calculations with different date ranges
+3. Test annualized return and volatility calculations
+4. Verify top/bottom performers identification is correct
+5. Test with different portfolio compositions and time periods
+6. Verify calculations match expected results from manual calculations

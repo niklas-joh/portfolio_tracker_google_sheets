@@ -1,70 +1,33 @@
 # Task ID: 8
-# Title: Implement Sheet Management Functions
-# Status: done
-# Dependencies: 1
-# Priority: high
-# Description: Create functions to manage sheets within the Google Spreadsheet, including creation, clearing, and formatting.
+# Title: Improved Data Fetch Modal
+# Status: pending
+# Dependencies: 1, 3
+# Priority: medium
+# Description: Enhance the data fetch modal with better progress tracking and feedback.
 # Details:
-1. Implement function to get or create a sheet:
-```javascript
-function getOrCreateSheet(sheetName) {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
-  let sheet = ss.getSheetByName(sheetName);
-  
-  if (!sheet) {
-    sheet = ss.insertSheet(sheetName);
-  }
-  
-  return sheet;
-}
-```
+Create an enhanced data fetch modal with:
 
-2. Implement function to clear sheet data:
-```javascript
-function clearSheetData(sheetName, preserveHeaders = true) {
-  const sheet = getOrCreateSheet(sheetName);
-  const startRow = preserveHeaders ? 2 : 1;
-  
-  if (sheet.getLastRow() >= startRow) {
-    sheet.getRange(startRow, 1, sheet.getLastRow() - startRow + 1, sheet.getLastColumn()).clear();
-  }
-  
-  return sheet;
-}
-```
+1. Detailed data type selection with descriptions:
+   - Investment Pies
+   - Account Information
+   - Cash Balance
+   - Transactions
+   - Order History
+   - Dividends
 
-3. Implement function to set headers:
-```javascript
-function setSheetHeaders(sheetName, headers) {
-  const sheet = getOrCreateSheet(sheetName);
-  sheet.getRange(1, 1, 1, headers.length).setValues([headers]).setFontWeight('bold');
-  return sheet;
-}
-```
+2. Real-time progress tracking for each data type
 
-4. Implement function to apply formatting to specific columns:
-```javascript
-function formatSheetColumns(sheet, formatConfigs) {
-  for (const config of formatConfigs) {
-    const range = sheet.getRange(config.startRow, config.column, 
-                                sheet.getLastRow() - config.startRow + 1, 1);
-    
-    if (config.format === 'currency') {
-      range.setNumberFormat('$#,##0.00');
-    } else if (config.format === 'date') {
-      range.setNumberFormat('yyyy-mm-dd');
-    } else if (config.format === 'datetime') {
-      range.setNumberFormat('yyyy-mm-dd hh:mm:ss');
-    } else if (config.format === 'percent') {
-      range.setNumberFormat('0.00%');
-    }
-  }
-}
-```
+3. Clear success/failure indicators
+
+4. Detailed error messages when fetches fail
+
+5. Summary of changes after fetch completes
+
+Implement using HTML service with a responsive design. Use a step-based approach with selection first, then progress tracking.
 
 # Test Strategy:
-1. Test creating new sheets and accessing existing ones
-2. Verify clearing sheet data with and without preserving headers
-3. Test setting headers and verifying formatting
-4. Test applying different formatting types to columns
-5. Verify behavior with empty sheets and edge cases
+1. Test selection of different data type combinations
+2. Verify progress tracking updates in real-time
+3. Test with simulated API failures to check error handling
+4. Verify UI updates correctly as fetch progresses
+5. Test cancellation functionality

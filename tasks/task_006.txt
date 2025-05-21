@@ -1,44 +1,32 @@
 # Task ID: 6
-# Title: Implement Dividend Fetching
-# Status: done
-# Dependencies: 2
+# Title: Streamlined Setup Wizard
+# Status: pending
+# Dependencies: 3
 # Priority: medium
-# Description: Create functions to fetch dividend information from the trading platform API.
+# Description: Enhance the setup process with clearer steps, better guidance, and improved error handling.
 # Details:
-1. Implement function to fetch dividends:
-```javascript
-function fetchDividends(dateFrom = null, dateTo = null) {
-  try {
-    let endpoint = '/dividends';
-    const queryParams = [];
-    
-    if (dateFrom) {
-      queryParams.push(`dateFrom=${dateFrom}`);
-    }
-    
-    if (dateTo) {
-      queryParams.push(`dateTo=${dateTo}`);
-    }
-    
-    if (queryParams.length > 0) {
-      endpoint += '?' + queryParams.join('&');
-    }
-    
-    return makeApiRequest(endpoint);
-  } catch (error) {
-    Logger.log(`Failed to fetch dividends: ${error}`);
-    throw error;
-  }
-}
-```
+Create an improved setup wizard with the following features:
 
-2. Process dividend data to flatten nested structures
-3. Add date formatting for dividend payment dates
-4. Calculate dividend yield if not provided by the API
+1. Multi-step wizard interface:
+   - Welcome/introduction step
+   - Environment selection (demo/live)
+   - API key configuration
+   - Sheet setup and configuration
+
+2. Visual step indicator to show progress
+
+3. Clear instructions and guidance at each step
+
+4. Improved error handling with specific guidance for common issues
+
+5. Environment selection with clear descriptions of each option
+
+Implement using HTML service with a responsive design that works well on different screen sizes. Use MaterializeCSS or similar framework for UI components.
 
 # Test Strategy:
-1. Test fetching dividends with different date ranges
-2. Verify handling of empty dividend sets
-3. Test with mock data to ensure proper processing of different dividend types
-4. Verify date formatting works correctly
-5. Test error handling for API failures
+1. Test the wizard flow from start to finish
+2. Verify error handling for invalid inputs
+3. Test with different environments (demo/live)
+4. Check UI rendering on different screen sizes
+5. Verify that configuration is properly saved
+6. Test the wizard with both new and existing installations

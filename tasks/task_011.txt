@@ -1,156 +1,35 @@
 # Task ID: 11
-# Title: Implement UI for Data Fetching
-# Status: done
-# Dependencies: 3, 4, 5, 6, 7, 9
-# Priority: high
-# Description: Create a user interface for triggering data fetches for different data types.
+# Title: Portfolio Report Generation
+# Status: pending
+# Dependencies: 4, 5
+# Priority: medium
+# Description: Create customizable portfolio reports that can be exported or emailed.
 # Details:
-1. Implement function to show data fetch modal:
-```javascript
-function showDataFetchModal() {
-  const ui = HtmlService.createHtmlOutput(`
-    <style>
-      body {
-        font-family: Arial, sans-serif;
-        padding: 10px;
-      }
-      .checkbox-group {
-        margin-bottom: 15px;
-      }
-      .date-group {
-        margin-bottom: 15px;
-        display: none;
-      }
-      label {
-        display: block;
-        margin-bottom: 5px;
-        font-weight: bold;
-      }
-      input[type="date"] {
-        width: 100%;
-        padding: 8px;
-        box-sizing: border-box;
-      }
-      .button-container {
-        text-align: right;
-        margin-top: 20px;
-      }
-      button {
-        padding: 8px 15px;
-        background-color: #4285f4;
-        color: white;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-      }
-    </style>
-    <form id="dataFetchForm">
-      <div class="checkbox-group">
-        <label><input type="checkbox" id="fetchAccountInfo" checked> Account Information</label>
-        <label><input type="checkbox" id="fetchCashBalance" checked> Cash Balance</label>
-        <label><input type="checkbox" id="fetchTransactions" checked> Transactions</label>
-        <label><input type="checkbox" id="fetchOrders"> Orders</label>
-        <label><input type="checkbox" id="fetchDividends"> Dividends</label>
-        <label><input type="checkbox" id="fetchInstruments"> Instruments</label>
-        <label><input type="checkbox" id="fetchPies"> Pies</label>
-      </div>
-      
-      <div class="date-group" id="dateRangeGroup">
-        <label for="dateFrom">Date From:</label>
-        <input type="date" id="dateFrom">
-        <label for="dateTo">Date To:</label>
-        <input type="date" id="dateTo">
-      </div>
-      
-      <div class="button-container">
-        <button type="button" onclick="fetchData()">Fetch Data</button>
-      </div>
-    </form>
-    <script>
-      document.getElementById('fetchTransactions').addEventListener('change', toggleDateRange);
-      document.getElementById('fetchDividends').addEventListener('change', toggleDateRange);
-      
-      function toggleDateRange() {
-        const transactionsChecked = document.getElementById('fetchTransactions').checked;
-        const dividendsChecked = document.getElementById('fetchDividends').checked;
-        document.getElementById('dateRangeGroup').style.display = 
-          (transactionsChecked || dividendsChecked) ? 'block' : 'none';
-      }
-      
-      function fetchData() {
-        const options = {
-          fetchAccountInfo: document.getElementById('fetchAccountInfo').checked,
-          fetchCashBalance: document.getElementById('fetchCashBalance').checked,
-          fetchTransactions: document.getElementById('fetchTransactions').checked,
-          fetchOrders: document.getElementById('fetchOrders').checked,
-          fetchDividends: document.getElementById('fetchDividends').checked,
-          fetchInstruments: document.getElementById('fetchInstruments').checked,
-          fetchPies: document.getElementById('fetchPies').checked,
-          dateFrom: document.getElementById('dateFrom').value || null,
-          dateTo: document.getElementById('dateTo').value || null
-        };
-        
-        google.script.run
-          .withSuccessHandler(function() {
-            google.script.host.close();
-          })
-          .withFailureHandler(function(error) {
-            alert('Error: ' + error);
-          })
-          .fetchAndWriteData(options);
-      }
-      
-      // Initialize date range visibility
-      toggleDateRange();
-    </script>
-  `)
-  .setWidth(400)
-  .setHeight(400)
-  .setTitle('Fetch Portfolio Data');
-  
-  SpreadsheetApp.getUi().showModalDialog(ui, 'Fetch Portfolio Data');
-}
-```
+Implement portfolio report generation with:
 
-2. Implement function to handle data fetching based on user selections:
-```javascript
-function fetchAndWriteData(options) {
-  try {
-    // Validate API configuration first
-    const config = getApiConfig();
-    if (!config.apiKey) {
-      throw new Error('API key not configured. Please configure API first.');
-    }
-    
-    // Fetch and write data based on options
-    if (options.fetchAccountInfo) {
-      const accountInfo = fetchAccountInfo();
-      writeAccountInfoToSheet(accountInfo);
-    }
-    
-    if (options.fetchCashBalance) {
-      const cashBalance = fetchCashBalance();
-      writeCashBalanceToSheet(cashBalance);
-    }
-    
-    if (options.fetchTransactions) {
-      const transactions = fetchTransactions(options.dateFrom, options.dateTo);
-      writeTransactionsToSheet(transactions);
-    }
-    
-    // Add similar blocks for other data types
-    
-    return true;
-  } catch (error) {
-    Logger.log(`Error in fetchAndWriteData: ${error}`);
-    throw error;
-  }
-}
-```
+1. Multiple report types:
+   - Summary report (overview of portfolio)
+   - Detailed report (comprehensive analysis)
+   - Tax report (for tax preparation)
+
+2. Export options:
+   - HTML format
+   - PDF format
+
+3. Email delivery option
+
+4. Customization options for each report type
+
+Implement helper functions to:
+- Generate report data for each report type
+- Create HTML templates for reports
+- Convert HTML to PDF when needed
+- Send email with attached reports
 
 # Test Strategy:
-1. Test opening the data fetch modal
-2. Verify date range fields appear/disappear based on selections
-3. Test fetching different combinations of data types
-4. Verify error handling when API is not configured
-5. Test with date ranges to ensure proper filtering
+1. Test generation of each report type
+2. Verify PDF conversion works correctly
+3. Test email delivery
+4. Check report formatting and layout
+5. Verify calculations in reports match spreadsheet data
+6. Test with different portfolio data

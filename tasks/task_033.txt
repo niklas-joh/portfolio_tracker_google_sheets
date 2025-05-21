@@ -1,93 +1,37 @@
 # Task ID: 33
-# Title: Refactor: 7.1 Implement Unit Testing
+# Title: Implement Advanced Portfolio Management Features
 # Status: pending
 # Dependencies: None
 # Priority: medium
-# Description: Set up a basic unit testing framework for Google Apps Script to enable systematic testing of individual code units (functions, methods). This will improve code quality and help catch bugs early.
+# Description: Develop and integrate advanced functionalities including scheduled data refreshes, automated report generation, dividend tracking, and external data integration to enhance portfolio management capabilities.
 # Details:
-Current Issues:
-- Lack of systematic testing
-- Difficulty in validating code changes
-
-Recommended Changes:
-Implement Unit Testing. Set up a basic unit testing framework for Apps Script:
-```javascript
-/**
- * Simple unit testing framework.
- */
-class TestRunner {
-  constructor() {
-    this.tests = [];
-    this.results = {
-      passed: 0,
-      failed: 0,
-      total: 0
-    };
-  }
-  
-  addTest(name, testFunc) {
-    this.tests.push({ name, testFunc });
-  }
-  
-  async runTests() {
-    for (const test of this.tests) {
-      try {
-        await test.testFunc();
-        this.results.passed++;
-        Logger.log(`✅ Test passed: ${test.name}`);
-      } catch (error) {
-        this.results.failed++;
-        Logger.log(`❌ Test failed: ${test.name}`);
-        Logger.log(`   Error: ${error.message}`);
-      }
-      this.results.total++;
-    }
-    
-    this.logResults();
-  }
-  
-  logResults() {
-    Logger.log(`
-      Test Results:
-      - Total: ${this.results.total}
-      - Passed: ${this.results.passed}
-      - Failed: ${this.results.failed}
-    `);
-  }
-}
-```
+Design and implement a scheduling system that allows users to configure automatic data refresh intervals for portfolio updates. Build a robust report generation engine capable of producing customizable, exportable reports (PDF, Excel) on portfolio performance, holdings, and transactions. Integrate a dividend tracking module that automatically records, categorizes, and visualizes dividend payments, supporting both manual entry and automated import from supported brokerages or data providers. Establish secure, scalable connections to external financial data sources (e.g., APIs for market data, dividends, and corporate actions), ensuring data normalization, error handling, and compliance with third-party requirements. Ensure all new features are accessible via the existing UI/UX paradigms and are extensible for future enhancements. Consider performance, security, and user privacy throughout the implementation.
 
 # Test Strategy:
-
+Verify scheduled refreshes by configuring various intervals and confirming that data updates occur automatically and reliably, including handling of edge cases such as missed or failed refreshes. Test report generation by producing reports with different parameters and formats, ensuring accuracy, completeness, and correct export functionality. Validate dividend tracking by simulating both manual and automated data entry, checking for correct aggregation, categorization, and visualization. For external data integration, use mock and live data sources to confirm successful data retrieval, normalization, and error handling. Conduct end-to-end user acceptance testing to ensure all features are discoverable, intuitive, and function seamlessly within the application.
 
 # Subtasks:
-## 1. Design Test Runner Framework [pending]
+## 1. Scheduled Data Refreshes [pending]
 ### Dependencies: None
-### Description: Create the core test runner framework that will execute test cases and report results
+### Description: Enable automatic data refreshes on a schedule. Complexity: C2, Priority: P2.
 ### Details:
-Design and implement a lightweight test runner that works within Google Apps Script constraints. Include functionality for test discovery, execution flow, and result reporting. Consider the unique execution environment of Apps Script and design accordingly to handle asynchronous operations and script timeouts.
 
-## 2. Implement Assertion Utilities [pending]
-### Dependencies: 33.1
-### Description: Develop a comprehensive set of assertion functions for test validation
-### Details:
-Create assertion utilities that support common test scenarios: equality checks, type validation, array/object comparisons, and exception handling. Ensure clear error messages that help identify test failures quickly. Design the API to be intuitive for developers writing tests.
 
-## 3. Establish Test Organization Structure [pending]
-### Dependencies: 33.1
-### Description: Define conventions for organizing tests and create folder/file structure
+## 2. Portfolio Report Generation [pending]
+### Dependencies: 32.1, 32.2
+### Description: Create customizable portfolio reports that can be exported or emailed. Complexity: C3, Priority: P3.
 ### Details:
-Create a consistent organization system for test files, including naming conventions, folder structure, and test grouping strategies. Document these conventions for the team. Consider how to separate unit tests from integration tests and how to organize tests to mirror the application structure.
 
-## 4. Implement Initial Test Suite for Core Functionality [pending]
-### Dependencies: 33.1, 33.2, 33.3
-### Description: Write the first set of unit tests covering critical core functionality
-### Details:
-Develop an initial set of tests for the most critical parts of the application. Focus on core utility functions, data processing logic, and any complex algorithms. Aim for high coverage of essential functionality to establish a baseline for future development.
 
-## 5. Set Up Test Execution Automation [pending]
-### Dependencies: 33.1, 33.4
-### Description: Create automation for running tests during development and in CI/CD pipelines
+## 3. Dividend & Income Tracker [pending]
+### Dependencies: 16.2
+### Description: Create specialized tools for tracking and analyzing dividend income. Complexity: C3, Priority: P1.
 ### Details:
-Implement automation scripts to run tests easily during development and as part of deployment processes. Include options for running specific test suites or individual tests. Create reporting mechanisms to track test coverage and results over time. Consider integration with existing CI/CD tools if applicable.
+
+
+## 4. Integration with External Data Sources [pending]
+### Dependencies: 16.1
+### Description: Add integration with external data sources for enhanced analysis. Complexity: C4, Priority: P4.
+### Details:
+
 

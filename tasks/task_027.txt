@@ -1,70 +1,39 @@
 # Task ID: 27
-# Title: Refactor: 5.1 Create a UI Controller
+# Title: Interactive Charts & Visualizations
 # Status: pending
-# Dependencies: 17, 20
+# Dependencies: 19, 20, 24
 # Priority: medium
-# Description: Develop a dedicated UI controller class to manage user interface interactions, such as showing modals and handling UI events. This will centralize UI logic and improve code organization.
+# Description: Add comprehensive charts and visualizations for better data exploration and analysis.
 # Details:
-Current Issues:
-- Complex UI initialization
-- Limited feedback mechanisms
-- Inconsistent UI handling
+Create a dedicated Charts sheet with multiple interactive visualizations:
 
-Recommended Changes:
-Create a UI Controller. Example:
-```javascript
-/**
- * Controller for UI management.
- */
-class UiController {
-  constructor() {
-    this.eventEmitter = new EventEmitter();
-  }
-  
-  showModal(templateName, title, options = {}) {
-    const html = this.createModalHtml(templateName, options);
-    SpreadsheetApp.getUi().showModalDialog(html, title);
-  }
-  
-  createModalHtml(templateName, options) {
-    // Implementation...
-  }
-  
-  // Other methods...
-}
-```
+1. Portfolio Value Chart:
+   - Line chart showing portfolio value over time
+   - Clear formatting with appropriate axes and labels
+   - Sufficient data points for meaningful visualization
+
+2. Return Comparison Chart:
+   - Column chart comparing returns across different time periods
+   - Clear labeling of time periods and return percentages
+   - Consistent formatting for easy comparison
+
+3. Holdings Comparison Chart:
+   - Bar chart showing top holdings by value
+   - Clear ticker labels and value formatting
+   - Sorted for easy interpretation
+
+Implement helper functions to:
+- Prepare and format data for each chart type
+- Create appropriately configured charts with Google Charts
+- Apply consistent styling and formatting
+- Handle edge cases like insufficient data
+
+Note: While true interactivity is limited in Google Sheets, focus on creating comprehensive, well-formatted charts that provide clear insights.
 
 # Test Strategy:
-
-
-# Subtasks:
-## 1. Design UI Controller Class Architecture [pending]
-### Dependencies: None
-### Description: Create the architecture for the UI controller class including interface definition, core methods, and integration points with the application.
-### Details:
-Define the UI controller class structure with proper inheritance hierarchy. Identify all required public methods, private methods, and properties. Create UML diagrams showing relationships with other components. Document the controller's responsibilities and boundaries. Include initialization sequence and lifecycle management.
-
-## 2. Implement Modal Dialog Management [pending]
-### Dependencies: 27.1
-### Description: Develop the modal dialog management functionality within the UI controller to handle opening, closing, and state management of modal dialogs.
-### Details:
-Create methods for opening and closing modal dialogs. Implement z-index management for multiple dialogs. Add support for modal backdrop handling. Develop dialog animation and transition effects. Create dialog state tracking system. Implement methods to handle dialog content loading and unloading.
-
-## 3. Integrate Event Handling System [pending]
-### Dependencies: 27.1
-### Description: Implement the event handling system in the UI controller to manage user interactions and UI events throughout the application.
-### Details:
-Create event listener registration and management system. Implement event delegation patterns for efficiency. Develop custom event types for UI-specific interactions. Add support for keyboard shortcuts and accessibility events. Create documentation for event naming conventions and usage patterns. Implement event bubbling and capturing logic.
-
-## 4. Develop UI State Management System [pending]
-### Dependencies: 27.1, 27.3
-### Description: Create a comprehensive state management system within the UI controller to track and update UI component states.
-### Details:
-Implement state object structure with proper immutability patterns. Create state change notification system. Develop methods for component state retrieval and updates. Add support for state history and undo/redo functionality. Implement state persistence for page reloads. Create debugging tools for state inspection.
-
-## 5. Migrate Existing UI Code to New Controller [pending]
-### Dependencies: 27.1, 27.2, 27.3, 27.4
-### Description: Refactor and migrate existing UI code to use the new UI controller architecture.
-### Details:
-Identify all existing UI code that needs migration. Create migration plan with priority order. Refactor code to use new controller methods and patterns. Update event handlers to use new event system. Migrate state management to new state system. Perform regression testing on migrated components. Document any breaking changes and required updates for other developers.
-
+1. Test chart creation with various portfolio data sets
+2. Verify data preparation functions correctly format data
+3. Test charts with different time periods and holdings
+4. Verify charts handle edge cases (single data point, no data, etc.)
+5. Test visual appearance and readability
+6. Verify charts update correctly when data changes

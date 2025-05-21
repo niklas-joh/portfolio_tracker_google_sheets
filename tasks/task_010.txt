@@ -1,93 +1,30 @@
 # Task ID: 10
-# Title: Implement UI for API Configuration
-# Status: done
-# Dependencies: 1, 2
-# Priority: high
-# Description: Create a user interface for configuring the API key and environment.
+# Title: Scheduled Data Refreshes
+# Status: pending
+# Dependencies: 1
+# Priority: medium
+# Description: Enable automatic data refreshes on a schedule.
 # Details:
-1. Implement function to show API configuration modal:
-```javascript
-function showApiConfigModal() {
-  const config = getApiConfig();
-  
-  const ui = HtmlService.createHtmlOutput(`
-    <style>
-      body {
-        font-family: Arial, sans-serif;
-        padding: 10px;
-      }
-      .form-group {
-        margin-bottom: 15px;
-      }
-      label {
-        display: block;
-        margin-bottom: 5px;
-        font-weight: bold;
-      }
-      input, select {
-        width: 100%;
-        padding: 8px;
-        box-sizing: border-box;
-      }
-      .button-container {
-        text-align: right;
-        margin-top: 20px;
-      }
-      button {
-        padding: 8px 15px;
-        background-color: #4285f4;
-        color: white;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-      }
-    </style>
-    <form id="apiConfigForm">
-      <div class="form-group">
-        <label for="apiKey">API Key:</label>
-        <input type="password" id="apiKey" value="${config.apiKey || ''}" required>
-      </div>
-      <div class="form-group">
-        <label for="environment">Environment:</label>
-        <select id="environment">
-          <option value="demo" ${config.environment === 'demo' ? 'selected' : ''}>Demo</option>
-          <option value="prod" ${config.environment === 'prod' ? 'selected' : ''}>Production</option>
-        </select>
-      </div>
-      <div class="button-container">
-        <button type="button" onclick="saveConfig()">Save Configuration</button>
-      </div>
-    </form>
-    <script>
-      function saveConfig() {
-        const apiKey = document.getElementById('apiKey').value;
-        const environment = document.getElementById('environment').value;
-        
-        google.script.run
-          .withSuccessHandler(function() {
-            google.script.host.close();
-          })
-          .withFailureHandler(function(error) {
-            alert('Error: ' + error);
-          })
-          .saveApiConfig(apiKey, environment);
-      }
-    </script>
-  `)
-  .setWidth(400)
-  .setHeight(250)
-  .setTitle('API Configuration');
-  
-  SpreadsheetApp.getUi().showModalDialog(ui, 'API Configuration');
-}
-```
+Implement scheduled data refresh functionality with:
 
-2. Add function to validate API configuration
-3. Add function to test API connection with provided credentials
+1. Configuration UI for setting refresh frequency:
+   - Hourly
+   - Daily
+   - Weekly
+
+2. Data type selection for scheduled refreshes
+
+3. Trigger management to create/update/delete time-based triggers
+
+4. Refresh execution function that runs on schedule
+
+5. Logging of scheduled refresh attempts and results
+
+Use ScriptApp.newTrigger() to create time-based triggers based on user configuration. Store configuration in UserProperties.
 
 # Test Strategy:
-1. Test opening the configuration modal
-2. Verify saving configuration works correctly
-3. Test validation of API key format
-4. Verify API connection test works with valid and invalid credentials
-5. Test UI appearance in different browsers
+1. Test trigger creation with different frequencies
+2. Verify scheduled execution works as expected
+3. Test configuration changes and trigger updates
+4. Verify logging of scheduled refreshes
+5. Test with different data type selections

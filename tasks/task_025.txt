@@ -1,90 +1,40 @@
 # Task ID: 25
-# Title: Refactor: 4.2 Implement Repository Pattern for Data Access
+# Title: Scheduled Data Refreshes
 # Status: pending
-# Dependencies: 17, 18, 24
-# Priority: high
-# Description: Implement the Repository design pattern for data access and management. Create repository classes (e.g., BaseRepository, PiesRepository) to abstract data source interactions (API, sheets) and manage data models.
+# Dependencies: 16
+# Priority: medium
+# Description: Enable automatic data refreshes on a schedule with configuration options and refresh logging.
 # Details:
-Current Issues:
-- Complex data transformation logic
-- Inconsistent sheet updating approach
+Implement a system for scheduling automatic data refreshes:
 
-Recommended Changes:
-Implement Repository Pattern for Data Access. Example:
-```javascript
-/**
- * Base repository class for data access.
- */
-class BaseRepository {
-  constructor(sheetName) {
-    this.sheetName = sheetName;
-    this.sheet = this.getOrCreateSheet();
-  }
-  
-  getOrCreateSheet() {
-    // Implementation...
-  }
-  
-  save(models) {
-    // Implementation...
-  }
-}
+1. Create a scheduling interface that allows users to:
+   - Select refresh frequency (hourly, daily, weekly)
+   - Choose which data types to refresh automatically
+   - Enable/disable scheduled refreshes
 
-/**
- * Pies repository for pie data management.
- */
-class PiesRepository extends BaseRepository {
-  async fetchAll() {
-    const apiClient = ApiClient.getInstance();
-    const data = await apiClient.get('equity/pies');
-    return data.items.map(item => new PieModel(item));
-  }
-  
-  saveAll(pies) {
-    const headers = ['ID', 'Name', 'Value', 'Items'];
-    const rows = pies.map(pie => pie.toSheetRow());
-    super.writeData(headers, rows);
-  }
-}
-```
+2. Implement trigger management:
+   - Create time-based triggers using ScriptApp
+   - Remove existing triggers when changing schedule
+   - Store trigger configuration in UserProperties
+
+3. Create the refresh execution function:
+   - Read configuration from UserProperties
+   - Refresh selected data types
+   - Handle errors appropriately
+   - Log refresh attempts and results
+
+4. Add a refresh log to track:
+   - Timestamp of scheduled refreshes
+   - Data types refreshed
+   - Success/failure status
+   - Error details if applicable
+
+The system should handle edge cases like script timeouts and provide a reliable way to keep data updated automatically.
 
 # Test Strategy:
-
-
-# Subtasks:
-## 1. Design Base Repository Interface and Class [pending]
-### Dependencies: None
-### Description: Create the foundation interface and abstract base class for the repository pattern
-### Details:
-Define the IRepository interface with core CRUD methods. Implement a BaseRepository abstract class that will handle common functionality across all repositories. Include error handling, logging, and basic operation templates. Define the contract for data access operations that all specific repositories will implement.
-
-## 2. Implement Specific Repository Classes [pending]
-### Dependencies: 25.1
-### Description: Create concrete repository implementations for each data type in the application
-### Details:
-For each entity type (e.g., User, Project, Task), create a dedicated repository class that extends the BaseRepository. Implement type-specific methods and override base methods as needed. Ensure each repository handles the unique requirements of its entity type while maintaining the consistent interface defined by the base repository.
-
-## 3. Implement Data Fetching Methods [pending]
-### Dependencies: 25.1, 25.2
-### Description: Develop methods for retrieving data from various sources
-### Details:
-Implement GetById, GetAll, Find, and other query methods in each repository. Create specialized query methods for common access patterns. Handle pagination, filtering, and sorting. Ensure proper error handling and performance optimization for data retrieval operations.
-
-## 4. Implement Data Saving Methods [pending]
-### Dependencies: 25.1, 25.2
-### Description: Develop methods for creating, updating, and deleting data
-### Details:
-Implement Create, Update, Delete, and SaveChanges methods in each repository. Ensure data validation before persistence. Implement transaction support for operations that affect multiple entities. Add optimistic concurrency control where appropriate to prevent data conflicts.
-
-## 5. Integrate Caching Mechanism [pending]
-### Dependencies: 25.3, 25.4
-### Description: Add caching support to the repository pattern implementation
-### Details:
-Design and implement a caching strategy for frequently accessed data. Add cache invalidation logic for data modifications. Implement configurable cache duration and policies. Create a cache manager that can be injected into repositories. Ensure thread-safety for cache operations in a multi-user environment.
-
-## 6. Migrate Existing Data Access Code [pending]
-### Dependencies: 25.2, 25.3, 25.4, 25.5
-### Description: Refactor current data access code to use the new repository pattern
-### Details:
-Identify all existing data access code throughout the application. Systematically replace direct data access with repository calls. Update dependency injection configuration to provide repositories. Write tests to verify the migration was successful. Document any API changes for other developers.
-
+1. Test trigger creation with different frequency settings
+2. Verify trigger removal works when changing schedule
+3. Test the refresh execution function with various data type selections
+4. Verify error handling during scheduled refreshes
+5. Test logging of refresh attempts and results
+6. Verify configuration is correctly stored and retrieved

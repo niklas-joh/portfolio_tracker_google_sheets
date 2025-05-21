@@ -1,40 +1,34 @@
 # Task ID: 7
-# Title: Implement Instrument and Pie Fetching
-# Status: done
-# Dependencies: 2
+# Title: Data Refresh Dashboard
+# Status: pending
+# Dependencies: 1
 # Priority: medium
-# Description: Create functions to fetch instrument lists and pie configurations from the trading platform API.
+# Description: Create a centralized dashboard for refreshing data with status indicators.
 # Details:
-1. Implement function to fetch instruments:
-```javascript
-function fetchInstruments() {
-  try {
-    return makeApiRequest('/instruments');
-  } catch (error) {
-    Logger.log(`Failed to fetch instruments: ${error}`);
-    throw error;
-  }
-}
-```
+Implement a data refresh dashboard with the following features:
 
-2. Implement function to fetch pie configurations:
-```javascript
-function fetchPies() {
-  try {
-    return makeApiRequest('/pies');
-  } catch (error) {
-    Logger.log(`Failed to fetch pies: ${error}`);
-    throw error;
-  }
-}
-```
+1. Status indicators for each data type showing:
+   - Last refresh time
+   - Refresh status (success/failure)
+   - Staleness indicator
 
-3. Process instrument data to extract relevant fields
-4. Process pie data to flatten nested structures and calculate allocations
+2. One-click refresh buttons for individual data types
+
+3. Refresh all button for updating everything at once
+
+4. Progress tracking during refresh operations
+
+5. Refresh history log
+
+Implement helper functions to:
+- Get refresh status for each data type
+- Determine if data is stale based on last refresh time
+- Format last refresh time in a user-friendly way
+- Log refresh attempts and results
 
 # Test Strategy:
-1. Test fetching instruments and verifying data structure
-2. Test fetching pies and verifying data structure
-3. Verify handling of empty instrument and pie sets
-4. Test with mock data to ensure proper processing
-5. Test error handling for API failures
+1. Test refresh functionality for each data type
+2. Verify status indicators update correctly
+3. Test with simulated API failures to check error handling
+4. Verify refresh history logging
+5. Test staleness detection with different timeframes

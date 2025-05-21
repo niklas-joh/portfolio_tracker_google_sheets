@@ -1,67 +1,39 @@
 # Task ID: 23
-# Title: Refactor: 3.3 Implement Robust Rate Limiting
+# Title: Improved Data Fetch Modal
 # Status: pending
-# Dependencies: 17, 21
-# Priority: high
-# Description: Enhance the RateLimiter class to include robust strategies for handling API rate limits, such as backoff and retry mechanisms. This will make API interactions more resilient.
+# Dependencies: 16, 18
+# Priority: medium
+# Description: Enhance the data fetch modal with better progress tracking, feedback, and options for data selection.
 # Details:
-Current Issues:
-- Limited rate limiting implementation
+Create an enhanced data fetch modal with improved user experience:
 
-Recommended Changes:
-Implement Robust Rate Limiting. Enhance the RateLimiter class to handle backoff and retry strategies:
-```javascript
-/**
- * Enhanced rate limiter with backoff and retry strategies.
- */
-class RateLimiter {
-  constructor(rateLimits) {
-    this.rateLimits = rateLimits;
-    this.requestLogs = {};
-  }
-  
-  canProceed(endpoint) {
-    // Current implementation...
-  }
-  
-  async executeWithRateLimit(endpoint, func) {
-    const status = this.canProceed(endpoint);
-    
-    if (status.proceed) {
-      return func();
-    } else {
-      await new Promise(resolve => setTimeout(resolve, status.waitTime));
-      return this.executeWithRateLimit(endpoint, func);
-    }
-  }
-}
-```
+1. Design a two-step modal interface:
+   - Step 1: Data selection with clear descriptions and icons
+   - Step 2: Progress tracking during fetch
+
+2. Implement data selection features:
+   - Checkboxes for each data type with descriptive text
+   - Icons to visually distinguish data types
+   - Select all/none options
+   - Remember previous selections
+
+3. Add detailed progress tracking:
+   - Real-time updates during fetch process
+   - Individual status indicators for each data type
+   - Error messages for failed fetches
+   - Summary of results when complete
+
+4. Integrate with the API client and error handling:
+   - Show appropriate error messages when issues occur
+   - Allow retrying failed fetches
+   - Update refresh status after successful fetches
+
+The modal should provide a clear, user-friendly interface for selecting and fetching data with appropriate feedback throughout the process.
 
 # Test Strategy:
-
-
-# Subtasks:
-## 1. Design Rate Limiter Class [pending]
-### Dependencies: None
-### Description: Create a rate limiter class with configurable request limits and time windows
-### Details:
-Design and implement a RateLimiter class that tracks API requests and enforces configurable rate limits. Include methods to check if a request is allowed, track request timestamps, and calculate remaining quota. The class should support different time windows (per second, minute, hour) and maintain request history.
-
-## 2. Implement Backoff Strategy [pending]
-### Dependencies: 23.1
-### Description: Create algorithms for exponential and linear backoff with jitter
-### Details:
-Implement backoff strategy algorithms including exponential backoff with configurable base and maximum delay, linear backoff, and random jitter to prevent thundering herd problems. Create a BackoffStrategy interface and concrete implementations for different backoff approaches. Include methods to calculate wait times based on retry attempts.
-
-## 3. Develop Retry Mechanism [pending]
-### Dependencies: 23.1, 23.2
-### Description: Build a retry handler that works with the rate limiter and backoff strategy
-### Details:
-Create a RetryHandler class that integrates with the rate limiter and backoff strategy. Implement logic to detect rate limit errors (429 responses), network failures, and other retryable errors. Include configurable maximum retry attempts, timeout handling, and logging of retry attempts. The handler should apply appropriate backoff delays between retries.
-
-## 4. Integrate with API Client [pending]
-### Dependencies: 23.1, 23.2, 23.3
-### Description: Connect rate limiting components with the API client for seamless operation
-### Details:
-Integrate the rate limiter, backoff strategy, and retry mechanism with the API client. Modify the API client to use these components for all requests. Implement proper error handling and response processing. Add configuration options to the API client for rate limits, retry attempts, and backoff strategies. Test the integrated solution with various API endpoints and rate limit scenarios.
-
+1. Test the modal interface with various data type selections
+2. Verify progress tracking updates correctly during fetches
+3. Test error handling and display of error messages
+4. Verify retry functionality works for failed fetches
+5. Test with slow network conditions to ensure progress updates work
+6. Verify refresh status is updated after successful fetches

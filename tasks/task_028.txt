@@ -1,55 +1,40 @@
 # Task ID: 28
-# Title: Refactor: 5.2 Implement a Loading State Manager
+# Title: Theme Customization
 # Status: pending
-# Dependencies: 17, 27
+# Dependencies: None
 # Priority: medium
-# Description: Implement a loading state manager to provide clear feedback to the user during data fetching or processing operations. This will improve the user experience by indicating when the application is busy.
+# Description: Add options for customizing the application theme with different color schemes and visual styles.
 # Details:
-Current Issues:
-- Limited feedback mechanisms
-- Inconsistent UI handling
+Implement a theme customization system for the application UI:
 
-Recommended Changes:
-Implement a Loading State Manager. Example:
-```javascript
-/**
- * Loading state manager for UI feedback.
- */
-class LoadingManager {
-  constructor() {
-    this.loadingStates = {};
-  }
-  
-  setLoading(id, isLoading) {
-    this.loadingStates[id] = isLoading;
-    this.updateUi(id);
-  }
-  
-  updateUi(id) {
-    // Implementation to update UI based on loading state
-  }
-}
-```
+1. Create multiple theme options:
+   - Light theme (default)
+   - Dark theme
+   - High contrast theme for accessibility
+
+2. Define CSS variables for each theme:
+   - Background color
+   - Text color
+   - Primary color for buttons and highlights
+   - Secondary color for backgrounds
+   - Accent color for important elements
+
+3. Implement theme application:
+   - Generate CSS based on selected theme
+   - Apply theme to all HTML templates
+   - Store theme preference in UserProperties
+
+4. Create a theme settings modal:
+   - Show available themes with descriptions
+   - Allow previewing themes
+   - Save theme selection
+
+The system should provide a consistent visual experience across all parts of the application while allowing user customization.
 
 # Test Strategy:
-
-
-# Subtasks:
-## 1. Design Loading Manager Class [pending]
-### Dependencies: None
-### Description: Create a class to manage loading states across the application
-### Details:
-Design and implement a LoadingManager class that can track multiple loading operations simultaneously. Include methods for starting/stopping loading states with unique identifiers, checking if any loading is in progress, and maintaining a registry of active loading operations. Consider using a singleton pattern for global access.
-
-## 2. Implement UI Update Methods [pending]
-### Dependencies: 28.1
-### Description: Create methods to update UI elements based on loading states
-### Details:
-Develop methods that connect the LoadingManager to UI elements. Include functionality to show/hide loading indicators, disable/enable interactive elements during loading, and provide visual feedback. Create both global loading indicators (e.g., overlay spinners) and component-specific loading states (e.g., button spinners). Ensure smooth transitions between states.
-
-## 3. Integrate with Application Operations [pending]
-### Dependencies: 28.1, 28.2
-### Description: Connect loading manager with operations that require loading indicators
-### Details:
-Integrate the LoadingManager with API calls, data processing functions, and other operations that benefit from loading indicators. Create utility functions or decorators to easily wrap async operations with loading state management. Implement error handling to ensure loading states are properly cleared even when operations fail.
-
+1. Test theme generation with different theme selections
+2. Verify CSS is correctly generated and applied
+3. Test theme settings modal UI
+4. Verify theme preference is saved and retrieved correctly
+5. Test appearance across different HTML templates
+6. Verify high contrast theme improves accessibility

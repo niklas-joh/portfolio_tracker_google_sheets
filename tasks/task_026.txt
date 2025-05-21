@@ -1,68 +1,41 @@
 # Task ID: 26
-# Title: Refactor: 4.3 Enhanced Caching Strategy
+# Title: Portfolio Report Generation
 # Status: pending
-# Dependencies: 17
+# Dependencies: 19, 20
 # Priority: medium
-# Description: Implement an enhanced caching service with TTL (Time-To-Live) and invalidation mechanisms to improve performance and reduce API calls. This will make the application more responsive and reduce the risk of hitting API rate limits.
+# Description: Create customizable portfolio reports that can be exported or emailed with various formats and content options.
 # Details:
-Current Issues:
-- Limited caching strategy
+Implement a portfolio report generation system with multiple report types and export options:
 
-Recommended Changes:
-Enhanced Caching Strategy. Example:
-```javascript
-/**
- * Enhanced caching service with TTL and invalidation.
- */
-class CacheService {
-  constructor() {
-    this.cache = CacheService.getScriptCache();
-  }
-  
-  get(key) {
-    const data = this.cache.get(key);
-    return data ? JSON.parse(data) : null;
-  }
-  
-  set(key, data, ttl = 600) { // Default 10 minutes
-    this.cache.put(key, JSON.stringify(data), ttl);
-  }
-  
-  invalidate(key) {
-    this.cache.remove(key);
-  }
-  
-  invalidateByPrefix(prefix) {
-    // Implementation to invalidate keys by prefix
-  }
-}
-```
+1. Create report templates for different report types:
+   - Summary report with key portfolio metrics
+   - Detailed report with comprehensive portfolio information
+   - Tax report focused on realized gains and dividend income
+
+2. Implement data gathering functions for each report type:
+   - Summary report data (account info, performance metrics, top holdings)
+   - Detailed report data (all holdings, transactions, performance by timeframe)
+   - Tax report data (realized gains/losses, dividend income for specified year)
+
+3. Add export options:
+   - HTML format for viewing
+   - PDF format for downloading/printing
+   - Email delivery
+
+4. Create helper functions for:
+   - Calculating realized gains/losses using FIFO method
+   - Formatting report data appropriately
+   - Generating HTML content from templates
+   - Converting HTML to PDF
+   - Sending email with attachments
+
+The system should provide flexible, professional-looking reports that can be customized based on user needs.
 
 # Test Strategy:
-
-
-# Subtasks:
-## 1. Design and implement cache service class [pending]
-### Dependencies: None
-### Description: Create a cache service class with core functionality for storing and retrieving data
-### Details:
-Design a flexible cache service class that supports different data types. Implement methods for get(), set(), has(), and delete() operations. Include support for serialization/deserialization of complex objects. Define appropriate interfaces and implement concrete cache provider (memory-based initially).
-
-## 2. Implement TTL (Time-To-Live) mechanism [pending]
-### Dependencies: 26.1
-### Description: Add expiration functionality to the cache service
-### Details:
-Extend the cache service to support TTL for cached items. Implement timestamp tracking for each cached item. Create a mechanism to check expiration during retrieval. Add automatic cleanup of expired items (either on-demand or via background process). Include configurable default TTL values.
-
-## 3. Develop cache invalidation methods [pending]
-### Dependencies: 26.1, 26.2
-### Description: Create strategies for invalidating cache entries based on different scenarios
-### Details:
-Implement pattern-based cache invalidation (e.g., by key prefix). Add support for bulk invalidation operations. Create event-based invalidation triggers for data changes. Develop cache dependencies to allow related items to be invalidated together. Include logging for cache invalidation events for debugging.
-
-## 4. Integrate caching with repository classes [pending]
-### Dependencies: 26.1, 26.2, 26.3
-### Description: Modify repository classes to utilize the cache service
-### Details:
-Create a caching decorator or wrapper for repository classes. Implement cache-aside pattern (check cache first, then database). Add cache population on database reads. Ensure cache invalidation on writes/updates/deletes. Add configuration options to enable/disable caching per repository or method. Create unit tests to verify correct caching behavior.
-
+1. Test report generation with sample portfolio data
+2. Verify calculations for each report type are correct
+3. Test PDF generation and formatting
+4. Verify email delivery works correctly
+5. Test tax calculations with various transaction scenarios
+6. Verify reports handle different portfolio compositions
+7. Test with edge cases (empty portfolio, single holding, etc.)

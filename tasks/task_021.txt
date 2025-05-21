@@ -1,58 +1,40 @@
 # Task ID: 21
-# Title: Refactor: 3.1 Centralize API Configuration
+# Title: Streamlined Setup Wizard
 # Status: pending
-# Dependencies: 16
-# Priority: high
-# Description: Create a single, centralized configuration file for all API-related constants, such as base URLs, endpoints, and rate limits. This will improve maintainability and make it easier to update API settings.
+# Dependencies: 18
+# Priority: medium
+# Description: Enhance the setup process with clearer steps, better guidance, and improved error handling for new users.
 # Details:
-Current Issues:
-- Inconsistent API request handling
-- Duplicate API call functions
-- Limited rate limiting implementation
+Create an improved setup wizard with a step-by-step guided process:
 
-Recommended Changes:
-Centralize API Configuration. Create a single config file for all API-related constants:
-```javascript
-/**
- * Centralized API configuration.
- */
-const API_CONFIG = {
-  domains: {
-    live: 'https://live.trading212.com',
-    demo: 'https://demo.trading212.com'
-  },
-  version: '/api/v0/',
-  endpoints: {
-    pies: 'equity/pies',
-    accountInfo: 'equity/account/info',
-    // Other endpoints...
-  },
-  rateLimits: {
-    'equity/pies': { limit: 1, windowMs: 30000 },
-    // Other rate limits...
-  }
-};
-```
+1. Design a multi-step setup flow with clear progression:
+   - Welcome/introduction
+   - Environment selection (demo/live)
+   - API key configuration
+   - Initial data fetch options
+   - Setup completion
+
+2. Implement a responsive HTML interface with:
+   - Step indicator showing progress
+   - Clear instructions at each step
+   - Back/Next navigation
+   - Visual cues for environment selection
+   - Proper validation at each step
+
+3. Add helpful context:
+   - Explanations of each environment option
+   - Guidance on where to find API keys
+   - Clear indication of what will happen at each step
+
+4. Integrate with error handling to provide clear feedback when issues occur
+
+The wizard should save user preferences and configuration to PropertiesService for persistence between sessions.
 
 # Test Strategy:
-
-
-# Subtasks:
-## 1. Design API Configuration Structure [pending]
-### Dependencies: None
-### Description: Create a standardized structure for centralized API configuration
-### Details:
-Define a clear, maintainable structure for API configuration that includes endpoints, authentication methods, headers, and other common parameters. Consider using a hierarchical structure that groups related APIs. Document the structure with examples for team reference.
-
-## 2. Extract Existing API Configuration [pending]
-### Dependencies: 21.1
-### Description: Identify and extract all API configuration from current codebase
-### Details:
-Scan the codebase to identify all instances of API configuration. Extract endpoint URLs, headers, authentication details, and other configuration parameters. Consolidate these into the new centralized structure defined in the previous subtask. Document any inconsistencies found during extraction.
-
-## 3. Integrate with API Client Code [pending]
-### Dependencies: 21.1, 21.2
-### Description: Update API client code to use the centralized configuration
-### Details:
-Modify existing API client code to reference the centralized configuration instead of hardcoded values. Create helper functions or methods to easily access the configuration. Test all API calls to ensure they work correctly with the new configuration approach. Update documentation to reflect the new pattern for API configuration usage.
-
+1. Test the wizard flow with both valid and invalid inputs
+2. Verify navigation between steps works correctly
+3. Test environment selection and configuration
+4. Verify API key validation works correctly
+5. Test error handling and user feedback
+6. Verify preferences are correctly saved to PropertiesService
+7. Test the complete setup process end-to-end

@@ -1,61 +1,43 @@
 # Task ID: 19
-# Title: Refactor: 2.2 Use Factory Pattern for Sheet Creation
+# Title: Portfolio Overview Dashboard
 # Status: pending
 # Dependencies: 17
-# Priority: medium
-# Description: Implement the Factory design pattern for creating different types of Google Sheets. This will centralize sheet creation logic and make it easier to add new sheet types.
+# Priority: high
+# Description: Create a comprehensive dashboard sheet with key portfolio metrics, charts, and summary information.
 # Details:
-Current Issues:
-- Lack of consistent design patterns
-- Mixed approach to similar problems
+Implement a Portfolio Dashboard sheet that provides a complete overview of the user's portfolio with the following sections:
 
-Recommended Changes:
-Use Factory Pattern for Sheet Creation. Example:
-```javascript
-/**
- * Factory for creating different types of sheets.
- */
-class SheetFactory {
-  static createSheet(type, name) {
-    switch (type) {
-      case 'account':
-        return new AccountSheet(name);
-      case 'transactions':
-        return new TransactionsSheet(name);
-      case 'pies':
-        return new PiesSheet(name);
-      default:
-        return new BaseSheet(name);
-    }
-  }
-}
-```
+1. Portfolio Summary section:
+   - Total portfolio value
+   - Cash balance
+   - Invested amount
+   - Total return (absolute and percentage)
+
+2. Weighted Total Return (WTR) chart section:
+   - Calculate WTR based on deposits and withdrawals
+   - Create line chart showing portfolio value vs. cumulative deposits
+   - Display WTR over time
+
+3. Allocation chart section:
+   - Pie chart showing portfolio allocation by instrument type
+   - Display percentage and value for each category
+
+4. Recent Activity section:
+   - List of most recent transactions
+   - Include date, type, ticker, description, and amount
+
+Implement helper functions for each section that:
+- Fetch required data using repository classes
+- Calculate necessary metrics
+- Format data appropriately for display
+- Create and configure charts
+
+Ensure the dashboard is visually appealing with proper formatting, headers, and layout.
 
 # Test Strategy:
-
-
-# Subtasks:
-## 1. Design Sheet Factory Class [pending]
-### Dependencies: None
-### Description: Create the SheetFactory class that will handle the creation of different sheet types
-### Details:
-Design and implement the SheetFactory class with a createSheet method that accepts parameters to determine which type of sheet to create. Include appropriate interfaces or abstract classes as needed. Document the factory's public API and ensure it follows SOLID principles.
-
-## 2. Implement Sheet Type Class Hierarchy [pending]
-### Dependencies: 19.1
-### Description: Create the necessary sheet type classes with a common interface or base class
-### Details:
-Define a common interface or abstract base class for all sheet types. Implement concrete sheet classes for each type of sheet needed. Ensure each sheet type implements the required methods and properties. Document the relationships between classes in the hierarchy.
-
-## 3. Integrate Factory with Existing Code [pending]
-### Dependencies: 19.1, 19.2
-### Description: Refactor existing sheet creation code to use the new factory pattern
-### Details:
-Identify all locations in the codebase where sheets are currently created. Replace direct instantiation with calls to the SheetFactory. Update any dependent code that might be affected by the new sheet class hierarchy. Ensure backward compatibility where needed.
-
-## 4. Test Factory Pattern Implementation [pending]
-### Dependencies: 19.1, 19.2, 19.3
-### Description: Create unit and integration tests for the factory pattern functionality
-### Details:
-Write unit tests for the SheetFactory class and each sheet type. Create integration tests to verify the factory works correctly with the rest of the application. Test edge cases and error handling. Verify that all existing functionality continues to work with the new implementation.
-
+1. Test dashboard creation with sample portfolio data
+2. Verify calculations for portfolio metrics are correct
+3. Test WTR calculation with various deposit/withdrawal scenarios
+4. Verify charts are created with correct data and formatting
+5. Test with different portfolio compositions to ensure allocation chart works correctly
+6. Verify dashboard updates correctly when refreshing data

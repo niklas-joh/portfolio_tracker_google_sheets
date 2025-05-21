@@ -1,80 +1,43 @@
 # Task ID: 30
-# Title: Refactor: 6.1 Create a Centralized Error Handler
+# Title: Context-Sensitive Help
 # Status: pending
-# Dependencies: 16
-# Priority: high
-# Description: Develop a centralized error handler class to manage errors consistently throughout the application. This handler should log errors, determine error types, and trigger appropriate actions.
+# Dependencies: None
+# Priority: medium
+# Description: Add in-app help and guidance for users with tooltips, tutorials, and FAQs.
 # Details:
-Current Issues:
-- Inconsistent error handling
-- Limited user feedback for errors
-- Unclear error recovery strategies
+Implement a comprehensive help system with multiple components:
 
-Recommended Changes:
-Create a Centralized Error Handler. Example:
-```javascript
-/**
- * Centralized error handler for consistent error management.
- */
-class ErrorHandler {
-  static handle(error, context = {}) {
-    Logger.log(`Error in ${context.location || 'unknown'}: ${error.message}`);
-    
-    // Determine error type and action
-    if (error.name === 'ApiError') {
-      return ErrorHandler.handleApiError(error, context);
-    } else if (error.name === 'ValidationError') {
-      return ErrorHandler.handleValidationError(error, context);
-    } else {
-      return ErrorHandler.handleGenericError(error, context);
-    }
-  }
-  
-  static handleApiError(error, context) {
-    // Handle API-specific errors
-  }
-  
-  static handleValidationError(error, context) {
-    // Handle validation errors
-  }
-  
-  static handleGenericError(error, context) {
-    // Handle generic errors
-  }
-}
-```
+1. Create a help content repository:
+   - Tooltips for UI elements
+   - Step-by-step tutorials for common tasks
+   - Frequently asked questions with answers
+
+2. Implement tooltip functionality:
+   - Show helpful information when hovering over elements
+   - Provide context for form fields and options
+   - Include links to more detailed help when appropriate
+
+3. Create tutorial walkthroughs:
+   - Step-by-step guides for key workflows
+   - Visual indicators for each step
+   - Clear instructions and explanations
+
+4. Add a central help modal:
+   - Searchable FAQ section
+   - Links to start tutorials
+   - Organized by topic for easy navigation
+
+5. Integrate help throughout the application:
+   - Help icons next to complex features
+   - Contextual help based on current screen
+   - First-time user guidance
+
+The help system should make the application more approachable for new users while providing detailed information for advanced features.
 
 # Test Strategy:
-
-
-# Subtasks:
-## 1. Design Error Handler Class Structure [pending]
-### Dependencies: None
-### Description: Create the core error handler class with appropriate methods and properties
-### Details:
-Design a centralized ErrorHandler class with a clear interface. Include methods for handling different error severities, error registration, and error processing. Define the class structure, inheritance hierarchy if needed, and core interfaces. Consider making it a singleton or using dependency injection for global access.
-
-## 2. Implement Error Type Classification Logic [pending]
-### Dependencies: 30.1
-### Description: Develop logic to categorize errors by type, severity, and source
-### Details:
-Create a classification system that categorizes errors by type (validation, network, database, etc.), severity (critical, warning, info), and source. Implement logic to determine error priority and required action based on classification. Include extensible mechanisms to add new error types in the future.
-
-## 3. Develop Error Logging Implementation [pending]
-### Dependencies: 30.1, 30.2
-### Description: Create comprehensive logging functionality for all error types
-### Details:
-Implement logging mechanisms that record detailed error information including stack traces, context data, and classification details. Support multiple output destinations (console, file, external service). Include formatting options and ensure sensitive data is properly masked. Add rotation and retention policies for log files.
-
-## 4. Design Error Recovery Strategies [pending]
-### Dependencies: 30.2
-### Description: Implement recovery mechanisms for different error scenarios
-### Details:
-Develop strategies for automatic recovery from non-critical errors. Implement retry mechanisms with exponential backoff for transient failures. Create fallback procedures for critical components. Design circuit breaker patterns to prevent cascading failures. Include mechanisms for graceful degradation when services are unavailable.
-
-## 5. Integrate Error Handler with Application Code [pending]
-### Dependencies: 30.1, 30.2, 30.3, 30.4
-### Description: Connect the error handler to the application and document usage patterns
-### Details:
-Create integration points throughout the application to use the centralized error handler. Develop middleware or decorators for automatic error handling in key components. Write documentation and examples showing proper usage patterns. Implement global error catching for unhandled exceptions. Create unit tests demonstrating correct error handling behavior.
-
+1. Test tooltip display and content
+2. Verify tutorials guide users correctly through each step
+3. Test FAQ search and navigation
+4. Verify help modal UI and functionality
+5. Test contextual help in different parts of the application
+6. Verify help content is accurate and helpful

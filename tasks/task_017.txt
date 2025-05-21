@@ -1,78 +1,35 @@
 # Task ID: 17
-# Title: Refactor: 1.2 Convert to Consistent Class-Based Architecture
+# Title: Data Model & Repository Implementation
 # Status: pending
 # Dependencies: 16
-# Priority: high
-# Description: Refactor existing code and implement new features using a consistent class-based architecture. This will improve code organization, encapsulation, and maintainability.
+# Priority: medium
+# Description: Create proper data models and repository classes for different entity types to standardize data handling across the application.
 # Details:
-Current Issues:
-- Inconsistent code organization with mixed styles (classes vs. standalone functions)
+Implement a structured data layer with model classes and repositories:
 
-Recommended Changes:
-Convert to Consistent Class-Based Architecture. Example:
-```javascript
-/**
- * ApiClient class to encapsulate all API interactions.
- */
-class ApiClient {
-  constructor(config) {
-    this.baseUrl = config.baseUrl;
-    this.apiKey = config.apiKey;
-    this.rateLimiter = new RateLimiter(config.rateLimits);
-  }
+1. Create model classes for each entity type (Pies, PieItems, Transactions, Dividends, etc.) that:
+   - Parse raw API data into structured objects
+   - Provide validation and data transformation methods
+   - Include calculated properties where appropriate
 
-  async request(endpoint, params = {}) {
-    const url = this.buildUrl(endpoint, params);
-    const canProceed = this.rateLimiter.canProceed(endpoint);
-    
-    if (!canProceed.proceed) {
-      await this.wait(canProceed.waitTime);
-    }
-    
-    return this.makeRequest(url);
-  }
-  
-  // Other methods...
-}
-```
+2. Implement repository classes for each entity type that:
+   - Use the ApiClient for data fetching
+   - Transform raw data into model instances
+   - Handle saving data to appropriate sheets
+   - Provide methods for querying and filtering data
+
+Each repository should follow a consistent pattern with methods like:
+- fetchAll() - Get all entities
+- getById() - Get a specific entity
+- saveToSheet() - Persist data to Google Sheets
+- getRecent() - Get most recent entities
+
+Repositories should handle the translation between API data format and the application's internal data structures.
 
 # Test Strategy:
-
-
-# Subtasks:
-## 1. Design Core Service Classes [pending]
-### Dependencies: None
-### Description: Create a comprehensive design for core service classes that will form the foundation of the refactored architecture
-### Details:
-Identify all core services in the current codebase. Create UML diagrams showing class relationships, inheritance hierarchies, and interfaces. Define clear responsibilities, methods, and properties for each service class. Ensure proper encapsulation and separation of concerns. Consider performance implications and potential optimization opportunities.
-
-## 2. Implement Data Model Classes [pending]
-### Dependencies: 17.1
-### Description: Convert existing data structures into proper class-based data models with appropriate methods and properties
-### Details:
-Analyze current data structures and their usage patterns. Design data model classes with appropriate validation, serialization, and type safety. Implement getters/setters and data transformation methods. Ensure backward compatibility with existing code. Add unit tests for each data model class to verify behavior.
-
-## 3. Convert UI Components to Classes [pending]
-### Dependencies: 17.1, 17.2
-### Description: Refactor UI components into class-based architecture with proper inheritance and composition
-### Details:
-Identify all UI components requiring conversion. Create base component classes and inheritance hierarchies. Implement lifecycle methods, event handling, and state management within the class structure. Ensure rendering logic is properly encapsulated. Test each component individually to verify visual and functional correctness.
-
-## 4. Create Utility Classes [pending]
-### Dependencies: 17.1
-### Description: Refactor utility functions into organized utility classes with static methods and proper namespacing
-### Details:
-Categorize existing utility functions by domain and purpose. Design utility classes with logical grouping and clear naming conventions. Convert functions to static class methods with improved type safety. Add comprehensive JSDoc documentation. Create unit tests for all utility methods to ensure functionality is preserved.
-
-## 5. Perform Integration Testing [pending]
-### Dependencies: 17.2, 17.3, 17.4
-### Description: Conduct thorough integration testing to ensure all refactored classes work together correctly
-### Details:
-Create integration test suites covering interactions between refactored components. Test all critical user flows and edge cases. Verify performance metrics against pre-refactoring baseline. Address any integration issues or regressions. Update existing automated tests to work with the new class structure.
-
-## 6. Document Class Architecture [pending]
-### Dependencies: 17.1, 17.2, 17.3, 17.4, 17.5
-### Description: Create comprehensive documentation for the new class-based architecture
-### Details:
-Generate class diagrams showing the complete architecture. Document design patterns and architectural decisions. Create usage examples for key classes. Document extension points and customization options. Update developer onboarding materials with new architecture information. Include migration guides for any code that needs to be updated by other teams.
-
+1. Unit test model classes with sample API responses to verify correct parsing
+2. Test repository methods with mocked API client responses
+3. Verify data transformation logic correctly converts between formats
+4. Test sheet writing functionality with mock sheet objects
+5. Verify filtering and query methods return expected results
+6. Test error handling when API returns unexpected data formats

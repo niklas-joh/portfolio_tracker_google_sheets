@@ -1,88 +1,54 @@
 # Task ID: 24
-# Title: Refactor: 4.1 Create Data Model Classes
+# Title: Dividend & Income Tracker
 # Status: pending
 # Dependencies: 17
 # Priority: high
-# Description: Develop data model classes (e.g., BaseModel, PieModel) to represent data entities fetched from the API. These classes should encapsulate data processing logic and provide methods for converting data to sheet rows.
+# Description: Create specialized tools for tracking and analyzing dividend income with visualizations and forecasting.
 # Details:
-Current Issues:
-- Complex data transformation logic
-- Inconsistent sheet updating approach
+Implement a comprehensive Dividend Tracker sheet with multiple sections for dividend analysis:
 
-Recommended Changes:
-Create Data Model Classes. Example:
-```javascript
-/**
- * Base model class for data entities.
- */
-class BaseModel {
-  constructor(data) {
-    this.rawData = data;
-    this.processData();
-  }
-  
-  processData() {
-    // Default implementation
-  }
-  
-  toSheetRow() {
-    // Convert to array for sheet row
-  }
-}
+1. Dividend Summary section:
+   - Total dividend income (all time, YTD, last 12 months)
+   - Monthly average dividends
+   - Number of dividend-paying stocks
+   - Portfolio dividend yield
 
-/**
- * Pie model for investment pies.
- */
-class PieModel extends BaseModel {
-  processData() {
-    this.id = this.rawData.id;
-    this.name = this.rawData.name;
-    this.value = this.rawData.value;
-    this.items = (this.rawData.items || []).map(item => new PieItemModel(item));
-  }
-  
-  toSheetRow() {
-    return [
-      this.id,
-      this.name,
-      this.value,
-      this.items.map(item => item.name).join(', ')
-    ];
-  }
-}
-```
+2. Monthly Dividend section:
+   - Monthly breakdown of dividend income
+   - Count of payments per month
+   - Average payment per month
+   - Bar chart showing monthly distribution
+
+3. Dividend by Stock section:
+   - List of stocks with dividend information
+   - Total income per stock
+   - Number of payments
+   - Average payment
+   - Yield per stock
+   - Pie chart of top dividend payers
+
+4. Dividend Calendar section:
+   - Visual calendar showing payment patterns
+   - Month-by-ticker grid with indicators
+   - Color coding for payment months
+
+5. Dividend Forecast section:
+   - Projection of expected dividends for next 12 months
+   - Based on historical payment patterns
+   - Separate confirmed vs. projected payments
+   - Monthly forecast chart
+
+Implement helper functions to:
+- Analyze dividend history and calculate metrics
+- Group dividends by month and stock
+- Create dividend calendar data
+- Generate dividend forecasts based on historical patterns
 
 # Test Strategy:
-
-
-# Subtasks:
-## 1. Design Base Model Class [pending]
-### Dependencies: None
-### Description: Create an abstract base model class that defines common properties and methods for all data entities
-### Details:
-Implement a BaseModel class that includes: common attributes (ID, timestamps, etc.), serialization/deserialization methods, validation logic, and interfaces for data operations. Consider using inheritance patterns and define abstract methods that child classes must implement.
-
-## 2. Implement Specific Model Classes [pending]
-### Dependencies: 24.1
-### Description: Create concrete model classes for each data type that inherit from the base model
-### Details:
-For each entity type from the API (e.g., User, Product, Order), create a specific model class that extends BaseModel. Define entity-specific properties, override necessary methods, and implement type-specific validation rules. Ensure proper typing and documentation for each class.
-
-## 3. Develop Data Processing Methods [pending]
-### Dependencies: 24.2
-### Description: Implement methods for data transformation, filtering, and aggregation in each model class
-### Details:
-Add methods to handle data processing operations like filtering records, transforming data formats, calculating derived values, and aggregating information. Include utility methods for common operations and ensure consistent error handling across all processing methods.
-
-## 4. Create Sheet Conversion Methods [pending]
-### Dependencies: 24.3
-### Description: Implement methods to convert model data to and from spreadsheet formats
-### Details:
-Add functionality to transform model instances to row/column format for spreadsheets and vice versa. Include header generation, data type conversion, formula handling, and methods to batch process multiple records. Ensure proper handling of special characters and formatting options.
-
-## 5. Integrate with Existing Data Handling Code [pending]
-### Dependencies: 24.4
-### Description: Connect the new model classes with existing data fetching and storage mechanisms
-### Details:
-Refactor existing data handling code to use the new model classes. Update API service classes to return model instances, modify storage utilities to accept models, and ensure UI components can consume the model data. Write tests to verify proper integration and data flow through the system.
-
+1. Test dividend calculations with sample dividend history
+2. Verify monthly grouping and calculations
+3. Test stock-level dividend metrics
+4. Verify calendar generation with various dividend patterns
+5. Test forecast calculations with different historical data
+6. Verify charts and visualizations display correctly
+7. Test with edge cases (no dividends, single dividend stock, etc.)

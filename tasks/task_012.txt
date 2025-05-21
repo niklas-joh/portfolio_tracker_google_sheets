@@ -1,42 +1,35 @@
 # Task ID: 12
-# Title: Implement Main Menu and Entry Points
-# Status: done
-# Dependencies: 10, 11
-# Priority: high
-# Description: Create the main menu and entry points for the Google Apps Script.
+# Title: Interactive Charts & Visualizations
+# Status: pending
+# Dependencies: 4, 5, 9
+# Priority: medium
+# Description: Add interactive charts and visualizations for better data exploration.
 # Details:
-1. Implement onOpen function to create custom menu:
-```javascript
-function onOpen() {
-  const ui = SpreadsheetApp.getUi();
-  ui.createMenu('Portfolio Tracker')
-    .addItem('Configure API', 'showApiConfigModal')
-    .addItem('Fetch Data', 'showDataFetchModal')
-    .addSeparator()
-    .addItem('About', 'showAboutDialog')
-    .addToUi();
-}
-```
+Create a dedicated Charts sheet with enhanced visualizations:
 
-2. Implement about dialog:
-```javascript
-function showAboutDialog() {
-  const ui = SpreadsheetApp.getUi();
-  ui.alert(
-    'Portfolio Tracker',
-    'This Google Apps Script connects to your trading platform to fetch and display portfolio data.\n\n' +
-    'Version: 1.0.0\n' +
-    'Created by: Your Name\n\n' +
-    'To get started, configure your API key using the "Configure API" menu item.',
-    ui.ButtonSet.OK
-  );
-}
-```
+1. Portfolio Value Chart:
+   - Line chart showing portfolio value over time
+   - Clear formatting and labels
+   - Appropriate date and value scales
 
-3. Add function to initialize the spreadsheet with default sheets if needed
+2. Return Comparison Chart:
+   - Bar chart comparing returns across different time periods
+   - Percentage-based visualization
+
+3. Holdings Comparison Chart:
+   - Bar chart showing top holdings by value
+   - Clear formatting and sorting
+
+Implement helper functions to:
+- Prepare data for each chart type
+- Create and configure charts with appropriate options
+- Format data for optimal visualization
+
+Note: While true interactivity is limited in Google Sheets, focus on creating comprehensive, well-formatted charts that provide clear insights.
 
 # Test Strategy:
-1. Test onOpen trigger to ensure menu is created
-2. Verify all menu items work correctly
-3. Test about dialog appearance
-4. Verify initialization of default sheets
+1. Test chart generation with different data sets
+2. Verify formatting and layout
+3. Check charts render correctly with various portfolio compositions
+4. Test with edge cases (empty data, very large data sets)
+5. Verify charts update when underlying data changes

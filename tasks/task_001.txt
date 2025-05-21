@@ -1,40 +1,28 @@
 # Task ID: 1
-# Title: Setup Project Structure and API Configuration
-# Status: done
+# Title: API Client Refactoring
+# Status: pending
 # Dependencies: None
 # Priority: high
-# Description: Create the initial project structure in Google Apps Script and implement API configuration functionality for the trading platform.
+# Description: Centralize API interactions into a robust client that handles errors, retries, and caching consistently.
 # Details:
-1. Create a new Google Apps Script project
-2. Set up the basic file structure:
-   - `Config.gs`: Store API configuration and constants
-   - `ApiUtils.gs`: API utility functions
-   - `DataFetcher.gs`: Functions to fetch data from API
-   - `SheetManager.gs`: Functions to manage sheets
-   - `UI.gs`: UI components
-   - `Main.gs`: Main entry point and menu setup
-3. Implement configuration storage using PropertiesService:
-```javascript
-function saveApiConfig(apiKey, environment) {
-  const scriptProperties = PropertiesService.getScriptProperties();
-  scriptProperties.setProperty('API_KEY', apiKey);
-  scriptProperties.setProperty('ENVIRONMENT', environment);
-  return true;
-}
+Create a Trading212ApiClient class that will handle all API interactions with the following features:
+- Consistent error handling and retry logic
+- Request rate limiting to avoid API throttling
+- Response caching to improve performance
+- Proper authentication handling
 
-function getApiConfig() {
-  const scriptProperties = PropertiesService.getScriptProperties();
-  return {
-    apiKey: scriptProperties.getProperty('API_KEY'),
-    environment: scriptProperties.getProperty('ENVIRONMENT')
-  };
-}
-```
-4. Create constants for API endpoints based on environment
-5. Set up onOpen trigger to create custom menu
+Implementation should include:
+1. Constructor that accepts environment parameter (demo/live)
+2. Methods for different API endpoints (get, post, etc.)
+3. Cache management using CacheService
+4. Exponential backoff for retries
+5. Proper URL construction and parameter handling
+6. Authentication header management
 
 # Test Strategy:
-1. Verify project structure is correctly set up with all necessary files
-2. Test saving and retrieving API configuration
-3. Confirm custom menu appears when spreadsheet is opened
-4. Manually verify that configuration is persisted between sessions
+1. Unit test the client with mock responses
+2. Test cache functionality by verifying cached responses are returned
+3. Test retry logic by simulating network failures
+4. Test rate limiting by making rapid sequential requests
+5. Verify proper URL construction with different parameter combinations
+6. Test with both demo and live environments (using appropriate API keys)
