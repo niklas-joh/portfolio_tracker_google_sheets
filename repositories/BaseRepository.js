@@ -288,6 +288,79 @@ class BaseRepository {
       Logger.log(error.stack);
     }
   }
+  
+  /**
+   * Fetches data from API, initializes headers, transforms data, and writes to sheet.
+   * @public
+   * @param {Function} apiFetchFunction Function that returns a Promise with API data.
+   * @param {Function} dataExtractorFunction Function that extracts data array from API response.
+   * @param {Function} fallbackFieldsGetter Function that returns fallback field paths.
+   * @returns {Promise<Object>} Object containing the API response and write results.
+   */
+  async fetchAndPersistData(apiFetchFunction, dataExtractorFunction, fallbackFieldsGetter) {
+    try {
+      // Fetch data and initialize headers
+      const apiResponse = await this._fetchDataAndInitializeHeaders(apiFetchFunction, fallbackFieldsGetter);
+      
+      // Extract the data array from the response
+      const dataArray = dataExtractorFunction(apiResponse);
+      
+      if (!Array.isArray(dataArray)) {
+        throw new Error('dataExtractorFunction must return an array.');
+      }
+      
+      // Transform data to sheet rows
+      const sheetRows = this._transformDataToSheetRows(dataArray);
+      
+      // Write data to sheet
+      const writeResult = this.sheetManager.clearAndWriteData(this.sheetName, sheetRows);
+      
+      this._log(`Successfully fetched and persisted ${dataArray.length} records for ${this.resourceIdentifier}.`);
+      
+      return {
+        apiResponse,
+        recordCount: dataArray.length,
+        writeResult
+      };
+    } catch (error) {
+      this._logError(error, `Error in fetchAndPersistData for ${this.resourceIdentifier}.`);
+      throw error;
+    }
+  }
+  
+  /**
+   * Reads all data from the sheet and transforms it into model instances.
+   * @public
+   * @param {Function} ModelClass The model class constructor with static fromSheetRow method.
+   * @param {Function} [fallbackFieldsGetter] Function that returns fallback field paths.
+   * @returns {Promise<Array<any>>} Array of model instances.
+   */
+  async getAllModels(ModelClass, fallbackFieldsGetter) {
+    try {
+      // Ensure headers are initialized
+      if (!this.effectiveHeaders || this.effectiveHeaders.length === 0) {
+        const headersInitialized = await this._tryInitializeHeadersFromStored(fallbackFieldsGetter);
+        
+        if (!headersInitialized) {
+          this._log(`Cannot retrieve models for ${this.resourceIdentifier}: headers not initialized and no fallback available.`, 'WARN');
+          return [];
+        }
+      }
+      
+      // Get all data from the sheet
+      const sheetRows = this.sheetManager.getAllData(this.sheetName);
+      
+      // Transform sheet rows to model instances
+      const models = this._transformSheetRowsToModels(sheetRows, ModelClass);
+      
+      this._log(`Successfully retrieved ${models.length} model instances for ${this.resourceIdentifier}.`);
+      
+      return models;
+    } catch (error) {
+      this._logError(error, `Error in getAllModels for ${this.resourceIdentifier}.`);
+      throw error;
+    }
+  }
 }
 
 // Global availability for GAS V8 runtime
