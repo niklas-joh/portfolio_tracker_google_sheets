@@ -6,10 +6,6 @@
 # Description: Refactor the application to dynamically extract and manage headers from API responses for sheet generation, instead of using hardcoded headers in repositories. This includes creating a header mapping service, a storage mechanism for headers, enhancing base repository and model classes, and providing a UI for header management.
 # Details:
 
-
-# Test Strategy:
-
-
 # Subtasks:
 ## 1. Create HeaderMappingService [pending]
 ### Dependencies: None
