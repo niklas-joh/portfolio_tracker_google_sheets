@@ -10,6 +10,6 @@
 
 # ignore even valid files if in…
 legacy/**
-testing/**
-testing/**
+# testing/**
+
 node_modules/**

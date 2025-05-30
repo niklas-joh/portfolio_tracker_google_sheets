@@ -8,10 +8,10 @@
 // The extractHeaders function is available from data/dataProcessing.js
 
 const HEADER_MAPPINGS_SHEET_NAME = 'HeaderMappings';
-const API_RESOURCE_NAME_COLUMN_INDEX = 0; // Column A in 0-based indexing for arrays
+const API_RESOURCE_NAME_COLUMN_INDEX = 0; // Column A
 const ORIGINAL_API_FIELD_PATH_COLUMN_INDEX = 1; // Column B
-const TRANSFORMED_HEADER_NAME_COLUMN_INDEX = 2; // Column C
-const USER_OVERRIDE_FLAG_COLUMN_INDEX = 3; // Column D
+const AUTO_TRANSFORMED_HEADER_NAME_COLUMN_INDEX = 2; // Column C (System Generated)
+const USER_DEFINED_HEADER_NAME_COLUMN_INDEX = 3;   // Column D (User's Custom Name)
 
 /**
  * The HeaderMappingService class.
@@ -70,11 +70,10 @@ class HeaderMappingService {
    * Retrieves all stored header mappings for a given API resource from the 'HeaderMappings' sheet.
    * @param {string} resourceIdentifier - A unique name for the API resource (e.g., 'DIVIDENDS_API').
    * @return {Array<Object>} An array of mapping objects, e.g.,
-   *                         [{ apiFieldPath: 'id', transformedHeader: 'ID', userOverride: false }, ...].
+   *                         [{ apiFieldPath: 'id', autoTransformedHeader: 'ID', userDefinedHeader: '' }, ...].
    *                         Returns an empty array if no mappings are found or an error occurs.
    */
   getStoredHeaders(resourceIdentifier) {
-    // Use getSheetData which returns data excluding headers
     const allMappingsData = this.sheetManager.getSheetData(HEADER_MAPPINGS_SHEET_NAME);
     if (!allMappingsData || allMappingsData.length === 0) {
       Logger.log(`HeaderMappingService.getStoredHeaders: No data found in '${HEADER_MAPPINGS_SHEET_NAME}'.`);
@@ -85,11 +84,11 @@ class HeaderMappingService {
     for (let i = 0; i < allMappingsData.length; i++) {
       const row = allMappingsData[i];
       // Ensure row is not empty and has enough columns
-      if (row && row.length > TRANSFORMED_HEADER_NAME_COLUMN_INDEX && row[API_RESOURCE_NAME_COLUMN_INDEX] === resourceIdentifier) {
+      if (row && row.length > USER_DEFINED_HEADER_NAME_COLUMN_INDEX && row[API_RESOURCE_NAME_COLUMN_INDEX] === resourceIdentifier) {
         resourceMappings.push({
           apiFieldPath: row[ORIGINAL_API_FIELD_PATH_COLUMN_INDEX],
-          transformedHeader: row[TRANSFORMED_HEADER_NAME_COLUMN_INDEX],
-          userOverride: row[USER_OVERRIDE_FLAG_COLUMN_INDEX] === true || String(row[USER_OVERRIDE_FLAG_COLUMN_INDEX]).toUpperCase() === 'TRUE',
+          autoTransformedHeader: row[AUTO_TRANSFORMED_HEADER_NAME_COLUMN_INDEX],
+          userDefinedHeader: row[USER_DEFINED_HEADER_NAME_COLUMN_INDEX] || '', // Default to empty string if undefined/null
         });
       }
     }
@@ -98,64 +97,60 @@ class HeaderMappingService {
 
   /**
    * Stores new or updated header mappings for a given API resource in the 'HeaderMappings' sheet.
-   * It intelligently merges new API field paths with existing stored mappings, preserving user overrides.
+   * It merges new API field paths with existing stored mappings, preserving user-defined header names.
    * @param {string} resourceIdentifier - A unique name for the API resource.
    * @param {Array<string>} newApiFieldPaths - An array of current API field paths from the latest API response.
    */
   storeHeaders(resourceIdentifier, newApiFieldPaths) {
-    // Get existing data and reconstruct with headers
-    const existingData = this.sheetManager.getSheetData(HEADER_MAPPINGS_SHEET_NAME) || [];
-    const headers = ['API Resource Name', 'Original API Field Path', 'Transformed Header Name', 'User Override Flag'];
-    
-    // Segregate mappings for the current resource from others
-    const otherResourceRows = [];
-    const currentResourceStoredMappings = new Map(); // Use Map for efficient lookup of existing mappings
+    // Get all data from the sheet ONCE.
+    const allSheetDataIncludingCurrentResource = this.sheetManager.getSheetData(HEADER_MAPPINGS_SHEET_NAME) || [];
+    const headers = ['API Resource Name', 'Original API Field Path', 'Auto Transformed Header Name', 'User Defined Header Name'];
 
-    if (existingData.length > 0) {
-        for (let i = 0; i < existingData.length; i++) {
-            const row = existingData[i];
-            if (row[API_RESOURCE_NAME_COLUMN_INDEX] === resourceIdentifier) {
-                currentResourceStoredMappings.set(row[ORIGINAL_API_FIELD_PATH_COLUMN_INDEX], {
-                    transformedHeader: row[TRANSFORMED_HEADER_NAME_COLUMN_INDEX],
-                    userOverride: row[USER_OVERRIDE_FLAG_COLUMN_INDEX] === true || String(row[USER_OVERRIDE_FLAG_COLUMN_INDEX]).toUpperCase() === 'TRUE',
-                });
-            } else {
-                otherResourceRows.push(row);
-            }
-        }
-    }
-    
-    // Start with other resources' mappings
-    let updatedDataRows = otherResourceRows;
-
-    // Process new API field paths for the current resource
-    newApiFieldPaths.forEach(apiFieldPath => {
-      const existingMapping = currentResourceStoredMappings.get(apiFieldPath);
-      if (existingMapping) {
-        // Preserve existing mapping, especially user overrides
-        updatedDataRows.push([
-          resourceIdentifier,
-          apiFieldPath,
-          existingMapping.transformedHeader,
-          existingMapping.userOverride
-        ]);
-      } else {
-        // New field path, generate transformed header
-        updatedDataRows.push([
-          resourceIdentifier,
-          apiFieldPath,
-          this.transformHeaderName(apiFieldPath),
-          false // Not overridden by default
-        ]);
+    // Build the map of existing user-defined names for the CURRENT resource from this single read.
+    const currentUserMappings = new Map();
+    allSheetDataIncludingCurrentResource.forEach(row => {
+      if (row[API_RESOURCE_NAME_COLUMN_INDEX] === resourceIdentifier && row.length > USER_DEFINED_HEADER_NAME_COLUMN_INDEX) {
+        currentUserMappings.set(row[ORIGINAL_API_FIELD_PATH_COLUMN_INDEX], row[USER_DEFINED_HEADER_NAME_COLUMN_INDEX] || '');
       }
     });
     
-    // (Optional) Handle field paths that were in stored mappings but not in newApiFieldPaths (deprecated fields).
-    // For now, they are effectively removed for this resourceIdentifier as we rebuild its section.
-    // If they need to be preserved with a "deprecated" status, logic would be added here.
+    // Filter out rows for OTHER resources to preserve them.
+    const otherResourceRows = allSheetDataIncludingCurrentResource.filter(
+      row => row[API_RESOURCE_NAME_COLUMN_INDEX] !== resourceIdentifier
+    );
+    
+    let updatedDataRows = [...otherResourceRows]; // Start with other resources' mappings
 
+    // Process new API field paths for the current resource
+    newApiFieldPaths.forEach(apiFieldPath => {
+      const autoTransformedName = this.transformHeaderName(apiFieldPath);
+      // Get the preserved user-defined name, if any, from our map.
+      const userDefinedName = currentUserMappings.get(apiFieldPath) || ''; 
+
+      updatedDataRows.push([
+        resourceIdentifier,
+        apiFieldPath,
+        autoTransformedName,
+        userDefinedName
+      ]);
+    });
+    
+    this.sheetManager.setHeaders(HEADER_MAPPINGS_SHEET_NAME, headers);
     this.sheetManager.updateSheetData(HEADER_MAPPINGS_SHEET_NAME, updatedDataRows, headers);
     Logger.log(`HeaderMappingService.storeHeaders: Stored/Updated headers for resource: ${resourceIdentifier}.`);
+  }
+
+  /**
+   * Gets the effective header name for a given API field path.
+   * Uses the user-defined name if available, otherwise the auto-transformed name.
+   * @param {Object} mapping - A mapping object { apiFieldPath, autoTransformedHeader, userDefinedHeader }.
+   * @return {string} The effective header name.
+   */
+  _getEffectiveHeaderFromMapping(mapping) {
+    if (mapping.userDefinedHeader && mapping.userDefinedHeader.trim() !== '') {
+      return mapping.userDefinedHeader;
+    }
+    return mapping.autoTransformedHeader;
   }
 
   /**
@@ -170,13 +165,11 @@ class HeaderMappingService {
 
     return apiFieldPaths.map(apiFieldPath => {
       const mapping = mappingLookup.get(apiFieldPath);
-      if (mapping && mapping.userOverride) {
-        return mapping.transformedHeader; // Use user-overridden name
-      }
       if (mapping) {
-        return mapping.transformedHeader; // Use stored transformed name
+        return this._getEffectiveHeaderFromMapping(mapping);
       }
-      return this.transformHeaderName(apiFieldPath); // Transform on-the-fly if not stored
+      // If not stored, transform on-the-fly (this becomes the autoTransformedHeader)
+      return this.transformHeaderName(apiFieldPath); 
     });
   }
   
@@ -184,59 +177,65 @@ class HeaderMappingService {
    * Detects changes (new or removed fields) between the latest API response headers
    * and the currently stored headers for a given resource.
    * @param {string} resourceIdentifier - The API resource identifier.
-   * @param {Array<string>} newApiFieldPaths - Array of API field paths from the latest API response.
+   * @param {Array<string>} newApiFieldPathsFromApi - Array of API field paths from the latest API response.
    * @return {{newFields: Array<string>, removedFields: Array<string>}} An object detailing new and removed fields.
    */
-  detectAndLogHeaderChanges(resourceIdentifier, newApiFieldPaths) {
+  detectAndLogHeaderChanges(resourceIdentifier, newApiFieldPathsFromApi) {
     const storedMappings = this.getStoredHeaders(resourceIdentifier);
-    const storedApiFieldPaths = storedMappings.map(m => m.apiFieldPath);
+    const storedApiFieldPathsInSheet = storedMappings.map(m => m.apiFieldPath);
 
-    const newFields = newApiFieldPaths.filter(path => !storedApiFieldPaths.includes(path));
-    const removedFields = storedApiFieldPaths.filter(path => !newApiFieldPaths.includes(path));
+    const newFields = newApiFieldPathsFromApi.filter(path => !storedApiFieldPathsInSheet.includes(path));
+    const removedFields = storedApiFieldPathsInSheet.filter(path => !newApiFieldPathsFromApi.includes(path));
 
     if (newFields.length > 0) {
       Logger.log(`HeaderMappingService.detectAndLogHeaderChanges: New fields detected for ${resourceIdentifier}: ${newFields.join(', ')}`);
-      // Potentially flag for user review or auto-add them via storeHeaders
     }
     if (removedFields.length > 0) {
       Logger.log(`HeaderMappingService.detectAndLogHeaderChanges: Removed fields detected for ${resourceIdentifier}: ${removedFields.join(', ')}`);
-      // Potentially flag for user review or mark as deprecated in HeaderMappings sheet
     }
     return { newFields, removedFields };
   }
 
   /**
-   * Retrieves the complete header configuration for a resource, including API paths, transformed names, and override status.
-   * This is useful for UI display or detailed repository logic.
+   * Retrieves the complete header configuration for a resource.
+   * Each object includes the API path, its auto-transformed name, any user-defined name,
+   * and the effective header name that will be used.
    * @param {string} resourceIdentifier - The API resource identifier.
-   * @param {Array<string>} currentApiFieldPaths - Optional. If provided, the result will be aligned with these paths,
+   * @param {Array<string>} currentApiFieldPathsFromApi - Optional. If provided, the result will be aligned with these paths,
    *                                             generating default transformations for any paths not found in storage.
    *                                             If not provided, returns all stored mappings for the resource.
-   * @return {Array<Object>} An array of objects: { apiFieldPath: string, transformedHeader: string, userOverride: boolean }
+   * @return {Array<Object>} An array of objects: 
+   *   { apiFieldPath: string, autoTransformedHeader: string, userDefinedHeader: string, effectiveHeader: string }
    */
-  getHeaderConfiguration(resourceIdentifier, currentApiFieldPaths = null) {
+  getHeaderConfiguration(resourceIdentifier, currentApiFieldPathsFromApi = null) {
     const storedMappings = this.getStoredHeaders(resourceIdentifier);
     
-    if (!currentApiFieldPaths) {
+    if (!currentApiFieldPathsFromApi) {
       // Return all stored mappings if no specific field paths are requested
-      return storedMappings;
+      return storedMappings.map(m => ({
+        ...m,
+        effectiveHeader: this._getEffectiveHeaderFromMapping(m)
+      }));
     }
 
     const mappingLookup = new Map(storedMappings.map(m => [m.apiFieldPath, m]));
-    const config = currentApiFieldPaths.map(apiFieldPath => {
+    const config = currentApiFieldPathsFromApi.map(apiFieldPath => {
       const stored = mappingLookup.get(apiFieldPath);
       if (stored) {
         return {
           apiFieldPath: apiFieldPath,
-          transformedHeader: stored.transformedHeader,
-          userOverride: stored.userOverride
+          autoTransformedHeader: stored.autoTransformedHeader,
+          userDefinedHeader: stored.userDefinedHeader,
+          effectiveHeader: this._getEffectiveHeaderFromMapping(stored)
         };
       } else {
         // Path from API not found in storage, generate default
+        const autoName = this.transformHeaderName(apiFieldPath);
         return {
           apiFieldPath: apiFieldPath,
-          transformedHeader: this.transformHeaderName(apiFieldPath),
-          userOverride: false
+          autoTransformedHeader: autoName,
+          userDefinedHeader: '',
+          effectiveHeader: autoName // Effective is auto since userDefined is blank
         };
       }
     });
