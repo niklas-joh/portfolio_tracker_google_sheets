@@ -19,11 +19,13 @@ const API_CONSTANTS = {
     ACCOUNT_METADATA: '/equity/account/metadata',
     ACCOUNT_CASH: '/equity/account/cash',
     TRANSACTIONS: '/equity/history/transactions',
-    DIVIDENDS: '/equity/account/dividends',
+    DIVIDENDS: '/history/dividends',
     ORDERS: '/equity/orders',
     PIES: '/equity/pies',
     PIE_ORDERS: '/equity/pies/orders',
-    INSTRUMENTS: '/equity/instruments'
+    INSTRUMENTS: '/equity/metadata/instruments',
+    ACCOUNT_INFO: '/equity/account/info',
+    ORDERS_HISTORY: '/equity/history/orders'
   },
   
   // Date formats
@@ -63,6 +65,26 @@ const API_RESOURCES = {
     id: 'PIE_ITEMS',
     sheetName: 'PieItems',
     endpoint: null // Fetched via the PIE endpoint's details
+  },
+  ACCOUNT_INFO: {
+    id: 'ACCOUNT_INFO',
+    sheetName: 'AccountInfo',
+    endpoint: API_CONSTANTS.ENDPOINTS.ACCOUNT_INFO
+  },
+  INSTRUMENTS_LIST: {
+    id: 'INSTRUMENTS_LIST',
+    sheetName: 'InstrumentsList',
+    endpoint: API_CONSTANTS.ENDPOINTS.INSTRUMENTS
+  },
+  ORDER_HISTORY: {
+    id: 'ORDER_HISTORY',
+    sheetName: 'OrderHistory',
+    endpoint: API_CONSTANTS.ENDPOINTS.ORDERS_HISTORY
+  },
+  ACCOUNT_CASH: {
+    id: 'ACCOUNT_CASH',
+    sheetName: 'AccountCash',
+    endpoint: API_CONSTANTS.ENDPOINTS.ACCOUNT_CASH
   }
 };
 

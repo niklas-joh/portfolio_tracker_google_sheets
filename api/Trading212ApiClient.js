@@ -22,8 +22,7 @@ class Trading212ApiClient {
   constructor(environment = null) {
     // If environment is not provided, get it from user properties or default to 'demo'
     this.environment = environment || PropertiesService.getUserProperties().getProperty('SELECTED_ENVIRONMENT') || 'demo';
-    this.baseUrl = this.environment === 'live' ? API_DOMAIN_LIVE : API_DOMAIN_DEMO;
-    this.apiVersion = API_VERSION;
+    this.baseUrl = this.environment === 'live' ? API_CONSTANTS.BASE_URL.LIVE : API_CONSTANTS.BASE_URL.DEMO;
     this.cache = CacheService.getScriptCache();
     this.rateLimiter = new RateLimiter(RATE_LIMITS);
     
@@ -187,7 +186,7 @@ class Trading212ApiClient {
     }
     
     // Build the base URL
-    let url = `${this.baseUrl}${this.apiVersion}${endpoint}`;
+    let url = `${this.baseUrl}${endpoint}`;
     
     // Add query parameters if present
     if (Object.keys(params).length > 0) {
