@@ -18,26 +18,29 @@
 class PieItemRepository extends BaseRepository {
   /**
    * Creates an instance of PieItemRepository.
-   * @param {Trading212ApiClient} apiClient The API client for fetching data.
-   * @param {SheetManager} sheetManager The manager for interacting with Google Sheets.
-   * @param {ErrorHandler} errorHandler The error handler instance.
-   * @param {HeaderMappingService} headerMappingService The service for managing dynamic headers.
+   * @param {Object} services - An object containing necessary service instances.
+   * @param {Trading212ApiClient} services.apiClient The API client for fetching data.
+   * @param {SheetManager} services.sheetManager The manager for interacting with Google Sheets.
+   * @param {ErrorHandler} services.errorHandler The error handler instance.
+   * @param {HeaderMappingService} services.headerMappingService The service for managing dynamic headers.
    * @param {string} [sheetName='PieItems'] The name of the Google Sheet where pie item data is stored.
    */
-  constructor(apiClient, sheetManager, errorHandler, headerMappingService, sheetName = 'PieItems') {
-    if (!headerMappingService) {
-      throw new Error('PieItemRepository: headerMappingService is required.');
+  constructor(services, sheetName = 'PieItems') {
+    if (!services || !services.headerMappingService) {
+      throw new Error('PieItemRepository: services.headerMappingService is required.');
     }
     
     // Get the resource identifier from API_RESOURCES if available
-    const resourceIdentifier = API_RESOURCES && API_RESOURCES.PIE_ITEMS ? 
+    // Assuming API_RESOURCES is globally available or passed via services if needed.
+    const resourceIdentifier = (typeof API_RESOURCES !== 'undefined' && API_RESOURCES.PIE_ITEMS) ? 
       API_RESOURCES.PIE_ITEMS.sheetName || 'PIE_ITEMS' : 'PIE_ITEMS';
     
     // Call the parent constructor with all required parameters
-    super(apiClient, sheetManager, errorHandler, headerMappingService, resourceIdentifier, sheetName);
+    super(services, resourceIdentifier, sheetName);
     
-    // Try to initialize headers from storage if they exist
-    this._tryInitializeHeadersFromStored(PieItemModel.getExpectedApiFieldPaths);
+    // Header initialization is now handled by methods like fetchPieItemsForPie or getAllPieItemsFromSheet
+    // when they are first called, or by BaseRepository's _tryInitializeHeadersFromStored
+    // if effectiveHeaders are not yet set.
   }
 
   /**

@@ -11,25 +11,28 @@
 class BaseRepository {
   /**
    * Creates an instance of BaseRepository.
-   * @param {Trading212ApiClient} apiClient The API client for fetching data.
-   * @param {SheetManager} sheetManager The manager for interacting with Google Sheets.
-   * @param {ErrorHandler} errorHandler The error handler instance.
-   * @param {HeaderMappingService} headerMappingService The service for managing dynamic headers.
+   * @param {Object} services - An object containing necessary service instances.
+   * @param {Trading212ApiClient} services.apiClient The API client for fetching data.
+   * @param {SheetManager} services.sheetManager The manager for interacting with Google Sheets.
+   * @param {ErrorHandler} services.errorHandler The error handler instance.
+   * @param {HeaderMappingService} services.headerMappingService The service for managing dynamic headers.
    * @param {string} resourceIdentifier The identifier for this resource in the HeaderMappingService.
    * @param {string} sheetName The name of the Google Sheet where data is stored.
    */
-  constructor(apiClient, sheetManager, errorHandler, headerMappingService, resourceIdentifier, sheetName) {
+  constructor(services, resourceIdentifier, sheetName) {
+    const { apiClient, sheetManager, errorHandler, headerMappingService } = services;
+
     if (!apiClient) {
-      throw new Error('BaseRepository: apiClient is required.');
+      throw new Error('BaseRepository: services.apiClient is required.');
     }
     if (!sheetManager) {
-      throw new Error('BaseRepository: sheetManager is required.');
+      throw new Error('BaseRepository: services.sheetManager is required.');
     }
     if (!errorHandler) {
-      throw new Error('BaseRepository: errorHandler is required.');
+      throw new Error('BaseRepository: services.errorHandler is required.');
     }
     if (!headerMappingService) {
-      throw new Error('BaseRepository: headerMappingService is required.');
+      throw new Error('BaseRepository: services.headerMappingService is required.');
     }
     if (!resourceIdentifier) {
       throw new Error('BaseRepository: resourceIdentifier is required.');

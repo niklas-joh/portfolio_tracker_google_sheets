@@ -19,26 +19,30 @@
 class DividendRepository extends BaseRepository {
   /**
    * Creates an instance of DividendRepository.
-   * @param {Trading212ApiClient} apiClient The API client for fetching data.
-   * @param {SheetManager} sheetManager The manager for interacting with Google Sheets.
-   * @param {ErrorHandler} errorHandler The error handler instance.
-   * @param {HeaderMappingService} headerMappingService The service for managing dynamic headers.
+   * @param {Object} services - An object containing necessary service instances.
+   * @param {Trading212ApiClient} services.apiClient The API client for fetching data.
+   * @param {SheetManager} services.sheetManager The manager for interacting with Google Sheets.
+   * @param {ErrorHandler} services.errorHandler The error handler instance.
+   * @param {HeaderMappingService} services.headerMappingService The service for managing dynamic headers.
    * @param {string} [sheetName='Dividends'] The name of the Google Sheet where dividend data is stored.
    */
-  constructor(apiClient, sheetManager, errorHandler, headerMappingService, sheetName = 'Dividends') {
-    if (!headerMappingService) {
-      throw new Error('DividendRepository: headerMappingService is required.');
+  constructor(services, sheetName = 'Dividends') {
+    if (!services || !services.headerMappingService) {
+      throw new Error('DividendRepository: services.headerMappingService is required.');
     }
     
     // Get the resource identifier from API_RESOURCES if available
-    const resourceIdentifier = API_RESOURCES && API_RESOURCES.DIVIDENDS ? 
+    // Assuming API_RESOURCES is globally available or passed via services if needed.
+    // For now, let's assume API_RESOURCES is global as per original code context.
+    const resourceIdentifier = (typeof API_RESOURCES !== 'undefined' && API_RESOURCES.DIVIDENDS) ? 
       API_RESOURCES.DIVIDENDS.sheetName || 'DIVIDENDS' : 'DIVIDENDS';
     
     // Call the parent constructor with all required parameters
-    super(apiClient, sheetManager, errorHandler, headerMappingService, resourceIdentifier, sheetName);
+    super(services, resourceIdentifier, sheetName);
     
-    // Try to initialize headers from storage if they exist
-    this._tryInitializeHeadersFromStored(DividendModel.getExpectedApiFieldPaths);
+    // Header initialization is now handled by methods like fetchAllDividends or getAllDividendsFromSheet
+    // when they are first called, or by BaseRepository's _tryInitializeHeadersFromStored
+    // if effectiveHeaders are not yet set.
   }
 
   /**

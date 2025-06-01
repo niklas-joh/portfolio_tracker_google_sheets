@@ -128,11 +128,14 @@ function fetchPiesAndSave_() {
     const apiClient = getApiClientForUi_();
     const sheetManager = getSheetManagerForUi_();
     const errorHandler = getErrorHandlerForUi_();
+    if (typeof HeaderMappingService === 'undefined') throw new Error("HeaderMappingService class is not defined.");
+    const headerMappingService = new HeaderMappingService(sheetManager, errorHandler);
 
     // Ensure PieRepository is available
     if (typeof PieRepository === 'undefined') throw new Error("PieRepository class is not defined.");
 
-    const pieRepository = new PieRepository(apiClient, sheetManager, errorHandler);
+    const services = { apiClient, sheetManager, errorHandler, headerMappingService };
+    const pieRepository = new PieRepository(services); // Assuming default sheetName
     pieRepository.fetchAndSaveAllPies();
 
     Logger.log("UI: fetchPiesAndSave_ completed successfully.");
@@ -154,14 +157,17 @@ async function fetchPieItemsAndSave_() {
 
     const apiClient = getApiClientForUi_();
     const sheetManager = getSheetManagerForUi_();
-    const errorHandler = getErrorHandlerForUi_(); // errorHandler can be used for general UI errors if needed
+    const errorHandler = getErrorHandlerForUi_(); 
+    if (typeof HeaderMappingService === 'undefined') throw new Error("HeaderMappingService class is not defined.");
+    const headerMappingService = new HeaderMappingService(sheetManager, errorHandler);
 
     // Ensure Repositories are available
     if (typeof PieRepository === 'undefined') throw new Error("PieRepository class is not defined.");
     if (typeof PieItemRepository === 'undefined') throw new Error("PieItemRepository class is not defined.");
 
-    const pieRepository = new PieRepository(apiClient, sheetManager, errorHandler); // PieRepository uses errorHandler
-    const pieItemRepository = new PieItemRepository(apiClient, sheetManager, errorHandler); // Pass errorHandler
+    const services = { apiClient, sheetManager, errorHandler, headerMappingService };
+    const pieRepository = new PieRepository(services); 
+    const pieItemRepository = new PieItemRepository(services); 
 
     Logger.log("UI: Fetching all pies from sheet...");
     const pies = await pieRepository.getAllPiesFromSheet();
@@ -276,11 +282,14 @@ function fetchTransactionsAndSave_() {
     const apiClient = getApiClientForUi_();
     const sheetManager = getSheetManagerForUi_();
     const errorHandler = getErrorHandlerForUi_();
+    if (typeof HeaderMappingService === 'undefined') throw new Error("HeaderMappingService class is not defined.");
+    const headerMappingService = new HeaderMappingService(sheetManager, errorHandler);
 
     // Ensure TransactionRepository is available
     if (typeof TransactionRepository === 'undefined') throw new Error("TransactionRepository class is not defined.");
 
-    const transactionRepository = new TransactionRepository(apiClient, sheetManager, errorHandler);
+    const services = { apiClient, sheetManager, errorHandler, headerMappingService };
+    const transactionRepository = new TransactionRepository(services);
 
     // Default: Fetch transactions for the last 30 days
     const dateTo = new Date();
@@ -312,11 +321,14 @@ function fetchDividendsAndSave_() {
     const apiClient = getApiClientForUi_();
     const sheetManager = getSheetManagerForUi_();
     const errorHandler = getErrorHandlerForUi_();
+    if (typeof HeaderMappingService === 'undefined') throw new Error("HeaderMappingService class is not defined.");
+    const headerMappingService = new HeaderMappingService(sheetManager, errorHandler);
 
     // Ensure DividendRepository is available
     if (typeof DividendRepository === 'undefined') throw new Error("DividendRepository class is not defined.");
 
-    const dividendRepository = new DividendRepository(apiClient, sheetManager, errorHandler);
+    const services = { apiClient, sheetManager, errorHandler, headerMappingService };
+    const dividendRepository = new DividendRepository(services);
 
     // Default: Fetch dividends for the last 90 days
     const dateTo = new Date();

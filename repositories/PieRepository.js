@@ -10,40 +10,31 @@
  * Repository class for fetching and managing Pie data.
  * It uses the Trading212ApiClient to interact with the API and
  * transforms data into PieModel instances. It also handles
- * persisting data to Google Sheets via SheetManager.
+ * persisting data to Google Sheets via SheetManager and manages
+ * headers using HeaderMappingService.
+ * @extends BaseRepository
  */
-class PieRepository {
+class PieRepository extends BaseRepository {
   /**
    * Creates an instance of PieRepository.
-   * @param {Trading212ApiClient} apiClient The API client for fetching data.
-   * @param {SheetManager} sheetManager The manager for interacting with Google Sheets.
-   * @param {ErrorHandler} errorHandler The error handler instance.
-   * @param {string} [sheetName=API_RESOURCES.PIES.sheetName] The name of the Google Sheet where pie data is stored.
+   * @param {Object} services - An object containing necessary service instances.
+   * @param {Trading212ApiClient} services.apiClient The API client for fetching data.
+   * @param {SheetManager} services.sheetManager The manager for interacting with Google Sheets.
+   * @param {ErrorHandler} services.errorHandler The error handler instance.
+   * @param {HeaderMappingService} services.headerMappingService The service for managing dynamic headers.
+   * @param {string} [sheetName=(API_RESOURCES.PIES.sheetName || 'Pies')] The name of the Google Sheet where pie data is stored.
    */
-  constructor(apiClient, sheetManager, errorHandler, sheetName = API_RESOURCES.PIES.sheetName) {
-    if (!apiClient) {
-      throw new Error('PieRepository: apiClient is required.');
+  constructor(services, sheetName = (typeof API_RESOURCES !== 'undefined' && API_RESOURCES.PIES ? API_RESOURCES.PIES.sheetName : 'Pies')) {
+    if (!services || !services.apiClient || !services.sheetManager || !services.errorHandler || !services.headerMappingService) {
+      throw new Error('PieRepository: All services (apiClient, sheetManager, errorHandler, headerMappingService) are required.');
     }
-    if (!sheetManager) {
-      throw new Error('PieRepository: sheetManager is required.');
-    }
-    if (!errorHandler) {
-      throw new Error('PieRepository: errorHandler is required.');
-    }
-    /** @private @const {Trading212ApiClient} */
-    this.apiClient = apiClient;
-    /** @private @const {SheetManager} */
-    this.sheetManager = sheetManager;
-    /** @private @const {ErrorHandler} */
-    this.errorHandler = errorHandler;
-    /** @private @const {string} */
-    this.sheetName = sheetName;
-    /** @private @const {Array<string>} */
-    this.sheetHeaders = ['ID', 'Name', 'Value', 'Currency', 'Progress', 'Creation Date', 'Last Update Date', 'Instruments Count', 'Icon', 'Cash', 'Dividend Gained', 'Dividend In Cash', 'Dividend Reinvested', 'Total Invested', 'Total Result', 'Total Result Coef', 'Status'];
     
-    // Ensure the sheet and headers exist
-    this.sheetManager.ensureSheetExists(this.sheetName);
-    this.sheetManager.setHeaders(this.sheetName, this.sheetHeaders);
+    const resourceIdentifier = (typeof API_RESOURCES !== 'undefined' && API_RESOURCES.PIES) ? 
+      API_RESOURCES.PIES.sheetName || 'PIES_SUMMARY' : 'PIES_SUMMARY'; // Or a more generic PIES identifier
+    
+    super(services, resourceIdentifier, sheetName);
+    
+    // Header initialization is handled by BaseRepository methods when data is fetched or read.
   }
 
   /**
@@ -71,15 +62,44 @@ class PieRepository {
           return this.apiClient.getPieDetails(summary.id)
             .then(detail => ({ detail, summary })) // Pass summary along with detail
             .catch(err => {
-              this.errorHandler.logError(err, `Failed to fetch details for pie ID ${summary.id}. Skipping this pie.`);
+              this._logError(err, `Failed to fetch details for pie ID ${summary.id}. Skipping this pie.`);
               return null; // Indicate failure for this pie
             });
         }
-        this.errorHandler.logError(new Error('Invalid pie summary object'), `Summary: ${JSON.stringify(summary)}`);
+        this._logError(new Error('Invalid pie summary object'), `Summary: ${JSON.stringify(summary)}`);
         return Promise.resolve(null); // Skip if summary is invalid
       });
 
       const results = await Promise.all(detailedPiesPromises);
+      
+      // Initialize headers using the first valid result as a sample
+      const firstValidResult = results.find(r => r && r.detail && r.summary);
+      if (firstValidResult) {
+        // Construct a sample data object similar to what PieModel expects for header generation
+        const sampleDataForHeaders = {
+            id: firstValidResult.detail.settings.id,
+            name: firstValidResult.detail.settings.name,
+            creationDate: firstValidResult.detail.settings.creationDate,
+            lastUpdateDate: firstValidResult.detail.settings.endDate,
+            icon: firstValidResult.detail.settings.icon,
+            currency: firstValidResult.detail.settings.currencyCode || 'USD',
+            progress: firstValidResult.summary.progress,
+            value: firstValidResult.summary.result ? firstValidResult.summary.result.priceAvgValue : 0,
+            instrumentsCount: (firstValidResult.detail.instruments || []).length, // Added for completeness
+            cash: firstValidResult.summary.cash,
+            dividendGained: firstValidResult.summary.dividendDetails ? firstValidResult.summary.dividendDetails.gained : null,
+            dividendInCash: firstValidResult.summary.dividendDetails ? firstValidResult.summary.dividendDetails.inCash : null,
+            dividendReinvested: firstValidResult.summary.dividendDetails ? firstValidResult.summary.dividendDetails.reinvested : null,
+            totalInvested: firstValidResult.summary.result ? firstValidResult.summary.result.priceAvgInvestedValue : null,
+            totalResult: firstValidResult.summary.result ? firstValidResult.summary.result.priceAvgResult : null,
+            totalResultCoef: firstValidResult.summary.result ? firstValidResult.summary.result.priceAvgResultCoef : null,
+            status: firstValidResult.summary.status,
+        };
+        await this._initializeHeaders(sampleDataForHeaders, PieModel.getExpectedApiFieldPaths);
+      } else {
+        // Fallback if no valid results, try to initialize from stored or model defaults
+        await this._tryInitializeHeadersFromStored(PieModel.getExpectedApiFieldPaths);
+      }
 
       // Step 3: Create PieModel instances from the detailed data combined with summary data
       return results
@@ -107,11 +127,6 @@ class PieRepository {
             // dividendDetails: rawPieSummary.dividendDetails, // { gained, inCash, reinvested } - will be flattened
             progress: rawPieSummary.progress,
             value: rawPieSummary.result ? rawPieSummary.result.priceAvgValue : 0, // This is the main 'value'
-            // summaryResult: rawPieSummary.result ? { // Store other result fields separately - will be flattened
-            //   priceAvgInvestedValue: rawPieSummary.result.priceAvgInvestedValue,
-            //   priceAvgResult: rawPieSummary.result.priceAvgResult,
-            //   priceAvgResultCoef: rawPieSummary.result.priceAvgResultCoef
-            // } : null,
             status: rawPieSummary.status,
 
             // New flattened fields from summary
@@ -121,19 +136,20 @@ class PieRepository {
             totalInvested: rawPieSummary.result ? rawPieSummary.result.priceAvgInvestedValue : null,
             totalResult: rawPieSummary.result ? rawPieSummary.result.priceAvgResult : null,
             totalResultCoef: rawPieSummary.result ? rawPieSummary.result.priceAvgResultCoef : null,
+            instrumentsCount: (rawPieDetail.instruments || []).length, // Ensure this is part of modelData if used by headers
             
             // Instruments from pie detail
             instruments: rawPieDetail.instruments || []
           };
 
           if (!rawPieDetail.settings.currencyCode) {
-            Logger.log(`PieModel for ID ${modelData.id}: Currency defaulted to USD as 'currencyCode' was not found in pie settings. API detail: ${JSON.stringify(rawPieDetail.settings)}`);
+            this._log(`PieModel for ID ${modelData.id}: Currency defaulted to USD as 'currencyCode' was not found in pie settings. API detail: ${JSON.stringify(rawPieDetail.settings)}`, 'WARN');
           }
           
           try {
             return new PieModel(modelData);
           } catch (modelError) {
-            this.errorHandler.logError(modelError, `Error creating PieModel for ID ${modelData.id}. Raw modelData: ${JSON.stringify(modelData)}`);
+            this._logError(modelError, `Error creating PieModel for ID ${modelData.id}. Raw modelData: ${JSON.stringify(modelData)}`);
             return null; // Skip this pie if model creation fails
           }
         })
@@ -141,7 +157,7 @@ class PieRepository {
 
     } catch (error) {
       // Catch errors from the initial getPies() call or Promise.all() itself
-      this.errorHandler.logError(error, 'Failed to fetch all pies from API. Error will be re-thrown.');
+      this._logError(error, 'Failed to fetch all pies from API. Error will be re-thrown.');
       // No longer use handleError here for UI, let it bubble up.
       throw error; // Re-throw to be caught by uiFunctions.js
     }
@@ -170,7 +186,7 @@ class PieRepository {
       const rawPieSummary = pieSummaries.find(s => s.id === pieId);
 
       if (!rawPieSummary) {
-        this.errorHandler.logError(new Error(`Summary not found for pie ID ${pieId} when calling getPieById.`), `Pie detail was fetched but summary was not found.`);
+        this._logError(new Error(`Summary not found for pie ID ${pieId} when calling getPieById.`), `Pie detail was fetched but summary was not found.`);
         // Construct with what we have
          const modelData = {
             id: rawPieDetail.settings.id,
@@ -190,7 +206,6 @@ class PieRepository {
             // dividendDetails: null, // Will be flattened
             progress: null,
             value: 0, // Or perhaps from a detail field if available, but API spec implies summary
-            // summaryResult: null, // Will be flattened
             status: null,
             // New flattened fields
             dividendGained: null,
@@ -199,7 +214,12 @@ class PieRepository {
             totalInvested: null,
             totalResult: null,
             totalResultCoef: null,
+            instrumentsCount: (rawPieDetail.instruments || []).length,
           };
+          // Attempt to initialize headers if this is the first data point
+          if (!this.effectiveHeaders) {
+            await this._initializeHeaders(modelData, PieModel.getExpectedApiFieldPaths);
+          }
           return new PieModel(modelData);
       }
 
@@ -230,13 +250,18 @@ class PieRepository {
         totalInvested: rawPieSummary.result ? rawPieSummary.result.priceAvgInvestedValue : null,
         totalResult: rawPieSummary.result ? rawPieSummary.result.priceAvgResult : null,
         totalResultCoef: rawPieSummary.result ? rawPieSummary.result.priceAvgResultCoef : null,
+        instrumentsCount: (rawPieDetail.instruments || []).length,
         
         // Instruments from pie detail
         instruments: rawPieDetail.instruments || []
       };
+      // Attempt to initialize headers if this is the first data point
+      if (!this.effectiveHeaders) {
+         await this._initializeHeaders(modelData, PieModel.getExpectedApiFieldPaths);
+      }
       return new PieModel(modelData);
     } catch (error) {
-      this.errorHandler.logError(error, `Failed to fetch pie with ID ${pieId} from API. Error will be re-thrown.`);
+      this._logError(error, `Failed to fetch pie with ID ${pieId} from API. Error will be re-thrown.`);
       throw error; // Re-throw
     }
   }
@@ -252,11 +277,24 @@ class PieRepository {
       throw new Error('Invalid input: pies must be an array of PieModel instances.');
     }
     try {
-      const dataRows = pies.map(pie => pie.toSheetRow());
-      await this.sheetManager.updateSheetData(this.sheetName, dataRows, this.sheetHeaders);
-      this.errorHandler.log(`${pies.length} pies saved to sheet '${this.sheetName}'.`, 'INFO');
+      if (!this.effectiveHeaders) {
+        const success = await this._tryInitializeHeadersFromStored(PieModel.getExpectedApiFieldPaths);
+        if (!success) {
+          // If still no headers, try to generate from the first pie if available
+          if (pies.length > 0) {
+            await this._initializeHeaders(pies[0].toObject(), PieModel.getExpectedApiFieldPaths); // Use toObject() for sample
+          }
+          if (!this.effectiveHeaders) { // Check again
+             throw new Error('Failed to initialize headers for pie data. Fetch data or ensure model provides fallbacks.');
+          }
+        }
+      }
+      const dataRows = pies.map(pie => pie.toSheetRow(this.effectiveHeaders));
+      const transformedHeaderNames = this.effectiveHeaders.map(h => h.transformedName);
+      await this.sheetManager.updateSheetData(this.sheetName, dataRows, transformedHeaderNames);
+      this._log(`${pies.length} pies saved to sheet '${this.sheetName}'.`, 'INFO');
     } catch (error) {
-      this.errorHandler.logError(error, 'Failed to save pies to Google Sheet. Error will be re-thrown.');
+      this._logError(error, 'Failed to save pies to Google Sheet. Error will be re-thrown.');
       throw error; // Re-throw
     }
   }
@@ -283,12 +321,23 @@ class PieRepository {
    */
   async getAllPiesFromSheet() {
     try {
+      if (!this.effectiveHeaders) {
+        const success = await this._tryInitializeHeadersFromStored(PieModel.getExpectedApiFieldPaths);
+        if (!success) {
+          this._log('Headers not initialized for getAllPiesFromSheet. Attempting to fetch to initialize.', 'WARN');
+          // As a last resort, try fetching all pies to initialize headers, then get from sheet.
+          // This could be inefficient if the sheet is the intended source of truth.
+          // Consider if this behavior is desired or if an error should be thrown.
+          await this.fetchAllPies(); // This will initialize headers
+          if (!this.effectiveHeaders) {
+            throw new Error('Failed to initialize headers even after fetching. Cannot get pies from sheet.');
+          }
+        }
+      }
       const dataRows = await this.sheetManager.getSheetData(this.sheetName);
-      // Assuming first row is headers, which sheetManager might handle or we skip here
-      // For now, assuming getSheetData returns data rows only (excluding headers)
-      return dataRows.map(row => PieModel.fromSheetRow(row, this.sheetHeaders));
+      return this._transformSheetRowsToModels(dataRows, PieModel);
     } catch (error) {
-      this.errorHandler.logError(error, 'Failed to retrieve pies from Google Sheet. Error will be re-thrown.');
+      this._logError(error, 'Failed to retrieve pies from Google Sheet. Error will be re-thrown.');
       throw error; // Re-throw
     }
   }

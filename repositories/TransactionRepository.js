@@ -9,46 +9,32 @@
  * Repository class for fetching and managing Transaction data.
  * It uses the Trading212ApiClient to interact with the API and
  * transforms data into TransactionModel instances. It also handles
- * persisting data to Google Sheets via SheetManager.
+ * persisting data to Google Sheets via SheetManager and manages
+ * headers using HeaderMappingService.
+ * @extends BaseRepository
  */
-class TransactionRepository {
+class TransactionRepository extends BaseRepository {
   /**
    * Creates an instance of TransactionRepository.
-   * @param {Trading212ApiClient} apiClient The API client for fetching data.
-   * @param {SheetManager} sheetManager The manager for interacting with Google Sheets.
-   * @param {ErrorHandler} errorHandler The error handler instance.
+   * @param {Object} services - An object containing necessary service instances.
+   * @param {Trading212ApiClient} services.apiClient The API client for fetching data.
+   * @param {SheetManager} services.sheetManager The manager for interacting with Google Sheets.
+   * @param {ErrorHandler} services.errorHandler The error handler instance.
+   * @param {HeaderMappingService} services.headerMappingService The service for managing dynamic headers.
    * @param {string} [sheetName='Transactions'] The name of the Google Sheet where transaction data is stored.
    */
-  constructor(apiClient, sheetManager, errorHandler, sheetName = 'Transactions') {
-    if (!apiClient) {
-      throw new Error('TransactionRepository: apiClient is required.');
+  constructor(services, sheetName = 'Transactions') {
+    if (!services || !services.apiClient || !services.sheetManager || !services.errorHandler || !services.headerMappingService) {
+      throw new Error('TransactionRepository: All services (apiClient, sheetManager, errorHandler, headerMappingService) are required.');
     }
-    if (!sheetManager) {
-      throw new Error('TransactionRepository: sheetManager is required.');
-    }
-    if (!errorHandler) {
-      // Attempt to get a default ErrorHandler if not provided, or throw
-      if (typeof ErrorHandler !== 'undefined') {
-        this.errorHandler = new ErrorHandler('TransactionRepository_Default');
-        this.errorHandler.log('ErrorHandler not provided to TransactionRepository constructor, using default.', 'WARN');
-      } else {
-        throw new Error('TransactionRepository: errorHandler is required and ErrorHandler class is not available.');
-      }
-    } else {
-      /** @private @const {ErrorHandler} */
-      this.errorHandler = errorHandler;
-    }
-    /** @private @const {Trading212ApiClient} */
-    this.apiClient = apiClient;
-    /** @private @const {SheetManager} */
-    this.sheetManager = sheetManager;
-    /** @private @const {string} */
-    this.sheetName = sheetName;
-    /** @private @const {Array<string>} */
-    this.sheetHeaders = ['ID', 'Type', 'Timestamp', 'Amount Value', 'Amount Currency', 'Ticker', 'Quantity', 'Price Per Share', 'Notes', 'Reference ID', 'Source'];
     
-    this.sheetManager.ensureSheetExists(this.sheetName);
-    this.sheetManager.setHeaders(this.sheetName, this.sheetHeaders);
+    // Assuming API_RESOURCES is globally available or passed via services if needed.
+    const resourceIdentifier = (typeof API_RESOURCES !== 'undefined' && API_RESOURCES.TRANSACTIONS) ? 
+      API_RESOURCES.TRANSACTIONS.sheetName || 'TRANSACTIONS' : 'TRANSACTIONS';
+      
+    super(services, resourceIdentifier, sheetName);
+    
+    // Header initialization is handled by BaseRepository methods when data is fetched or read.
   }
 
   /**
@@ -61,15 +47,26 @@ class TransactionRepository {
    */
   async fetchAllTransactions(startDate, endDate, limit) {
     try {
-      // Assuming apiClient.getTransactions can take optional parameters
-      const rawTransactionsData = await this.apiClient.getTransactions({ startDate, endDate, limit });
+      const apiCallFunction = () => this.apiClient.getTransactions({ startDate, endDate, limit });
+      const rawTransactionsData = await this._fetchDataAndInitializeHeaders(
+        apiCallFunction,
+        TransactionModel.getExpectedApiFieldPaths
+      );
+
       if (!Array.isArray(rawTransactionsData)) {
-        Logger.log(`Expected an array from apiClient.getTransactions(), but got: ${typeof rawTransactionsData}`);
+        this._log(`Expected an array from apiClient.getTransactions(), but got: ${typeof rawTransactionsData}`, 'ERROR');
         throw new Error('Invalid data format received from API for transactions.');
       }
-      return rawTransactionsData.map(rawTx => new TransactionModel(rawTx));
+      return rawTransactionsData.map(rawTx => {
+        try {
+          return new TransactionModel(rawTx);
+        } catch (modelError) {
+          this._logError(modelError, `Error constructing TransactionModel for raw data: ${JSON.stringify(rawTx)}`);
+          return null;
+        }
+      }).filter(tx => tx !== null);
     } catch (error) {
-      this.errorHandler.logError(error, 'Failed to fetch all transactions from API. Error will be re-thrown.');
+      this._logError(error, 'Failed to fetch all transactions from API. Error will be re-thrown.');
       throw error; // Re-throw
     }
   }
@@ -97,11 +94,24 @@ class TransactionRepository {
       throw new Error('Invalid input: transactions must be an array of TransactionModel instances.');
     }
     try {
-      const dataRows = transactions.map(tx => tx.toSheetRow());
-      await this.sheetManager.updateSheetData(this.sheetName, dataRows, this.sheetHeaders);
-      this.errorHandler.log(`${transactions.length} transactions saved to sheet '${this.sheetName}'.`, 'INFO');
+      if (!this.effectiveHeaders) {
+        const success = await this._tryInitializeHeadersFromStored(TransactionModel.getExpectedApiFieldPaths);
+        if (!success) {
+          if (transactions.length > 0) {
+            // Attempt to initialize from the first transaction if available
+            await this._initializeHeaders(transactions[0].toObject(), TransactionModel.getExpectedApiFieldPaths);
+          }
+          if (!this.effectiveHeaders) { // Check again
+            throw new Error('Failed to initialize headers for transaction data. Fetch data or ensure model provides fallbacks.');
+          }
+        }
+      }
+      const dataRows = transactions.map(tx => tx.toSheetRow(this.effectiveHeaders));
+      const transformedHeaderNames = this.effectiveHeaders.map(h => h.transformedName);
+      await this.sheetManager.updateSheetData(this.sheetName, dataRows, transformedHeaderNames);
+      this._log(`${transactions.length} transactions saved to sheet '${this.sheetName}'.`, 'INFO');
     } catch (error) {
-      this.errorHandler.logError(error, 'Failed to save transactions to Google Sheet. Error will be re-thrown.');
+      this._logError(error, 'Failed to save transactions to Google Sheet. Error will be re-thrown.');
       throw error; // Re-throw
     }
   }
@@ -131,10 +141,20 @@ class TransactionRepository {
    */
   async getAllTransactionsFromSheet() {
     try {
+      if (!this.effectiveHeaders) {
+        const success = await this._tryInitializeHeadersFromStored(TransactionModel.getExpectedApiFieldPaths);
+        if (!success) {
+          this._log('Headers not initialized for getAllTransactionsFromSheet. Attempting to fetch to initialize.', 'WARN');
+          await this.fetchAllTransactions(); // This will initialize headers via _fetchDataAndInitializeHeaders
+           if (!this.effectiveHeaders) { // Check again
+            throw new Error('Failed to initialize headers even after fetching. Cannot get transactions from sheet.');
+          }
+        }
+      }
       const dataRows = await this.sheetManager.getSheetData(this.sheetName);
-      return dataRows.map(row => TransactionModel.fromSheetRow(row, this.sheetHeaders));
+      return this._transformSheetRowsToModels(dataRows, TransactionModel);
     } catch (error) {
-      this.errorHandler.logError(error, 'Failed to retrieve transactions from Google Sheet. Error will be re-thrown.');
+      this._logError(error, 'Failed to retrieve transactions from Google Sheet. Error will be re-thrown.');
       throw error; // Re-throw
     }
   }
