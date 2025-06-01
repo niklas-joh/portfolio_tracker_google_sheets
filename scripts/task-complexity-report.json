@@ -1,0 +1,259 @@
+{
+  "meta": {
+    "generatedAt": "2025-05-20T20:06:06.882Z",
+    "tasksAnalyzed": 31,
+    "thresholdScore": 5,
+    "projectName": "Task Master",
+    "usedResearch": true
+  },
+  "complexityAnalysis": [
+    {
+      "taskId": 13,
+      "taskTitle": "Implement Advanced Error Handling and Logging",
+      "complexityScore": 6,
+      "recommendedSubtasks": 5,
+      "expansionPrompt": "Break down the error handling and logging task into subtasks covering: 1) centralized error handler implementation, 2) UI error message integration, 3) error log sheet creation and management, 4) error log clearing functionality, and 5) error log export capabilities.",
+      "reasoning": "This task involves creating a centralized error handling system with logging capabilities. The complexity is moderate (6/10) as it requires implementing error handling across multiple components, creating a logging system, and building UI elements for error management. The code provided shows a clear structure but needs integration across the application."
+    },
+    {
+      "taskId": 14,
+      "taskTitle": "Implement Data Refresh Automation",
+      "complexityScore": 5,
+      "recommendedSubtasks": 4,
+      "expansionPrompt": "Divide the data refresh automation task into subtasks covering: 1) time-based trigger implementation, 2) trigger management functions, 3) UI for refresh configuration, and 4) notification system for refresh status updates.",
+      "reasoning": "This task focuses on creating automated data refresh using time-based triggers. The complexity is medium (5/10) as it involves working with Google Apps Script's trigger system, implementing trigger management, and creating a UI for configuration. The code structure is straightforward but requires integration with existing data fetching functions."
+    },
+    {
+      "taskId": 15,
+      "taskTitle": "Implement Data Analysis and Summary Dashboard",
+      "complexityScore": 8,
+      "recommendedSubtasks": 6,
+      "expansionPrompt": "Expand the dashboard implementation into subtasks covering: 1) dashboard layout and structure design, 2) account summary calculations, 3) transaction summary metrics, 4) dividend analysis features, 5) portfolio visualization charts, and 6) dashboard refresh mechanisms.",
+      "reasoning": "This task involves creating a comprehensive dashboard with multiple data visualization components. The complexity is high (8/10) due to the need for complex calculations, chart creation, and integration with multiple data sources. The task already has 6 subtasks which appear appropriate for the scope."
+    },
+    {
+      "taskId": 16,
+      "taskTitle": "Refactor: 1.1 Adopt a Consistent Modular Architecture",
+      "complexityScore": 9,
+      "recommendedSubtasks": 7,
+      "expansionPrompt": "Break down the modular architecture refactoring into subtasks covering: 1) folder structure creation, 2) API module implementation, 3) data processing module implementation, 4) UI module implementation, 5) utilities module implementation, 6) entry point refactoring, and 7) migration plan for existing code.",
+      "reasoning": "This refactoring task requires restructuring the entire codebase into a modular architecture. The complexity is very high (9/10) as it affects the entire application structure and requires careful planning to maintain functionality during the transition. It involves creating multiple modules with clear boundaries and responsibilities."
+    },
+    {
+      "taskId": 17,
+      "taskTitle": "Refactor: 1.2 Convert to Consistent Class-Based Architecture",
+      "complexityScore": 8,
+      "recommendedSubtasks": 6,
+      "expansionPrompt": "Divide the class-based architecture refactoring into subtasks covering: 1) core service class design, 2) data model class implementation, 3) UI component class conversion, 4) utility class creation, 5) integration testing for refactored classes, and 6) documentation of class architecture.",
+      "reasoning": "This task involves converting existing code to a consistent class-based architecture. The complexity is high (8/10) as it requires redesigning the code structure while maintaining functionality. It affects multiple components and requires careful planning to ensure all functionality is preserved during the transition."
+    },
+    {
+      "taskId": 18,
+      "taskTitle": "Refactor: 2.1 Implement Singleton Pattern for Service Classes",
+      "complexityScore": 4,
+      "recommendedSubtasks": 3,
+      "expansionPrompt": "Break down the singleton pattern implementation into subtasks covering: 1) singleton pattern design for core service classes, 2) instance management and initialization logic, and 3) integration with existing code that uses these services.",
+      "reasoning": "This task focuses on implementing the singleton pattern for service classes. The complexity is moderate (4/10) as it involves a specific design pattern implementation that affects a limited set of classes. The implementation is straightforward but requires careful integration with existing code."
+    },
+    {
+      "taskId": 19,
+      "taskTitle": "Refactor: 2.2 Use Factory Pattern for Sheet Creation",
+      "complexityScore": 5,
+      "recommendedSubtasks": 4,
+      "expansionPrompt": "Divide the factory pattern implementation into subtasks covering: 1) sheet factory class design, 2) sheet type class hierarchy implementation, 3) integration with existing sheet creation code, and 4) testing of factory pattern functionality.",
+      "reasoning": "This task involves implementing the factory pattern for sheet creation. The complexity is medium (5/10) as it requires creating a factory class and potentially multiple sheet type classes. It affects sheet creation throughout the application and requires careful integration with existing code."
+    },
+    {
+      "taskId": 20,
+      "taskTitle": "Refactor: 2.3 Implement Observer Pattern for UI Updates",
+      "complexityScore": 6,
+      "recommendedSubtasks": 5,
+      "expansionPrompt": "Break down the observer pattern implementation into subtasks covering: 1) event emitter class design, 2) observable component implementation, 3) observer implementation for UI components, 4) integration with existing UI update code, and 5) testing of observer pattern functionality.",
+      "reasoning": "This task focuses on implementing the observer pattern for UI updates. The complexity is moderate (6/10) as it involves creating an event system and modifying UI components to use this system. It affects multiple UI components and requires careful integration with existing code."
+    },
+    {
+      "taskId": 21,
+      "taskTitle": "Refactor: 3.1 Centralize API Configuration",
+      "complexityScore": 4,
+      "recommendedSubtasks": 3,
+      "expansionPrompt": "Divide the API configuration centralization into subtasks covering: 1) API configuration structure design, 2) extraction of existing configuration from code, and 3) integration with API client code.",
+      "reasoning": "This task involves centralizing API configuration into a single file. The complexity is moderate (4/10) as it requires identifying and extracting configuration from existing code. The implementation is straightforward but requires careful coordination with API client code."
+    },
+    {
+      "taskId": 22,
+      "taskTitle": "Refactor: 3.2 Create a Unified API Client",
+      "complexityScore": 7,
+      "recommendedSubtasks": 5,
+      "expansionPrompt": "Break down the unified API client implementation into subtasks covering: 1) API client class design, 2) request handling implementation, 3) authentication integration, 4) rate limiting integration, and 5) migration of existing API calls to use the new client.",
+      "reasoning": "This task involves creating a unified API client to handle all API interactions. The complexity is high (7/10) as it requires designing a comprehensive client that handles authentication, rate limiting, and various API endpoints. It affects all API interactions in the application."
+    },
+    {
+      "taskId": 23,
+      "taskTitle": "Refactor: 3.3 Implement Robust Rate Limiting",
+      "complexityScore": 6,
+      "recommendedSubtasks": 4,
+      "expansionPrompt": "Divide the rate limiting implementation into subtasks covering: 1) rate limiter class design, 2) backoff strategy implementation, 3) retry mechanism implementation, and 4) integration with API client.",
+      "reasoning": "This task focuses on implementing robust rate limiting with backoff and retry strategies. The complexity is moderate (6/10) as it requires designing algorithms for rate limiting and handling API request failures. It affects API interactions and requires careful integration with the API client."
+    },
+    {
+      "taskId": 24,
+      "taskTitle": "Refactor: 4.1 Create Data Model Classes",
+      "complexityScore": 7,
+      "recommendedSubtasks": 5,
+      "expansionPrompt": "Break down the data model classes implementation into subtasks covering: 1) base model class design, 2) specific model classes for each data type, 3) data processing methods implementation, 4) sheet conversion methods implementation, and 5) integration with existing data handling code.",
+      "reasoning": "This task involves creating data model classes to represent entities fetched from the API. The complexity is high (7/10) as it requires designing a class hierarchy and implementing data processing logic for multiple entity types. It affects data handling throughout the application."
+    },
+    {
+      "taskId": 25,
+      "taskTitle": "Refactor: 4.2 Implement Repository Pattern for Data Access",
+      "complexityScore": 8,
+      "recommendedSubtasks": 6,
+      "expansionPrompt": "Divide the repository pattern implementation into subtasks covering: 1) base repository class design, 2) specific repository classes for each data type, 3) data fetching methods implementation, 4) data saving methods implementation, 5) caching integration, and 6) migration of existing data access code.",
+      "reasoning": "This task involves implementing the repository pattern for data access and management. The complexity is high (8/10) as it requires designing a comprehensive data access layer that abstracts API and sheet interactions. It affects data handling throughout the application and requires integration with multiple components."
+    },
+    {
+      "taskId": 26,
+      "taskTitle": "Refactor: 4.3 Enhanced Caching Strategy",
+      "complexityScore": 5,
+      "recommendedSubtasks": 4,
+      "expansionPrompt": "Break down the caching strategy implementation into subtasks covering: 1) cache service class design, 2) TTL mechanism implementation, 3) cache invalidation methods, and 4) integration with repository classes.",
+      "reasoning": "This task focuses on implementing an enhanced caching service with TTL and invalidation mechanisms. The complexity is medium (5/10) as it requires designing caching algorithms and integrating with data access code. It affects performance and API usage throughout the application."
+    },
+    {
+      "taskId": 27,
+      "taskTitle": "Refactor: 5.1 Create a UI Controller",
+      "complexityScore": 6,
+      "recommendedSubtasks": 5,
+      "expansionPrompt": "Divide the UI controller implementation into subtasks covering: 1) UI controller class design, 2) modal dialog management implementation, 3) event handling integration, 4) UI state management, and 5) migration of existing UI code.",
+      "reasoning": "This task involves developing a dedicated UI controller to manage user interface interactions. The complexity is moderate (6/10) as it requires designing a controller that handles various UI components and events. It affects UI interactions throughout the application and requires integration with multiple components."
+    },
+    {
+      "taskId": 28,
+      "taskTitle": "Refactor: 5.2 Implement a Loading State Manager",
+      "complexityScore": 4,
+      "recommendedSubtasks": 3,
+      "expansionPrompt": "Break down the loading state manager implementation into subtasks covering: 1) loading manager class design, 2) UI update methods for loading states, and 3) integration with operations that require loading indicators.",
+      "reasoning": "This task focuses on implementing a loading state manager for UI feedback. The complexity is moderate (4/10) as it requires designing a system to track and display loading states. The implementation is relatively straightforward but requires integration with various operations."
+    },
+    {
+      "taskId": 29,
+      "taskTitle": "Refactor: 5.3 Create Reusable UI Components",
+      "complexityScore": 5,
+      "recommendedSubtasks": 4,
+      "expansionPrompt": "Divide the UI components implementation into subtasks covering: 1) component design and architecture, 2) core UI component implementation (buttons, indicators, etc.), 3) component styling and theming, and 4) integration with existing UI code.",
+      "reasoning": "This task involves developing reusable UI components to ensure consistency. The complexity is medium (5/10) as it requires designing and implementing multiple UI components with consistent styling. It affects UI throughout the application and requires careful design for reusability."
+    },
+    {
+      "taskId": 30,
+      "taskTitle": "Refactor: 6.1 Create a Centralized Error Handler",
+      "complexityScore": 6,
+      "recommendedSubtasks": 5,
+      "expansionPrompt": "Break down the centralized error handler implementation into subtasks covering: 1) error handler class design, 2) error type classification logic, 3) error logging implementation, 4) error recovery strategies, and 5) integration with application code.",
+      "reasoning": "This task involves developing a centralized error handler to manage errors consistently. The complexity is moderate (6/10) as it requires designing a system to handle various error types and determine appropriate actions. It affects error handling throughout the application and requires careful integration."
+    },
+    {
+      "taskId": 31,
+      "taskTitle": "Refactor: 6.2 Implement Custom Error Classes",
+      "complexityScore": 3,
+      "recommendedSubtasks": 3,
+      "expansionPrompt": "Divide the custom error classes implementation into subtasks covering: 1) base error class design, 2) specific error class implementation for different error types, and 3) integration with error handler.",
+      "reasoning": "This task focuses on creating custom error classes for different error types. The complexity is low (3/10) as it involves creating relatively simple class hierarchies. The implementation is straightforward and affects a limited part of the application."
+    },
+    {
+      "taskId": 32,
+      "taskTitle": "Refactor: 6.3 Implement Try-Catch Patterns",
+      "complexityScore": 5,
+      "recommendedSubtasks": 4,
+      "expansionPrompt": "Break down the try-catch patterns implementation into subtasks covering: 1) try-catch pattern design, 2) helper functions for safe operations, 3) context gathering for error handling, and 4) application-wide implementation in key areas.",
+      "reasoning": "This task involves implementing consistent try-catch patterns throughout the codebase. The complexity is medium (5/10) as it requires identifying key areas for implementation and ensuring consistent error handling. It affects multiple parts of the application and requires careful coordination."
+    },
+    {
+      "taskId": 33,
+      "taskTitle": "Refactor: 7.1 Implement Unit Testing",
+      "complexityScore": 7,
+      "recommendedSubtasks": 5,
+      "expansionPrompt": "Divide the unit testing implementation into subtasks covering: 1) test runner framework design, 2) assertion utilities implementation, 3) test organization structure, 4) initial test suite implementation for core functionality, and 5) test execution automation.",
+      "reasoning": "This task involves setting up a basic unit testing framework for Google Apps Script. The complexity is high (7/10) as it requires designing a testing framework that works within the constraints of Apps Script. It affects the development process and requires careful design for maintainability."
+    },
+    {
+      "taskId": 34,
+      "taskTitle": "Refactor: 7.2 Create Mock Objects for Testing",
+      "complexityScore": 5,
+      "recommendedSubtasks": 4,
+      "expansionPrompt": "Break down the mock objects implementation into subtasks covering: 1) mock object design principles, 2) core service mocks implementation (API client, sheet services), 3) mock data generation utilities, and 4) integration with test framework.",
+      "reasoning": "This task focuses on developing mock objects for testing. The complexity is medium (5/10) as it requires designing mock implementations of various services. It affects the testing process and requires careful design to simulate external dependencies accurately."
+    },
+    {
+      "taskId": 35,
+      "taskTitle": "Refactor: 7.3 Set Up Integration Tests",
+      "complexityScore": 6,
+      "recommendedSubtasks": 5,
+      "expansionPrompt": "Divide the integration tests setup into subtasks covering: 1) integration test framework design, 2) test environment setup, 3) core workflow test implementation, 4) API integration test implementation, and 5) UI integration test implementation.",
+      "reasoning": "This task involves establishing integration tests to verify component interactions. The complexity is moderate (6/10) as it requires designing tests that verify the interaction between different components. It affects the testing process and requires careful design to test system behavior as a whole."
+    },
+    {
+      "taskId": 36,
+      "taskTitle": "Refactor: 8.1 Standardize Code Documentation",
+      "complexityScore": 3,
+      "recommendedSubtasks": 3,
+      "expansionPrompt": "Break down the code documentation standardization into subtasks covering: 1) documentation style guide creation, 2) core module and class documentation implementation, and 3) function and method documentation implementation.",
+      "reasoning": "This task involves adopting a consistent JSDoc style for documentation. The complexity is low (3/10) as it primarily involves adding or updating documentation comments. It affects the entire codebase but is relatively straightforward to implement."
+    },
+    {
+      "taskId": 37,
+      "taskTitle": "Refactor: 8.2 Create Technical Documentation",
+      "complexityScore": 5,
+      "recommendedSubtasks": 4,
+      "expansionPrompt": "Divide the technical documentation creation into subtasks covering: 1) architecture documentation, 2) module and component documentation, 3) API and data flow documentation, and 4) configuration and deployment documentation.",
+      "reasoning": "This task involves creating comprehensive technical documentation. The complexity is medium (5/10) as it requires gathering and organizing technical information about various aspects of the application. It requires a good understanding of the entire system architecture."
+    },
+    {
+      "taskId": 38,
+      "taskTitle": "Refactor: 8.3 Create User Documentation",
+      "complexityScore": 4,
+      "recommendedSubtasks": 4,
+      "expansionPrompt": "Break down the user documentation creation into subtasks covering: 1) installation and setup guide, 2) feature usage documentation, 3) troubleshooting guide, and 4) FAQ and best practices.",
+      "reasoning": "This task involves developing user-friendly documentation. The complexity is moderate (4/10) as it requires creating clear and comprehensive guides for users. It requires understanding the user perspective and common usage patterns."
+    },
+    {
+      "taskId": 39,
+      "taskTitle": "Feature: 9.1 Enhanced Data Visualization",
+      "complexityScore": 8,
+      "recommendedSubtasks": 6,
+      "expansionPrompt": "Divide the data visualization implementation into subtasks covering: 1) chart generation framework design, 2) portfolio performance visualization, 3) asset allocation visualization, 4) transaction history visualization, 5) dividend visualization, and 6) dashboard integration.",
+      "reasoning": "This task involves implementing enhanced data visualization features. The complexity is high (8/10) as it requires designing and implementing various chart types and visualization components. It involves complex data processing and integration with Google Sheets' chart capabilities."
+    },
+    {
+      "taskId": 40,
+      "taskTitle": "Feature: 9.2 Scheduled Refreshes",
+      "complexityScore": 6,
+      "recommendedSubtasks": 5,
+      "expansionPrompt": "Break down the scheduled refreshes implementation into subtasks covering: 1) trigger management system design, 2) refresh configuration UI, 3) automated refresh execution, 4) notification system for refresh status, and 5) refresh history logging.",
+      "reasoning": "This task involves adding functionality for scheduled data refreshes. The complexity is moderate (6/10) as it requires working with time-based triggers and implementing configuration options. It involves integration with existing data fetching functionality and notification systems."
+    },
+    {
+      "taskId": 41,
+      "taskTitle": "Feature: 9.3 Portfolio Analysis",
+      "complexityScore": 9,
+      "recommendedSubtasks": 7,
+      "expansionPrompt": "Divide the portfolio analysis implementation into subtasks covering: 1) performance metrics calculation, 2) sector allocation analysis, 3) dividend tracking and forecasting, 4) risk assessment tools, 5) benchmark comparison, 6) historical performance analysis, and 7) analysis dashboard integration.",
+      "reasoning": "This task involves implementing portfolio analysis tools. The complexity is very high (9/10) as it requires designing and implementing various financial analysis algorithms and visualizations. It involves complex calculations and integration with multiple data sources."
+    },
+    {
+      "taskId": 42,
+      "taskTitle": "Feature: 9.4 Mobile Compatibility",
+      "complexityScore": 6,
+      "recommendedSubtasks": 5,
+      "expansionPrompt": "Break down the mobile compatibility implementation into subtasks covering: 1) responsive design framework implementation, 2) mobile-friendly UI component adaptation, 3) touch interaction optimization, 4) mobile layout testing, and 5) performance optimization for mobile devices.",
+      "reasoning": "This task involves optimizing the user interface for mobile use. The complexity is moderate (6/10) as it requires implementing responsive design principles and adapting UI components. It affects the entire user interface and requires testing on various device sizes."
+    },
+    {
+      "taskId": 43,
+      "taskTitle": "Feature: 9.5 Data Export Options",
+      "complexityScore": 7,
+      "recommendedSubtasks": 5,
+      "expansionPrompt": "Divide the data export implementation into subtasks covering: 1) export format handler design, 2) CSV export implementation, 3) PDF export implementation, 4) email delivery system, and 5) custom report template system.",
+      "reasoning": "This task involves adding functionality for data export in various formats. The complexity is high (7/10) as it requires implementing multiple export formats and delivery methods. It involves working with different data formats and potentially external services for PDF generation."
+    }
+  ]
+}

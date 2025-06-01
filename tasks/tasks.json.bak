@@ -1,0 +1,675 @@
+{
+  "tasks": [
+    {
+      "id": 1,
+      "title": "API Client Refactoring",
+      "description": "Centralize API interactions into a robust client that handles errors, retries, and caching consistently.",
+      "details": "Create a Trading212ApiClient class that will handle all API interactions with the following features:\n- Consistent error handling and retry logic\n- Request rate limiting to avoid API throttling\n- Response caching to improve performance\n- Proper authentication handling\n\nImplementation should include:\n1. Constructor that accepts environment parameter (demo/live)\n2. Methods for different API endpoints (get, post, etc.)\n3. Cache management using CacheService\n4. Exponential backoff for retries\n5. Proper URL construction and parameter handling\n6. Authentication header management",
+      "testStrategy": "1. Unit test the client with mock responses\n2. Test cache functionality by verifying cached responses are returned\n3. Test retry logic by simulating network failures\n4. Test rate limiting by making rapid sequential requests\n5. Verify proper URL construction with different parameter combinations\n6. Test with both demo and live environments (using appropriate API keys)",
+      "priority": "high",
+      "dependencies": [],
+      "status": "deferred",
+      "subtasks": []
+    },
+    {
+      "id": 2,
+      "title": "Data Model & Repository Implementation",
+      "description": "Create proper data models and repository classes for different entity types.",
+      "details": "Implement a structured data model approach with:\n\n1. Model classes for each entity type (Pies, PieItems, Transactions, Dividends, etc.)\n   - Each model should handle data validation and transformation\n   - Include getters for derived properties\n\n2. Repository classes for each model type:\n   - fetchAll() method to retrieve all entities\n   - getById() method for single entity retrieval\n   - saveToSheet() method to persist data to specific sheets\n   - getRecent() method for time-based filtering\n\n3. Data transformation methods to convert between API responses and sheet formats\n\nEach repository should use the ApiClient for data fetching and handle the conversion between raw API data and model objects.",
+      "testStrategy": "1. Create unit tests for each model class to verify proper data transformation\n2. Test repositories with mock API responses\n3. Verify data persistence by checking sheet output\n4. Test edge cases like empty responses or malformed data\n5. Verify that repositories correctly handle API client errors",
+      "priority": "high",
+      "dependencies": [
+        1
+      ],
+      "status": "deferred",
+      "subtasks": []
+    },
+    {
+      "id": 3,
+      "title": "Enhanced Error Handling & Logging",
+      "description": "Implement robust error handling with user-friendly messages and comprehensive logging.",
+      "details": "Create an ErrorHandler class with the following features:\n\n1. Standardized error codes and user-friendly messages\n2. Comprehensive error logging to a dedicated sheet\n3. Context-aware error handling that provides appropriate guidance\n4. Different handling strategies for different error types:\n   - Authentication errors\n   - Network/timeout errors\n   - Rate limiting errors\n   - Data processing errors\n   - Permission errors\n\nImplement a centralized logging system that records:\n- Timestamp\n- Error location/context\n- Error type and message\n- Additional context information\n\nEnsure all user-facing error messages are clear and actionable.",
+      "testStrategy": "1. Test each error type to verify proper handling\n2. Verify error logging works correctly\n3. Check that user-facing messages are appropriate and helpful\n4. Test integration with other components to ensure errors are properly caught and handled\n5. Verify that sensitive information is not exposed in error messages",
+      "priority": "medium",
+      "dependencies": [],
+      "status": "deferred",
+      "subtasks": []
+    },
+    {
+      "id": 4,
+      "title": "Portfolio Overview Dashboard",
+      "description": "Create a comprehensive dashboard sheet with key portfolio metrics.",
+      "details": "Implement a Portfolio Dashboard sheet with the following sections:\n\n1. Portfolio Summary section:\n   - Total value, cash balance, invested amount\n   - Total return and return percentage\n   - Key performance metrics\n\n2. Weighted Total Return (WTR) chart:\n   - Calculate WTR based on deposits and withdrawals\n   - Display chart showing portfolio value vs. cumulative deposits\n   - Include time-series visualization\n\n3. Allocation chart section:\n   - Pie chart showing allocation by instrument type\n   - Percentage breakdown of portfolio\n\n4. Recent Activity section:\n   - List of most recent transactions\n   - Summary of recent changes\n\nEnsure all charts and data visualizations are properly formatted and labeled. Use appropriate number formatting for currency values and percentages.",
+      "testStrategy": "1. Test with various portfolio data to ensure correct calculations\n2. Verify chart generation works with different data sets\n3. Check formatting and layout on different screen sizes\n4. Test with edge cases (empty portfolio, very large portfolios)\n5. Verify that the dashboard updates correctly when underlying data changes",
+      "priority": "high",
+      "dependencies": [
+        2
+      ],
+      "status": "deferred",
+      "subtasks": []
+    },
+    {
+      "id": 5,
+      "title": "Investment Performance Analysis",
+      "description": "Add tools for analyzing investment performance across different time periods.",
+      "details": "Create a Performance Analysis sheet with the following features:\n\n1. Performance Overview section:\n   - Total return, return percentage, annualized return\n   - Volatility and Sharpe ratio calculations\n\n2. Time Period Analysis section:\n   - Performance metrics for different time frames (1D, 1W, 1M, 3M, 6M, YTD, 1Y, All)\n   - Comparison chart of returns by time period\n\n3. Top Performers section:\n   - List of best performing holdings with return metrics\n   - Sortable by different metrics\n\n4. Bottom Performers section:\n   - List of worst performing holdings with return metrics\n\nImplement helper functions to calculate:\n- Performance metrics based on historical data\n- Time-weighted returns\n- Performance by timeframe\n- Individual holding performance with cost basis calculation",
+      "testStrategy": "1. Test calculations with known portfolio data and verify results\n2. Check edge cases like newly added positions or recently sold positions\n3. Verify time period calculations with different date ranges\n4. Test with various portfolio compositions\n5. Verify that performance metrics match expected financial calculations",
+      "priority": "high",
+      "dependencies": [
+        2,
+        4
+      ],
+      "status": "deferred",
+      "subtasks": []
+    },
+    {
+      "id": 6,
+      "title": "Streamlined Setup Wizard",
+      "description": "Enhance the setup process with clearer steps, better guidance, and improved error handling.",
+      "details": "Create an improved setup wizard with the following features:\n\n1. Multi-step wizard interface:\n   - Welcome/introduction step\n   - Environment selection (demo/live)\n   - API key configuration\n   - Sheet setup and configuration\n\n2. Visual step indicator to show progress\n\n3. Clear instructions and guidance at each step\n\n4. Improved error handling with specific guidance for common issues\n\n5. Environment selection with clear descriptions of each option\n\nImplement using HTML service with a responsive design that works well on different screen sizes. Use MaterializeCSS or similar framework for UI components.",
+      "testStrategy": "1. Test the wizard flow from start to finish\n2. Verify error handling for invalid inputs\n3. Test with different environments (demo/live)\n4. Check UI rendering on different screen sizes\n5. Verify that configuration is properly saved\n6. Test the wizard with both new and existing installations",
+      "priority": "medium",
+      "dependencies": [
+        3
+      ],
+      "status": "deferred",
+      "subtasks": []
+    },
+    {
+      "id": 7,
+      "title": "Data Refresh Dashboard",
+      "description": "Create a centralized dashboard for refreshing data with status indicators.",
+      "details": "Implement a data refresh dashboard with the following features:\n\n1. Status indicators for each data type showing:\n   - Last refresh time\n   - Refresh status (success/failure)\n   - Staleness indicator\n\n2. One-click refresh buttons for individual data types\n\n3. Refresh all button for updating everything at once\n\n4. Progress tracking during refresh operations\n\n5. Refresh history log\n\nImplement helper functions to:\n- Get refresh status for each data type\n- Determine if data is stale based on last refresh time\n- Format last refresh time in a user-friendly way\n- Log refresh attempts and results",
+      "testStrategy": "1. Test refresh functionality for each data type\n2. Verify status indicators update correctly\n3. Test with simulated API failures to check error handling\n4. Verify refresh history logging\n5. Test staleness detection with different timeframes",
+      "priority": "medium",
+      "dependencies": [
+        1
+      ],
+      "status": "deferred",
+      "subtasks": []
+    },
+    {
+      "id": 8,
+      "title": "Improved Data Fetch Modal",
+      "description": "Enhance the data fetch modal with better progress tracking and feedback.",
+      "details": "Create an enhanced data fetch modal with:\n\n1. Detailed data type selection with descriptions:\n   - Investment Pies\n   - Account Information\n   - Cash Balance\n   - Transactions\n   - Order History\n   - Dividends\n\n2. Real-time progress tracking for each data type\n\n3. Clear success/failure indicators\n\n4. Detailed error messages when fetches fail\n\n5. Summary of changes after fetch completes\n\nImplement using HTML service with a responsive design. Use a step-based approach with selection first, then progress tracking.",
+      "testStrategy": "1. Test selection of different data type combinations\n2. Verify progress tracking updates in real-time\n3. Test with simulated API failures to check error handling\n4. Verify UI updates correctly as fetch progresses\n5. Test cancellation functionality",
+      "priority": "medium",
+      "dependencies": [
+        1,
+        3
+      ],
+      "status": "deferred",
+      "subtasks": []
+    },
+    {
+      "id": 9,
+      "title": "Dividend & Income Tracker",
+      "description": "Create specialized tools for tracking and analyzing dividend income.",
+      "details": "Implement a comprehensive Dividend Tracker sheet with:\n\n1. Dividend Summary section:\n   - Total dividend income (all time, YTD, last 12 months)\n   - Monthly average\n   - Number of dividend-paying stocks\n   - Portfolio dividend yield\n\n2. Monthly Dividend section:\n   - Chart showing income by month\n   - Monthly breakdown with count and average\n\n3. Dividend by Stock section:\n   - List of stocks with dividend metrics\n   - Total income, payment count, average, yield\n   - Chart of top dividend payers\n\n4. Dividend Calendar:\n   - Visual calendar showing payment patterns\n   - Month-by-month view of expected dividends\n\n5. Dividend Forecast:\n   - Projection of expected dividends for next 12 months\n   - Based on historical payment patterns\n\nImplement helper functions to analyze dividend data, calculate metrics, and generate forecasts.",
+      "testStrategy": "1. Test with various dividend datasets\n2. Verify calculations for different time periods\n3. Test calendar generation with different payment patterns\n4. Verify forecast calculations\n5. Test with edge cases (no dividends, many dividends)\n6. Check chart generation with different data sets",
+      "priority": "high",
+      "dependencies": [
+        2
+      ],
+      "status": "deferred",
+      "subtasks": []
+    },
+    {
+      "id": 10,
+      "title": "Scheduled Data Refreshes",
+      "description": "Enable automatic data refreshes on a schedule.",
+      "details": "Implement scheduled data refresh functionality with:\n\n1. Configuration UI for setting refresh frequency:\n   - Hourly\n   - Daily\n   - Weekly\n\n2. Data type selection for scheduled refreshes\n\n3. Trigger management to create/update/delete time-based triggers\n\n4. Refresh execution function that runs on schedule\n\n5. Logging of scheduled refresh attempts and results\n\nUse ScriptApp.newTrigger() to create time-based triggers based on user configuration. Store configuration in UserProperties.",
+      "testStrategy": "1. Test trigger creation with different frequencies\n2. Verify scheduled execution works as expected\n3. Test configuration changes and trigger updates\n4. Verify logging of scheduled refreshes\n5. Test with different data type selections",
+      "priority": "medium",
+      "dependencies": [
+        1
+      ],
+      "status": "deferred",
+      "subtasks": []
+    },
+    {
+      "id": 11,
+      "title": "Portfolio Report Generation",
+      "description": "Create customizable portfolio reports that can be exported or emailed.",
+      "details": "Implement portfolio report generation with:\n\n1. Multiple report types:\n   - Summary report (overview of portfolio)\n   - Detailed report (comprehensive analysis)\n   - Tax report (for tax preparation)\n\n2. Export options:\n   - HTML format\n   - PDF format\n\n3. Email delivery option\n\n4. Customization options for each report type\n\nImplement helper functions to:\n- Generate report data for each report type\n- Create HTML templates for reports\n- Convert HTML to PDF when needed\n- Send email with attached reports",
+      "testStrategy": "1. Test generation of each report type\n2. Verify PDF conversion works correctly\n3. Test email delivery\n4. Check report formatting and layout\n5. Verify calculations in reports match spreadsheet data\n6. Test with different portfolio data",
+      "priority": "medium",
+      "dependencies": [
+        4,
+        5
+      ],
+      "status": "deferred",
+      "subtasks": []
+    },
+    {
+      "id": 12,
+      "title": "Interactive Charts & Visualizations",
+      "description": "Add interactive charts and visualizations for better data exploration.",
+      "details": "Create a dedicated Charts sheet with enhanced visualizations:\n\n1. Portfolio Value Chart:\n   - Line chart showing portfolio value over time\n   - Clear formatting and labels\n   - Appropriate date and value scales\n\n2. Return Comparison Chart:\n   - Bar chart comparing returns across different time periods\n   - Percentage-based visualization\n\n3. Holdings Comparison Chart:\n   - Bar chart showing top holdings by value\n   - Clear formatting and sorting\n\nImplement helper functions to:\n- Prepare data for each chart type\n- Create and configure charts with appropriate options\n- Format data for optimal visualization\n\nNote: While true interactivity is limited in Google Sheets, focus on creating comprehensive, well-formatted charts that provide clear insights.",
+      "testStrategy": "1. Test chart generation with different data sets\n2. Verify formatting and layout\n3. Check charts render correctly with various portfolio compositions\n4. Test with edge cases (empty data, very large data sets)\n5. Verify charts update when underlying data changes",
+      "priority": "medium",
+      "dependencies": [
+        4,
+        5,
+        9
+      ],
+      "status": "deferred",
+      "subtasks": []
+    },
+    {
+      "id": 13,
+      "title": "Theme Customization",
+      "description": "Add options for customizing the application theme.",
+      "details": "Implement theme customization with:\n\n1. Multiple theme options:\n   - Light theme (default)\n   - Dark theme\n   - High contrast theme\n\n2. Theme settings UI:\n   - Theme selection with previews\n   - Save/apply functionality\n\n3. CSS generation based on theme settings\n\n4. Theme persistence using UserProperties\n\nImplement using CSS variables to allow easy theme switching. Create a theme settings modal that allows users to preview and select themes.",
+      "testStrategy": "1. Test theme switching between all available themes\n2. Verify theme persistence across sessions\n3. Check UI rendering with each theme\n4. Test theme settings UI\n5. Verify CSS generation for different themes",
+      "priority": "medium",
+      "dependencies": [],
+      "status": "deferred",
+      "subtasks": []
+    },
+    {
+      "id": 14,
+      "title": "Mobile-Friendly UI Improvements",
+      "description": "Enhance the UI to be more usable on mobile devices, within the limitations of Google Sheets.",
+      "details": "Implement mobile-friendly UI improvements:\n\n1. Responsive CSS for all HTML templates:\n   - Flexible layouts that adapt to screen size\n   - Larger touch targets for mobile\n   - Simplified UI for small screens\n\n2. Viewport meta tag for proper scaling\n\n3. Mobile-optimized form elements:\n   - Larger input fields\n   - Touch-friendly controls\n   - Appropriate font sizes\n\n4. Simplified layouts for small screens:\n   - Stack elements vertically\n   - Reduce padding/margins\n   - Hide non-essential elements\n\nCreate a mobile-specific CSS file that will be included in all HTML templates.",
+      "testStrategy": "1. Test UI rendering on different screen sizes\n2. Verify touch interactions work well on mobile\n3. Check form usability on small screens\n4. Test with different mobile browsers\n5. Verify viewport scaling works correctly",
+      "priority": "medium",
+      "dependencies": [],
+      "status": "deferred",
+      "subtasks": []
+    },
+    {
+      "id": 15,
+      "title": "Context-Sensitive Help",
+      "description": "Add in-app help and guidance for users.",
+      "details": "Implement a comprehensive help system with:\n\n1. Tooltips for UI elements:\n   - Contextual explanations of features\n   - Implementation guidance\n\n2. Step-by-step tutorials:\n   - Setup tutorial\n   - Data refresh tutorial\n   - Analysis tutorial\n\n3. FAQ section with common questions and answers\n\n4. Help modal accessible from the menu\n\nCreate a centralized help system object that manages all help content. Implement functions to show tooltips, start tutorials, and display the FAQ.",
+      "testStrategy": "1. Test tooltip display for different UI elements\n2. Verify tutorial flow works correctly\n3. Check FAQ content is displayed properly\n4. Test help modal accessibility\n5. Verify help content is accurate and helpful",
+      "priority": "medium",
+      "dependencies": [],
+      "status": "deferred",
+      "subtasks": []
+    },
+    {
+      "id": 16,
+      "title": "API Client Refactoring",
+      "description": "Centralize API interactions into a robust client that handles errors, retries, and caching consistently.",
+      "details": "Create a Trading212ApiClient class that will handle all API interactions with the following features:\n1. Consistent error handling with retry logic\n2. Response caching to minimize API calls\n3. Rate limiting management\n4. Proper authentication handling\n5. URL construction and parameter handling\n\nThe client should support different environments (demo/live) and maintain a clean interface for all API operations. Implement methods for handling GET requests initially, with the ability to extend for other HTTP methods later.\n\nKey methods should include:\n- Constructor that accepts environment parameter\n- get() method with caching options\n- Private helper methods for cache management\n- Retry logic with exponential backoff\n- Error categorization and handling",
+      "testStrategy": "1. Unit test the client with mocked responses for success and error cases\n2. Test cache functionality by verifying cached responses are returned when available\n3. Verify retry logic works by simulating network failures\n4. Test rate limiting by sending multiple requests in succession\n5. Verify proper URL construction with various parameter combinations\n6. Test environment switching between demo and live",
+      "priority": "high",
+      "dependencies": [],
+      "status": "done",
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "API Client Refactoring",
+          "description": "Centralize API interactions into a robust client that handles errors, retries, and caching consistently. Complexity: C3, Priority: P1.",
+          "details": "",
+          "status": "pending",
+          "dependencies": [],
+          "parentTaskId": 16
+        },
+        {
+          "id": 2,
+          "title": "Data Model & Repository Implementation",
+          "description": "Create proper data models and repository classes for different entity types. Complexity: C3, Priority: P2.",
+          "details": "",
+          "status": "pending",
+          "dependencies": [
+            "16.1"
+          ],
+          "parentTaskId": 16
+        },
+        {
+          "id": 3,
+          "title": "Enhanced Error Handling & Logging",
+          "description": "Implement robust error handling with user-friendly messages and comprehensive logging. Complexity: C2, Priority: P2.",
+          "details": "",
+          "status": "pending",
+          "dependencies": [],
+          "parentTaskId": 16
+        }
+      ]
+    },
+    {
+      "id": 17,
+      "title": "Data Model & Repository Implementation",
+      "description": "Create proper data models and repository classes for different entity types to standardize data handling across the application.",
+      "details": "Implement a structured data layer with model classes and repositories:\n\n1. Create model classes for each entity type (Pies, PieItems, Transactions, Dividends, etc.) that:\n   - Parse raw API data into structured objects\n   - Provide validation and data transformation methods\n   - Include calculated properties where appropriate\n\n2. Implement repository classes for each entity type that:\n   - Use the ApiClient for data fetching\n   - Transform raw data into model instances\n   - Handle saving data to appropriate sheets\n   - Provide methods for querying and filtering data\n\nEach repository should follow a consistent pattern with methods like:\n- fetchAll() - Get all entities\n- getById() - Get a specific entity\n- saveToSheet() - Persist data to Google Sheets\n- getRecent() - Get most recent entities\n\nRepositories should handle the translation between API data format and the application's internal data structures.",
+      "testStrategy": "1. Unit test model classes with sample API responses to verify correct parsing\n2. Test repository methods with mocked API client responses\n3. Verify data transformation logic correctly converts between formats\n4. Test sheet writing functionality with mock sheet objects\n5. Verify filtering and query methods return expected results\n6. Test error handling when API returns unexpected data formats",
+      "priority": "medium",
+      "dependencies": [
+        16
+      ],
+      "status": "done",
+      "subtasks": []
+    },
+    {
+      "id": 18,
+      "title": "Enhanced Error Handling & Logging",
+      "description": "Implement robust error handling with user-friendly messages and comprehensive logging throughout the application.",
+      "details": "Create a centralized error handling system that:\n\n1. Defines standard error types and codes for the application\n2. Provides user-friendly error messages for different error scenarios\n3. Logs detailed error information for troubleshooting\n4. Creates an error log sheet for persistent error history\n\nImplement an ErrorHandler class with static methods:\n- handle() - Process errors and return appropriate user messages\n- logToSheet() - Record errors to a dedicated error log sheet\n- getUserMessage() - Map technical errors to user-friendly messages\n\nThe error handler should categorize errors into types like:\n- API authentication errors\n- Rate limiting errors\n- Network/timeout errors\n- Server errors\n- Data processing errors\n- Permission errors\n\nEach error should have a unique code, user-friendly message, and logging mechanism.",
+      "testStrategy": "1. Test error handling with various error types to verify correct categorization\n2. Verify error logging correctly records to the error log sheet\n3. Test user message generation for different error scenarios\n4. Verify error handling doesn't break application flow\n5. Test integration with API client error handling\n6. Verify error details are properly sanitized for user display",
+      "priority": "medium",
+      "dependencies": [],
+      "status": "done",
+      "subtasks": []
+    },
+    {
+      "id": 19,
+      "title": "Portfolio Overview Dashboard",
+      "description": "Create a comprehensive dashboard sheet with key portfolio metrics, charts, and summary information.",
+      "details": "Implement a Portfolio Dashboard sheet that provides a complete overview of the user's portfolio with the following sections:\n\n1. Portfolio Summary section:\n   - Total portfolio value\n   - Cash balance\n   - Invested amount\n   - Total return (absolute and percentage)\n\n2. Weighted Total Return (WTR) chart section:\n   - Calculate WTR based on deposits and withdrawals\n   - Create line chart showing portfolio value vs. cumulative deposits\n   - Display WTR over time\n\n3. Allocation chart section:\n   - Pie chart showing portfolio allocation by instrument type\n   - Display percentage and value for each category\n\n4. Recent Activity section:\n   - List of most recent transactions\n   - Include date, type, ticker, description, and amount\n\nImplement helper functions for each section that:\n- Fetch required data using repository classes\n- Calculate necessary metrics\n- Format data appropriately for display\n- Create and configure charts\n\nEnsure the dashboard is visually appealing with proper formatting, headers, and layout.",
+      "testStrategy": "1. Test dashboard creation with sample portfolio data\n2. Verify calculations for portfolio metrics are correct\n3. Test WTR calculation with various deposit/withdrawal scenarios\n4. Verify charts are created with correct data and formatting\n5. Test with different portfolio compositions to ensure allocation chart works correctly\n6. Verify dashboard updates correctly when refreshing data",
+      "priority": "high",
+      "dependencies": [
+        17
+      ],
+      "status": "pending",
+      "subtasks": []
+    },
+    {
+      "id": 20,
+      "title": "Investment Performance Analysis",
+      "description": "Add tools for analyzing investment performance across different time periods with detailed metrics and visualizations.",
+      "details": "Create a Performance Analysis sheet with comprehensive investment performance metrics:\n\n1. Performance Overview section:\n   - Total return (absolute and percentage)\n   - Annualized return\n   - Volatility\n   - Sharpe ratio\n\n2. Performance by Time Period section:\n   - Calculate returns for standard periods (1D, 1W, 1M, 3M, 6M, YTD, 1Y, All)\n   - Show start value, end value, absolute change, and percentage change\n   - Create bar chart comparing performance across periods\n\n3. Top Performers section:\n   - List top 5 holdings by return percentage\n   - Show ticker, name, value, absolute return, and percentage return\n\n4. Bottom Performers section:\n   - List bottom 5 holdings by return percentage\n   - Show ticker, name, value, absolute return, and percentage return\n\nImplement helper functions to:\n- Calculate performance metrics using portfolio history data\n- Determine performance for different time periods\n- Calculate holding-level performance using transaction history\n- Format data appropriately for display\n\nEnsure all calculations handle edge cases (e.g., no data for certain periods, zero values).",
+      "testStrategy": "1. Test performance calculations with sample portfolio data\n2. Verify time period calculations with different date ranges\n3. Test annualized return and volatility calculations\n4. Verify top/bottom performers identification is correct\n5. Test with different portfolio compositions and time periods\n6. Verify calculations match expected results from manual calculations",
+      "priority": "high",
+      "dependencies": [
+        17,
+        19
+      ],
+      "status": "pending",
+      "subtasks": []
+    },
+    {
+      "id": 21,
+      "title": "Streamlined Setup Wizard",
+      "description": "Enhance the setup process with clearer steps, better guidance, and improved error handling for new users.",
+      "details": "Create an improved setup wizard with a step-by-step guided process:\n\n1. Design a multi-step setup flow with clear progression:\n   - Welcome/introduction\n   - Environment selection (demo/live)\n   - API key configuration\n   - Initial data fetch options\n   - Setup completion\n\n2. Implement a responsive HTML interface with:\n   - Step indicator showing progress\n   - Clear instructions at each step\n   - Back/Next navigation\n   - Visual cues for environment selection\n   - Proper validation at each step\n\n3. Add helpful context:\n   - Explanations of each environment option\n   - Guidance on where to find API keys\n   - Clear indication of what will happen at each step\n\n4. Integrate with error handling to provide clear feedback when issues occur\n\nThe wizard should save user preferences and configuration to PropertiesService for persistence between sessions.",
+      "testStrategy": "1. Test the wizard flow with both valid and invalid inputs\n2. Verify navigation between steps works correctly\n3. Test environment selection and configuration\n4. Verify API key validation works correctly\n5. Test error handling and user feedback\n6. Verify preferences are correctly saved to PropertiesService\n7. Test the complete setup process end-to-end",
+      "priority": "medium",
+      "dependencies": [
+        18
+      ],
+      "status": "pending",
+      "subtasks": []
+    },
+    {
+      "id": 22,
+      "title": "Data Refresh Dashboard",
+      "description": "Create a centralized dashboard for refreshing data with status indicators and refresh history.",
+      "details": "Implement a Data Refresh Dashboard that provides a central interface for managing data refreshes:\n\n1. Create a modal interface showing:\n   - Last refresh time for each data type\n   - Status indicators (up-to-date, stale, never refreshed)\n   - Buttons to refresh individual data types or all data\n\n2. Implement refresh status tracking:\n   - Store last refresh timestamps in UserProperties\n   - Calculate staleness based on time since last refresh\n   - Format timestamps in a user-friendly way (e.g., \"5 minutes ago\")\n\n3. Add a refresh log sheet that records:\n   - Timestamp of refresh attempts\n   - Data types refreshed\n   - Success/failure status\n   - Error messages if applicable\n\n4. Create helper functions to:\n   - Get refresh status for all data types\n   - Format timestamps in relative time\n   - Determine if data is stale based on configurable thresholds\n\nThe dashboard should provide clear visual indicators of data freshness and make it easy to update specific data types as needed.",
+      "testStrategy": "1. Test refresh status calculation with various timestamps\n2. Verify staleness detection works correctly\n3. Test refresh logging functionality\n4. Verify UI updates correctly after refreshes\n5. Test with multiple data types to ensure all are tracked correctly\n6. Verify timestamp formatting for different time periods",
+      "priority": "medium",
+      "dependencies": [
+        16
+      ],
+      "status": "pending",
+      "subtasks": []
+    },
+    {
+      "id": 23,
+      "title": "Improved Data Fetch Modal",
+      "description": "Enhance the data fetch modal with better progress tracking, feedback, and options for data selection.",
+      "details": "Create an enhanced data fetch modal with improved user experience:\n\n1. Design a two-step modal interface:\n   - Step 1: Data selection with clear descriptions and icons\n   - Step 2: Progress tracking during fetch\n\n2. Implement data selection features:\n   - Checkboxes for each data type with descriptive text\n   - Icons to visually distinguish data types\n   - Select all/none options\n   - Remember previous selections\n\n3. Add detailed progress tracking:\n   - Real-time updates during fetch process\n   - Individual status indicators for each data type\n   - Error messages for failed fetches\n   - Summary of results when complete\n\n4. Integrate with the API client and error handling:\n   - Show appropriate error messages when issues occur\n   - Allow retrying failed fetches\n   - Update refresh status after successful fetches\n\nThe modal should provide a clear, user-friendly interface for selecting and fetching data with appropriate feedback throughout the process.",
+      "testStrategy": "1. Test the modal interface with various data type selections\n2. Verify progress tracking updates correctly during fetches\n3. Test error handling and display of error messages\n4. Verify retry functionality works for failed fetches\n5. Test with slow network conditions to ensure progress updates work\n6. Verify refresh status is updated after successful fetches",
+      "priority": "medium",
+      "dependencies": [
+        16,
+        18
+      ],
+      "status": "pending",
+      "subtasks": []
+    },
+    {
+      "id": 24,
+      "title": "Dividend & Income Tracker",
+      "description": "Create specialized tools for tracking and analyzing dividend income with visualizations and forecasting.",
+      "details": "Implement a comprehensive Dividend Tracker sheet with multiple sections for dividend analysis:\n\n1. Dividend Summary section:\n   - Total dividend income (all time, YTD, last 12 months)\n   - Monthly average dividends\n   - Number of dividend-paying stocks\n   - Portfolio dividend yield\n\n2. Monthly Dividend section:\n   - Monthly breakdown of dividend income\n   - Count of payments per month\n   - Average payment per month\n   - Bar chart showing monthly distribution\n\n3. Dividend by Stock section:\n   - List of stocks with dividend information\n   - Total income per stock\n   - Number of payments\n   - Average payment\n   - Yield per stock\n   - Pie chart of top dividend payers\n\n4. Dividend Calendar section:\n   - Visual calendar showing payment patterns\n   - Month-by-ticker grid with indicators\n   - Color coding for payment months\n\n5. Dividend Forecast section:\n   - Projection of expected dividends for next 12 months\n   - Based on historical payment patterns\n   - Separate confirmed vs. projected payments\n   - Monthly forecast chart\n\nImplement helper functions to:\n- Analyze dividend history and calculate metrics\n- Group dividends by month and stock\n- Create dividend calendar data\n- Generate dividend forecasts based on historical patterns",
+      "testStrategy": "1. Test dividend calculations with sample dividend history\n2. Verify monthly grouping and calculations\n3. Test stock-level dividend metrics\n4. Verify calendar generation with various dividend patterns\n5. Test forecast calculations with different historical data\n6. Verify charts and visualizations display correctly\n7. Test with edge cases (no dividends, single dividend stock, etc.)",
+      "priority": "high",
+      "dependencies": [
+        17
+      ],
+      "status": "pending",
+      "subtasks": []
+    },
+    {
+      "id": 25,
+      "title": "Scheduled Data Refreshes",
+      "description": "Enable automatic data refreshes on a schedule with configuration options and refresh logging.",
+      "details": "Implement a system for scheduling automatic data refreshes:\n\n1. Create a scheduling interface that allows users to:\n   - Select refresh frequency (hourly, daily, weekly)\n   - Choose which data types to refresh automatically\n   - Enable/disable scheduled refreshes\n\n2. Implement trigger management:\n   - Create time-based triggers using ScriptApp\n   - Remove existing triggers when changing schedule\n   - Store trigger configuration in UserProperties\n\n3. Create the refresh execution function:\n   - Read configuration from UserProperties\n   - Refresh selected data types\n   - Handle errors appropriately\n   - Log refresh attempts and results\n\n4. Add a refresh log to track:\n   - Timestamp of scheduled refreshes\n   - Data types refreshed\n   - Success/failure status\n   - Error details if applicable\n\nThe system should handle edge cases like script timeouts and provide a reliable way to keep data updated automatically.",
+      "testStrategy": "1. Test trigger creation with different frequency settings\n2. Verify trigger removal works when changing schedule\n3. Test the refresh execution function with various data type selections\n4. Verify error handling during scheduled refreshes\n5. Test logging of refresh attempts and results\n6. Verify configuration is correctly stored and retrieved",
+      "priority": "medium",
+      "dependencies": [
+        16
+      ],
+      "status": "pending",
+      "subtasks": []
+    },
+    {
+      "id": 26,
+      "title": "Portfolio Report Generation",
+      "description": "Create customizable portfolio reports that can be exported or emailed with various formats and content options.",
+      "details": "Implement a portfolio report generation system with multiple report types and export options:\n\n1. Create report templates for different report types:\n   - Summary report with key portfolio metrics\n   - Detailed report with comprehensive portfolio information\n   - Tax report focused on realized gains and dividend income\n\n2. Implement data gathering functions for each report type:\n   - Summary report data (account info, performance metrics, top holdings)\n   - Detailed report data (all holdings, transactions, performance by timeframe)\n   - Tax report data (realized gains/losses, dividend income for specified year)\n\n3. Add export options:\n   - HTML format for viewing\n   - PDF format for downloading/printing\n   - Email delivery\n\n4. Create helper functions for:\n   - Calculating realized gains/losses using FIFO method\n   - Formatting report data appropriately\n   - Generating HTML content from templates\n   - Converting HTML to PDF\n   - Sending email with attachments\n\nThe system should provide flexible, professional-looking reports that can be customized based on user needs.",
+      "testStrategy": "1. Test report generation with sample portfolio data\n2. Verify calculations for each report type are correct\n3. Test PDF generation and formatting\n4. Verify email delivery works correctly\n5. Test tax calculations with various transaction scenarios\n6. Verify reports handle different portfolio compositions\n7. Test with edge cases (empty portfolio, single holding, etc.)",
+      "priority": "medium",
+      "dependencies": [
+        19,
+        20
+      ],
+      "status": "pending",
+      "subtasks": []
+    },
+    {
+      "id": 27,
+      "title": "Interactive Charts & Visualizations",
+      "description": "Add comprehensive charts and visualizations for better data exploration and analysis.",
+      "details": "Create a dedicated Charts sheet with multiple interactive visualizations:\n\n1. Portfolio Value Chart:\n   - Line chart showing portfolio value over time\n   - Clear formatting with appropriate axes and labels\n   - Sufficient data points for meaningful visualization\n\n2. Return Comparison Chart:\n   - Column chart comparing returns across different time periods\n   - Clear labeling of time periods and return percentages\n   - Consistent formatting for easy comparison\n\n3. Holdings Comparison Chart:\n   - Bar chart showing top holdings by value\n   - Clear ticker labels and value formatting\n   - Sorted for easy interpretation\n\nImplement helper functions to:\n- Prepare and format data for each chart type\n- Create appropriately configured charts with Google Charts\n- Apply consistent styling and formatting\n- Handle edge cases like insufficient data\n\nNote: While true interactivity is limited in Google Sheets, focus on creating comprehensive, well-formatted charts that provide clear insights.",
+      "testStrategy": "1. Test chart creation with various portfolio data sets\n2. Verify data preparation functions correctly format data\n3. Test charts with different time periods and holdings\n4. Verify charts handle edge cases (single data point, no data, etc.)\n5. Test visual appearance and readability\n6. Verify charts update correctly when data changes",
+      "priority": "medium",
+      "dependencies": [
+        19,
+        20,
+        24
+      ],
+      "status": "pending",
+      "subtasks": []
+    },
+    {
+      "id": 28,
+      "title": "Theme Customization",
+      "description": "Add options for customizing the application theme with different color schemes and visual styles.",
+      "details": "Implement a theme customization system for the application UI:\n\n1. Create multiple theme options:\n   - Light theme (default)\n   - Dark theme\n   - High contrast theme for accessibility\n\n2. Define CSS variables for each theme:\n   - Background color\n   - Text color\n   - Primary color for buttons and highlights\n   - Secondary color for backgrounds\n   - Accent color for important elements\n\n3. Implement theme application:\n   - Generate CSS based on selected theme\n   - Apply theme to all HTML templates\n   - Store theme preference in UserProperties\n\n4. Create a theme settings modal:\n   - Show available themes with descriptions\n   - Allow previewing themes\n   - Save theme selection\n\nThe system should provide a consistent visual experience across all parts of the application while allowing user customization.",
+      "testStrategy": "1. Test theme generation with different theme selections\n2. Verify CSS is correctly generated and applied\n3. Test theme settings modal UI\n4. Verify theme preference is saved and retrieved correctly\n5. Test appearance across different HTML templates\n6. Verify high contrast theme improves accessibility",
+      "priority": "medium",
+      "dependencies": [],
+      "status": "pending",
+      "subtasks": []
+    },
+    {
+      "id": 29,
+      "title": "Mobile-Friendly UI Improvements",
+      "description": "Enhance the UI to be more usable on mobile devices, within the limitations of Google Sheets.",
+      "details": "Implement mobile-friendly improvements to the application UI:\n\n1. Create responsive CSS styles:\n   - Adjust layout for smaller screens\n   - Increase touch target sizes for buttons and controls\n   - Stack elements vertically on narrow screens\n   - Adjust font sizes and spacing for readability\n\n2. Add mobile-specific meta tags:\n   - Set viewport configuration for proper scaling\n   - Prevent zooming on form inputs\n   - Optimize for touch interactions\n\n3. Simplify UI components for mobile:\n   - Use full-width buttons\n   - Simplify form layouts\n   - Ensure adequate spacing between interactive elements\n   - Improve form element sizing for touch input\n\n4. Apply these improvements across all HTML templates\n\nWhile Google Sheets itself has limitations on mobile, the custom UI elements should be as mobile-friendly as possible.",
+      "testStrategy": "1. Test UI appearance on various screen sizes\n2. Verify touch targets are appropriately sized\n3. Test form inputs on mobile devices\n4. Verify stacking behavior works correctly on narrow screens\n5. Test readability of text and elements\n6. Verify all interactive elements are usable on touch devices",
+      "priority": "medium",
+      "dependencies": [],
+      "status": "pending",
+      "subtasks": []
+    },
+    {
+      "id": 30,
+      "title": "Context-Sensitive Help",
+      "description": "Add in-app help and guidance for users with tooltips, tutorials, and FAQs.",
+      "details": "Implement a comprehensive help system with multiple components:\n\n1. Create a help content repository:\n   - Tooltips for UI elements\n   - Step-by-step tutorials for common tasks\n   - Frequently asked questions with answers\n\n2. Implement tooltip functionality:\n   - Show helpful information when hovering over elements\n   - Provide context for form fields and options\n   - Include links to more detailed help when appropriate\n\n3. Create tutorial walkthroughs:\n   - Step-by-step guides for key workflows\n   - Visual indicators for each step\n   - Clear instructions and explanations\n\n4. Add a central help modal:\n   - Searchable FAQ section\n   - Links to start tutorials\n   - Organized by topic for easy navigation\n\n5. Integrate help throughout the application:\n   - Help icons next to complex features\n   - Contextual help based on current screen\n   - First-time user guidance\n\nThe help system should make the application more approachable for new users while providing detailed information for advanced features.",
+      "testStrategy": "1. Test tooltip display and content\n2. Verify tutorials guide users correctly through each step\n3. Test FAQ search and navigation\n4. Verify help modal UI and functionality\n5. Test contextual help in different parts of the application\n6. Verify help content is accurate and helpful",
+      "priority": "medium",
+      "dependencies": [],
+      "status": "pending",
+      "subtasks": []
+    },
+    {
+      "id": 31,
+      "title": "Comprehensive User Experience Overhaul",
+      "description": "Conduct a holistic review and enhancement of the add-on's user interface and usability, focusing on intuitive navigation, visual clarity, and streamlined workflows.",
+      "details": "Perform a thorough UX audit of the add-on, identifying pain points and areas for improvement through user feedback, analytics, and heuristic evaluation. Redesign key UI components for clarity and consistency, ensuring alignment with modern usability standards and accessibility guidelines (e.g., WCAG). Simplify navigation by reducing unnecessary steps and grouping related actions logically. Enhance visual hierarchy with improved spacing, typography, and iconography. Collaborate with stakeholders to validate proposed changes via wireframes or prototypes before implementation. Ensure all enhancements are compatible with both desktop and mobile environments, and coordinate with recent tasks (context-sensitive help, mobile UI, theme customization) to maintain a cohesive experience.",
+      "testStrategy": "Verify completion by conducting usability testing sessions with representative users, measuring improvements in task completion rates, error frequency, and user satisfaction compared to baseline metrics. Review the UI for consistency, accessibility compliance, and responsiveness across supported devices. Confirm that all redesigned elements integrate seamlessly with existing features, including help systems and theme options. Gather stakeholder sign-off on final designs and document all changes for future reference.",
+      "status": "pending",
+      "dependencies": [],
+      "priority": "medium",
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Streamlined Setup Wizard",
+          "description": "Enhance the setup process with clearer steps, better guidance, and improved error handling. Complexity: C2, Priority: P2.",
+          "details": "",
+          "status": "pending",
+          "dependencies": [],
+          "parentTaskId": 31
+        },
+        {
+          "id": 2,
+          "title": "Data Refresh Dashboard",
+          "description": "Create a centralized dashboard for refreshing data with status indicators. Complexity: C2, Priority: P3.",
+          "details": "",
+          "status": "pending",
+          "dependencies": [
+            "16.1"
+          ],
+          "parentTaskId": 31
+        },
+        {
+          "id": 3,
+          "title": "Improved Data Fetch Modal",
+          "description": "Enhance the data fetch modal with better progress tracking and feedback. Complexity: C2, Priority: P2.",
+          "details": "",
+          "status": "pending",
+          "dependencies": [
+            "16.1",
+            "16.3"
+          ],
+          "parentTaskId": 31
+        }
+      ]
+    },
+    {
+      "id": 32,
+      "title": "Implement Portfolio Data Visualization & Analytics Module",
+      "description": "Develop a comprehensive module that delivers interactive visualizations and analytics to help users better understand and manage their investment portfolios.",
+      "details": "Design and implement a suite of data visualizations (e.g., performance charts, asset allocation breakdowns, risk/return scatterplots, historical trend lines) and analytics (e.g., risk metrics, diversification analysis, portfolio optimization insights) tailored for portfolio management. Integrate with existing portfolio data sources, ensuring data accuracy and real-time or near-real-time updates where possible. Provide customizable dashboards, allowing users to select and configure the visualizations and analytics most relevant to their needs. Follow best practices for visualization clarity, accessibility, and responsiveness, ensuring usability across devices. Consider leveraging established visualization libraries (e.g., D3.js, Chart.js) and, if feasible, provide export options for reports or raw data. Ensure the module is extensible for future analytics features.",
+      "testStrategy": "Verify that all visualizations accurately reflect underlying portfolio data by cross-checking with sample datasets and manual calculations. Test the responsiveness and clarity of each visualization across desktop and mobile devices. Validate that users can customize dashboards and that changes persist as expected. Confirm that analytics (e.g., risk metrics, allocation percentages) are computed correctly and update in real time with data changes. Conduct usability testing to ensure visualizations are intuitive and actionable. Test export functionality for completeness and correctness of exported data or reports.",
+      "status": "pending",
+      "dependencies": [],
+      "priority": "medium",
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Portfolio Overview Dashboard",
+          "description": "Create a comprehensive dashboard sheet with key portfolio metrics. Complexity: C3, Priority: P1.",
+          "details": "",
+          "status": "pending",
+          "dependencies": [],
+          "parentTaskId": 32
+        },
+        {
+          "id": 2,
+          "title": "Investment Performance Analysis",
+          "description": "Add tools for analyzing investment performance across different time periods. Complexity: C3, Priority: P1.",
+          "details": "",
+          "status": "pending",
+          "dependencies": [
+            "16.2",
+            "32.1"
+          ],
+          "parentTaskId": 32
+        },
+        {
+          "id": 3,
+          "title": "Portfolio Allocation Analysis",
+          "description": "Provide detailed analysis of portfolio allocation across different dimensions. Complexity: C3, Priority: P4.",
+          "details": "",
+          "status": "pending",
+          "dependencies": [
+            "16.2"
+          ],
+          "parentTaskId": 32
+        },
+        {
+          "id": 4,
+          "title": "Interactive Charts & Visualizations",
+          "description": "Add interactive charts and visualizations for better data exploration. Complexity: C3, Priority: P3.",
+          "details": "",
+          "status": "pending",
+          "dependencies": [
+            "32.1",
+            "32.2",
+            "32.3"
+          ],
+          "parentTaskId": 32
+        }
+      ]
+    },
+    {
+      "id": 33,
+      "title": "Implement Advanced Portfolio Management Features",
+      "description": "Develop and integrate advanced functionalities including scheduled data refreshes, automated report generation, dividend tracking, and external data integration to enhance portfolio management capabilities.",
+      "details": "Design and implement a scheduling system that allows users to configure automatic data refresh intervals for portfolio updates. Build a robust report generation engine capable of producing customizable, exportable reports (PDF, Excel) on portfolio performance, holdings, and transactions. Integrate a dividend tracking module that automatically records, categorizes, and visualizes dividend payments, supporting both manual entry and automated import from supported brokerages or data providers. Establish secure, scalable connections to external financial data sources (e.g., APIs for market data, dividends, and corporate actions), ensuring data normalization, error handling, and compliance with third-party requirements. Ensure all new features are accessible via the existing UI/UX paradigms and are extensible for future enhancements. Consider performance, security, and user privacy throughout the implementation.",
+      "testStrategy": "Verify scheduled refreshes by configuring various intervals and confirming that data updates occur automatically and reliably, including handling of edge cases such as missed or failed refreshes. Test report generation by producing reports with different parameters and formats, ensuring accuracy, completeness, and correct export functionality. Validate dividend tracking by simulating both manual and automated data entry, checking for correct aggregation, categorization, and visualization. For external data integration, use mock and live data sources to confirm successful data retrieval, normalization, and error handling. Conduct end-to-end user acceptance testing to ensure all features are discoverable, intuitive, and function seamlessly within the application.",
+      "status": "pending",
+      "dependencies": [],
+      "priority": "medium",
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Scheduled Data Refreshes",
+          "description": "Enable automatic data refreshes on a schedule. Complexity: C2, Priority: P2.",
+          "details": "",
+          "status": "pending",
+          "dependencies": [],
+          "parentTaskId": 33
+        },
+        {
+          "id": 2,
+          "title": "Portfolio Report Generation",
+          "description": "Create customizable portfolio reports that can be exported or emailed. Complexity: C3, Priority: P3.",
+          "details": "",
+          "status": "pending",
+          "dependencies": [
+            "32.1",
+            "32.2"
+          ],
+          "parentTaskId": 33
+        },
+        {
+          "id": 3,
+          "title": "Dividend & Income Tracker",
+          "description": "Create specialized tools for tracking and analyzing dividend income. Complexity: C3, Priority: P1.",
+          "details": "",
+          "status": "pending",
+          "dependencies": [
+            "16.2"
+          ],
+          "parentTaskId": 33
+        },
+        {
+          "id": 4,
+          "title": "Integration with External Data Sources",
+          "description": "Add integration with external data sources for enhanced analysis. Complexity: C4, Priority: P4.",
+          "details": "",
+          "status": "pending",
+          "dependencies": [
+            "16.1"
+          ],
+          "parentTaskId": 33
+        }
+      ]
+    },
+    {
+      "id": 34,
+      "title": "Enhance Add-On User Interface Visuals and Interactivity",
+      "description": "Revamp the add-on's user interface to deliver a more visually appealing and interactive experience, focusing on modern design principles and improved user engagement.",
+      "details": "Conduct a thorough review of the current UI, identifying outdated visual elements, inconsistent styles, and areas with suboptimal user interaction. Redesign key interface components using a modern design system (e.g., Material Design or custom guidelines), ensuring consistency in color schemes, typography, iconography, and spacing. Implement interactive elements such as responsive buttons, tooltips, hover states, and smooth transitions to enhance usability. Collaborate with UX designers to validate design choices and ensure accessibility standards (WCAG 2.1) are met. Refactor front-end code for maintainability and performance, and document all UI changes for future reference.",
+      "testStrategy": "Perform cross-browser and cross-device testing to verify visual consistency and responsiveness. Conduct usability testing sessions with representative users to gather feedback on the new interface and interactions. Validate that all interactive elements function as intended and meet accessibility requirements. Review UI against design specifications and ensure no regressions in core functionality. Collect and address user feedback post-release to confirm improved satisfaction and engagement.",
+      "status": "pending",
+      "dependencies": [],
+      "priority": "medium",
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Theme Customization",
+          "description": "Add options for customizing the application theme. Complexity: C2, Priority: P3.",
+          "details": "",
+          "status": "pending",
+          "dependencies": [],
+          "parentTaskId": 34
+        },
+        {
+          "id": 2,
+          "title": "Mobile-Friendly UI Improvements",
+          "description": "Enhance the UI to be more usable on mobile devices, within the limitations of Google Sheets. Complexity: C2, Priority: P3.",
+          "details": "",
+          "status": "pending",
+          "dependencies": [],
+          "parentTaskId": 34
+        },
+        {
+          "id": 3,
+          "title": "Context-Sensitive Help",
+          "description": "Add in-app help and guidance for users. Complexity: C2, Priority: P3.",
+          "details": "",
+          "status": "pending",
+          "dependencies": [],
+          "parentTaskId": 34
+        }
+      ]
+    },
+    {
+      "id": 35,
+      "title": "Implement Dynamic Header Management for API Data",
+      "description": "Refactor the application to dynamically extract and manage headers from API responses for sheet generation, instead of using hardcoded headers in repositories. This includes creating a header mapping service, a storage mechanism for headers, enhancing base repository and model classes, and providing a UI for header management.",
+      "details": "",
+      "testStrategy": "",
+      "status": "in-progress",
+      "dependencies": [],
+      "priority": "high",
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Create HeaderMappingService",
+          "description": "Create a new file data/headerMappingService.js. This service will utilize existing extractHeaders() to generate headers, transform dot-notation paths to Title Case, implement header persistence (interacting with HeaderMappings sheet), compare API vs stored headers, and handle user overrides.",
+          "details": "Key functions to implement in HeaderMappingService:\n- `generateHeadersFromApiResponse(apiResponseObject)`: Uses `extractHeaders` from `dataProcessing.js`.\n- `transformHeaderName(apiFieldPath)`: Converts paths like 'amount.value' to 'Amount Value'. Handles 'dividend.gained' to 'Dividend Gained'.\n- `getStoredHeaders(resourceIdentifier)`: Fetches headers for a given API resource from the 'HeaderMappings' sheet.\n- `storeHeaders(resourceIdentifier, apiHeaders, transformedHeaders)`: Saves the API field paths and their transformed versions to the 'HeaderMappings' sheet.\n- `applyUserOverrides(resourceIdentifier, currentHeaders)`: Checks the 'HeaderMappings' sheet for user-overridden header names and applies them.\n- `detectAndLogHeaderChanges(resourceIdentifier, newApiHeaders)`: Compares new headers from an API response with stored headers and logs differences. Potentially flags them for user review.",
+          "status": "pending",
+          "dependencies": [],
+          "parentTaskId": 35
+        },
+        {
+          "id": 2,
+          "title": "Implement Header Storage Mechanism",
+          "description": "Create a new sheet named 'HeaderMappings' to store and manage header configurations. This sheet will allow for user overrides and provide a centralized place for header definitions.",
+          "details": "The 'HeaderMappings' sheet should have the following columns:\n- Column A: `API Resource Name` (e.g., 'DIVIDENDS', 'PIES_SUMMARY', 'PIE_DETAILS_XYZ'). This identifies the source of the data.\n- Column B: `Original API Field Path` (e.g., 'amount.value', 'instruments.ticker'). This is the raw path extracted from the API response.\n- Column C: `Transformed Header Name` (e.g., 'Amount Value', 'Instrument Ticker'). This is the user-facing header name, initially generated by `transformHeaderName` and editable by the user.\n- Column D: `User Override Flag` (boolean): Set to TRUE if the user has manually changed the 'Transformed Header Name' in Column C. This helps preserve user customizations.\n\nThe `HeaderMappingService` will be responsible for reading from and writing to this sheet. Ensure `SheetManager` can interact with this new sheet type.",
+          "status": "pending",
+          "dependencies": [],
+          "parentTaskId": 35
+        },
+        {
+          "id": 3,
+          "title": "Create/Enhance BaseRepository",
+          "description": "Create a new `repositories/BaseRepository.js` or enhance an existing one. This base class will handle common repository functionalities, integrate with the HeaderMappingService for dynamic header management, and provide standardized methods for data fetching and sheet interaction.",
+          "details": "The `BaseRepository` should include:\n- Constructor that accepts `apiClient`, `sheetManager`, `errorHandler`, and `headerMappingService`.\n- `_initializeHeaders(resourceIdentifier, sampleApiResponse)`: Method to be called by subclasses. It fetches/generates headers using `HeaderMappingService` and stores them internally for the repository instance. It should handle initial header generation and subsequent updates if API response structures change.\n- `_getHeaders(resourceIdentifier)`: Retrieves the current effective headers (after transformation and overrides) for a given resource.\n- `_transformDataToSheetRows(dataArray, resourceIdentifier)`: Uses the current headers to convert an array of API response objects into an array of sheet rows.\n- `_transformSheetRowsToModels(sheetRows, resourceIdentifier, ModelClass)`: Uses current headers to convert sheet data back into an array of Model instances.\n- Common methods like `fetchAllFromApiAndSaveToSheet`, `getAllFromSheet` could be generalized here if applicable across repositories, or serve as templates for subclasses.",
+          "status": "pending",
+          "dependencies": [],
+          "parentTaskId": 35
+        },
+        {
+          "id": 4,
+          "title": "Integrate Model Classes with Dynamic Headers",
+          "description": "Update existing Model classes (DividendModel, PieItemModel, PieModel, TransactionModel) to work seamlessly with dynamic headers provided by the repositories and HeaderMappingService.",
+          "details": "Modifications for each Model class:\n- Remove hardcoded assumptions about header order or names in `toSheetRow()` and `fromSheetRow()` methods.\n- `toSheetRow(headers)`: Modify to accept an array of `transformedHeaderNames`. It should iterate through these headers, resolve the corresponding data from the model instance (using the original API field path mapped to the header), and construct the row array in the order of the provided `headers`.\n- `fromSheetRow(rowData, headers)`: Modify to accept `rowData` and an array of `transformedHeaderNames`. It should map `rowData` values to model properties based on the `headers` array, looking up the original API field path associated with each header to correctly populate the `rawData` object for the constructor.\n- Add a static method `getExpectedApiFieldPaths()` that returns an array of all API field paths the model expects (e.g., ['id', 'ticker', 'amount.value', 'amount.currency']). This can be used by `HeaderMappingService` or `BaseRepository` for validation or initial header generation if a sample API response isn't available.\n- Ensure robust null-safety and type checking during these transformations.",
+          "status": "pending",
+          "dependencies": [],
+          "parentTaskId": 35
+        },
+        {
+          "id": 5,
+          "title": "Refactor Existing Repositories",
+          "description": "Refactor `DividendRepository`, `PieItemRepository`, `PieRepository`, and `TransactionRepository` to extend the new `BaseRepository` and utilize the dynamic header management system.",
+          "details": "For each repository:\n- Modify the constructor to accept and pass `headerMappingService` to the `super()` call for `BaseRepository`.\n- Remove the hardcoded `this.sheetHeaders` property.\n- In methods like `fetchAll...` or `get...ById`, after fetching raw API data, call `this._initializeHeaders(resourceIdentifier, sampleDataFromResponse)` to ensure headers are up-to-date with `HeaderMappingService`.\n- Replace manual data-to-row mapping (e.g., `dividends.map(dividend => dividend.toSheetRow())`) with calls to `this._transformDataToSheetRows(apiDataArray, resourceIdentifier)`.\n- Replace manual row-to-model mapping (e.g., `dataRows.map(row => DividendModel.fromSheetRow(row, this.sheetHeaders))`) with calls to `this._transformSheetRowsToModels(sheetRowsArray, resourceIdentifier, CorrespondingModelClass)`.\n- Ensure the correct `resourceIdentifier` (e.g., 'DIVIDENDS', 'PIES_SUMMARY') is used when interacting with header methods.\n- For backward compatibility during the transition, the first time a repository initializes headers for a resource, it could attempt to seed the `HeaderMappingService` with its current hardcoded headers if no API data is available yet, or if the API data doesn't cover all previously hardcoded fields.",
+          "status": "pending",
+          "dependencies": [],
+          "parentTaskId": 35
+        },
+        {
+          "id": 6,
+          "title": "Create User Interface for Header Management",
+          "description": "Develop a simple user interface within the Google Sheets add-on to allow users to view and manage header mappings. This UI will interact with the 'HeaderMappings' sheet and the HeaderMappingService.",
+          "details": "UI Features:\n- **Display Current Mappings**: Show a table listing API Resource Name, Original API Field Path, and the current Transformed Header Name (user-facing).\n- **Edit Header Names**: Allow users to directly edit the 'Transformed Header Name' for any mapping. This action should update the 'HeaderMappings' sheet and set the 'User Override Flag' to TRUE.\n- **Reset to Default**: Provide an option for a selected mapping (or all mappings for a resource) to reset the 'Transformed Header Name' back to the auto-generated version (based on `transformHeaderName` from `HeaderMappingService`) and clear the 'User Override Flag'.\n- **Highlight Changes**: If `HeaderMappingService.detectAndLogHeaderChanges` identifies new or removed fields from an API response, the UI should visually indicate these discrepancies to the user, prompting them to review and potentially update mappings.\n- This UI could be a new sidebar panel or a modal dialog triggered from a custom menu item in the Google Sheet.",
+          "status": "pending",
+          "dependencies": [],
+          "parentTaskId": 35
+        }
+      ]
+    }
+  ]
+}
