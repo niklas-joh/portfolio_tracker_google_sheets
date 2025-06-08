@@ -89,5 +89,10 @@ const API_RESOURCES = {
     endpoint: 'history/dividends',
     sheetName: 'Dividends',
     rateLimit: { limit: 6, windowMs: 1 * MINUTE }
+  },
+  EXCHANGE_LIST: {
+    endpoint: 'equity/metadata/exchanges',
+    sheetName: 'ExchangeList',
+    rateLimit: { limit: 1, windowMs: 30 * SECOND }
   }
 };

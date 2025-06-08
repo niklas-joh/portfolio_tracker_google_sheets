@@ -114,6 +114,21 @@ function fetchInstrumentsList() {
 }
 
 /**
+ * Fetches the exchange list data from the Trading212 API and writes it to the "ExchangeList" sheet.
+ * 
+ * @returns {void}
+ 
+ * @since 1.0.0
+ * @version 1.0.0
+ * @author [Niklas Johansson]
+ * @license MIT
+ * 
+ */
+function fetchExchanges() {
+  fetchDataAndWriteToSheet(API_RESOURCES.EXCHANGE_LIST.endpoint, API_RESOURCES.EXCHANGE_LIST.sheetName);
+}
+
+/**
  * Fetches the account information data from the Trading212 API and writes it to the specified sheet.
  *
  * @param {Object} [params={}] - Optional query parameters for the API call (if any).
@@ -203,6 +218,8 @@ function fetchDividends(params = {}) {
   // Call the generic fetchDataAndWriteToSheet function with the 'dividends' endpoint
   fetchDataAndWriteToSheet(API_RESOURCES.DIVIDENDS.endpoint, API_RESOURCES.DIVIDENDS.sheetName, queryParams);
 }
+
+
 
 /**
 * Fetches selected Trading212 data based on user choices.
