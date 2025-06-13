@@ -194,26 +194,28 @@ Logger.log(`No data found for ticker "${ticker}" in sheet "${sheetName}".`);
 * @returns {Object|null} The JSON-parsed response data if successful, or null if an error occurred.
 */
 function rateLimitedRequest(url, endpoint) {
-// Check rate limiting
-const rateLimitStatus = canProceedWithRequest(endpoint);
+  let rateLimitStatus = canProceedWithRequest(endpoint);
 
-if (!rateLimitStatus.proceed) {
-  Logger.log(`Rate limit reached for ${endpoint}. Waiting for ${rateLimitStatus.waitTime} ms.`);
+  // Keep checking until we can proceed
+  while (!rateLimitStatus.proceed) {
+    Logger.log(`Rate limit reached for ${endpoint}. Waiting for ${rateLimitStatus.waitTime} ms.`);
 
-  // Ensure we don't exceed execution time limits
-  if (rateLimitStatus.waitTime > 300000) { // 5 minutes
-    throw new Error('Wait time exceeds script execution time limits.');
+    // Ensure we don't exceed execution time limits
+    if (rateLimitStatus.waitTime > 300000) { // 5 minutes
+      throw new Error('Wait time exceeds script execution time limits.');
+    }
+
+    Utilities.sleep(rateLimitStatus.waitTime);
+
+    // Re-check after sleeping so the request gets logged correctly
+    rateLimitStatus = canProceedWithRequest(endpoint);
   }
-
-  // Wait for the required time before proceeding
-  Utilities.sleep(rateLimitStatus.waitTime);
-}
 
   Logger.log('Making API request to URL: ' + url);  // Add this log
   Logger.log(`Rate-limited request made for: ${url} on endpoint: ${endpoint}`);
 
-// Proceed with the API request
-return makeApiRequest(url);
+  // Proceed with the API request
+  return makeApiRequest(url);
 }
 
 /**
