@@ -149,14 +149,20 @@ if (!sheet) {
   return;
 }
 
-rowData.forEach((row, rowIndex) => {
-  // Flatten the row if any cell contains an array (spread array values across columns)
-  const flattenedRow = row.flatMap(cell => Array.isArray(cell) ? cell : [cell]);
+  rowData.forEach((row, rowIndex) => {
+    // Flatten the row if any cell contains an array (spread array values across columns)
+    const flattenedRow = row.flatMap(cell => Array.isArray(cell) ? cell : [cell]);
+
+    // Notify progress for each row written
+    updateProgress(`Fetching row ${startRow + rowIndex}`);
 
   // Log the row data being written for debugging purposes
   Logger.log(`Writing to ${sheet} and row ${startRow + rowIndex}: ${JSON.stringify(flattenedRow)}`);
 
   // Write the flattened row to the sheet
   sheet.getRange(startRow + rowIndex, 1, 1, flattenedRow.length).setValues([flattenedRow]);
-});
+  });
+
+  // Update progress when a batch of rows is completed
+  updateProgress(`Completed rows through ${startRow + rowData.length - 1}`);
 }
