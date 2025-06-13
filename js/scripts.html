@@ -356,7 +356,7 @@ function showFetchDataModal() {
  * @description Collects the selected data options from the form, validates the selection,
  *              and calls the server-side function to fetch the data.
  */
- function fetchSelectedData() {
+function fetchSelectedData() {
   const form = document.getElementById('fetch-data-form');
   const selectedOptions = Array.from(form.elements.fetchOption)
     .filter(checkbox => checkbox.checked)
@@ -370,7 +370,11 @@ function showFetchDataModal() {
 
   // Show progress section
   const progressSection = document.getElementById('fetch-progress');
-    progressSection.classList.remove('hidden');
+  progressSection.classList.remove('hidden');
+
+  // Start polling for progress updates
+  pendingFetches = selectedOptions.length;
+  startProgressPolling();
 
     // Create progress items
     const progressList = document.getElementById('progress-list');
@@ -413,10 +417,16 @@ function showFetchDataModal() {
  * @param {*} result - The result returned from the server-side fetch function.
  * @description Displays a success message to the user and closes the fetch data modal.
  */
- function onFetchSuccess(option, result) {
+function onFetchSuccess(option, result) {
   console.log(`onFetchSuccess called for ${option}`);  // Add logging
   updateProgressItem(option, 'complete');
   console.log(`Fetched ${option} successfully:`, result);
+
+  pendingFetches--;
+  if (pendingFetches === 0) {
+    stopProgressPolling();
+    google.script.run.clearProgress();
+  }
 }
 
 /**
@@ -427,10 +437,16 @@ function showFetchDataModal() {
  * @param {Error} error - The error object returned from the server-side fetch function.
  * @description Displays an error message to the user with details about the fetch failure.
  */
- function onFetchError(option, error) {
+function onFetchError(option, error) {
   console.error(`onFetchError called for ${option}`);  // Add logging
   updateProgressItem(option, 'error');
   console.error(`Error fetching ${option}:`, error);
+
+  pendingFetches--;
+  if (pendingFetches === 0) {
+    stopProgressPolling();
+    google.script.run.clearProgress();
+  }
 }
 
 
@@ -466,6 +482,56 @@ jQuery.expr[':'].contains = function(a, i, m) {
   return jQuery(a).text().toUpperCase()
       .indexOf(m[3].toUpperCase()) >= 0;
 };
+
+// ========================= Progress UI Manager ==========================
+
+class ProgressUIManager {
+  constructor(elementId) {
+    this.elementId = elementId;
+    this.element = null;
+    this.interval = null;
+  }
+
+  init() {
+    if (!this.element) {
+      this.element = document.getElementById(this.elementId);
+    }
+  }
+
+  start() {
+    this.init();
+    this.interval = setInterval(() => {
+      google.script.run.withSuccessHandler(message => {
+        if (this.element && message) {
+          this.element.textContent = message;
+        }
+      }).getProgress();
+    }, 1000);
+  }
+
+  stop() {
+    if (this.interval) {
+      clearInterval(this.interval);
+      this.interval = null;
+    }
+  }
+}
+
+let progressUiManager;
+let pendingFetches = 0;
+
+function startProgressPolling() {
+  if (!progressUiManager) {
+    progressUiManager = new ProgressUIManager('progress-status');
+  }
+  progressUiManager.start();
+}
+
+function stopProgressPolling() {
+  if (progressUiManager) {
+    progressUiManager.stop();
+  }
+}
 
 /**
  * Closes the current modal.

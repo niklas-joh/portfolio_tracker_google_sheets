@@ -200,6 +200,9 @@ function rateLimitedRequest(url, endpoint) {
   while (!rateLimitStatus.proceed) {
     Logger.log(`Rate limit reached for ${endpoint}. Waiting for ${rateLimitStatus.waitTime} ms.`);
 
+    // Update progress so the UI can indicate waiting time
+    updateProgress(`Waiting ${Math.ceil(rateLimitStatus.waitTime / 1000)} seconds to avoid rate limit`);
+
     // Ensure we don't exceed execution time limits
     if (rateLimitStatus.waitTime > 300000) { // 5 minutes
       throw new Error('Wait time exceeds script execution time limits.');
@@ -207,11 +210,15 @@ function rateLimitedRequest(url, endpoint) {
 
     Utilities.sleep(rateLimitStatus.waitTime);
 
+    // Refresh progress after sleeping in case UI needs to update
+    updateProgress('Resuming request ...');
+
     // Re-check after sleeping so the request gets logged correctly
     rateLimitStatus = canProceedWithRequest(endpoint);
   }
 
   Logger.log('Making API request to URL: ' + url);  // Add this log
+  updateProgress(`Fetching data from ${endpoint}`);
   Logger.log(`Rate-limited request made for: ${url} on endpoint: ${endpoint}`);
 
   // Proceed with the API request

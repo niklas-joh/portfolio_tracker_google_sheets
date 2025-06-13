@@ -32,10 +32,14 @@
 function fetchDataAndWriteToSheet(endpoint, sheetName, params = {}, startRow = 2) {
   // Construct the initial API URL
   let url = constructApiUrl(endpoint, params);
-  
+
+  // Inform UI which sheet is being fetched
+  updateProgress(`Fetching data for ${sheetName} ...`);
+
   // Start fetching data
   fetchAndHandleData(url, sheetName, startRow, endpoint);
-  // Format sheet
+
+  // Format sheet when done
   formatSheet(sheetName);
 }
 
@@ -55,9 +59,15 @@ function fetchAndHandleData(url, sheetName, currentRow, endpoint) {
     // Write the data and calculate the next row to write
     const rowsWritten = writeDataToSheet(data.items || data, sheetName, currentRow);
 
+    // Inform UI about progress of written rows
+    updateProgress(`Fetched rows up to ${currentRow + rowsWritten - 1}`);
+
     // If there is more data (pagination), fetch the next page
     if (data.nextPagePath) {
       Logger.log('Fetching next page of data...: ' + data.nextPagePath);
+
+      // Notify the UI that we are fetching another page
+      updateProgress('Fetching additional data ...');
 
       // Construct the next page URL
       const nextPageUrl = constructApiUrl(data.nextPagePath, {}, true);
