@@ -104,3 +104,6 @@ dev-debug.log
 
 # Ignore Taskmaster folder
 taskmaster/
+
+# Ignore .cursor folder
+.cursor/
