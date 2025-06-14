@@ -3,6 +3,50 @@
   let currentStep = 0;
   let steps = [];  
   let selectedEnvironment = '';
+  let pendingFetches = 0;
+  // let progressUiManager; // Will be moved with its class
+
+// ========================= Progress UI Manager ==========================
+class ProgressUIManager {
+  constructor(elementId) {
+    this.elementId = elementId;
+    this.element = null;
+    this.interval = null;
+    this.lastMessage = null; // Store the last message
+  }
+
+  init() {
+    if (!this.element) {
+      this.element = document.getElementById(this.elementId);
+    }
+  }
+
+  start() {
+    this.init();
+    this.interval = setInterval(() => {
+      google.script.run.withSuccessHandler(message => {
+        // Only update if the element exists, message is truthy, and message is different from last
+        if (this.element && message && message !== this.lastMessage) {
+          this.element.textContent = message;
+          this.lastMessage = message; // Update last message
+        } else if (this.element && !message && this.lastMessage !== null) {
+          // If message is empty/null and last message was not, clear the text content
+          this.element.textContent = '';
+          this.lastMessage = null;
+        }
+      }).getProgress();
+    }, 1000);
+  }
+
+  stop() {
+    if (this.interval) {
+      clearInterval(this.interval);
+      this.interval = null;
+    }
+  }
+}
+
+let progressUiManager;
 
 // Function to initialize steps dynamically
   function initializeSteps() {
@@ -484,43 +528,6 @@ jQuery.expr[':'].contains = function(a, i, m) {
   return jQuery(a).text().toUpperCase()
       .indexOf(m[3].toUpperCase()) >= 0;
 };
-
-// ========================= Progress UI Manager ==========================
-
-class ProgressUIManager {
-  constructor(elementId) {
-    this.elementId = elementId;
-    this.element = null;
-    this.interval = null;
-  }
-
-  init() {
-    if (!this.element) {
-      this.element = document.getElementById(this.elementId);
-    }
-  }
-
-  start() {
-    this.init();
-    this.interval = setInterval(() => {
-      google.script.run.withSuccessHandler(message => {
-        if (this.element && message) {
-          this.element.textContent = message;
-        }
-      }).getProgress();
-    }, 1000);
-  }
-
-  stop() {
-    if (this.interval) {
-      clearInterval(this.interval);
-      this.interval = null;
-    }
-  }
-}
-
-let progressUiManager;
-let pendingFetches = 0;
 
 function startProgressPolling() {
   if (!progressUiManager) {
