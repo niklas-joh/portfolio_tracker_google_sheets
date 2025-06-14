@@ -368,6 +368,8 @@ function fetchSelectedData() {
   }
   console.log(selectedOptions);
 
+  nextStep(); // Moved here: Call nextStep() only if options are selected
+
   // Show progress section
   const progressSection = document.getElementById('fetch-progress');
   progressSection.classList.remove('hidden');
