@@ -3,6 +3,95 @@
   let currentStep = 0;
   let steps = [];  
   let selectedEnvironment = '';
+  let pendingFetches = 0;
+  // let progressUiManager; // Will be moved with its class
+
+// ========================= Progress UI Manager ==========================
+class ProgressUIManager {
+  constructor(elementId) {
+    this.elementId = elementId;
+    this.element = null;
+    this.interval = null;
+    this.lastMessage = null; // Store the last message
+    this.fastPollIntervalMs = 1500; // Poll quickly when changes are happening
+    this.slowPollIntervalMs = 5000; // Poll slowly when things are stable
+    this.currentPollIntervalMs = this.fastPollIntervalMs; // Start with fast polling
+  }
+
+  init() {
+    if (!this.element) {
+      this.element = document.getElementById(this.elementId);
+    }
+  }
+
+  _pollServerForProgress() {
+    google.script.run.withSuccessHandler(message => {
+      let messageChanged = false;
+      if (this.element && message && message !== this.lastMessage) {
+        this.element.textContent = message;
+        this.lastMessage = message;
+        messageChanged = true;
+      } else if (this.element && !message && this.lastMessage !== null) {
+        this.element.textContent = '';
+        this.lastMessage = null;
+        messageChanged = true; // Considered a change if it goes from something to nothing
+      } else if (this.element && message === this.lastMessage) {
+        // Message is the same, no DOM update needed, but logic for interval change still applies
+        messageChanged = false;
+      }
+
+
+      // Adaptive polling logic
+      if (messageChanged) {
+        if (this.currentPollIntervalMs !== this.fastPollIntervalMs) {
+          console.log('Progress changed, switching to fast polling.');
+          this.currentPollIntervalMs = this.fastPollIntervalMs;
+          this._reschedulePoll();
+        }
+      } else { // Message has not changed
+        if (this.currentPollIntervalMs !== this.slowPollIntervalMs) {
+          console.log('Progress stable, switching to slow polling.');
+          this.currentPollIntervalMs = this.slowPollIntervalMs;
+          this._reschedulePoll();
+        }
+      }
+    }).withFailureHandler(error => {
+      console.error("Error fetching progress:", error);
+      // Optionally, switch to slow polling on error or implement retry logic
+      if (this.currentPollIntervalMs !== this.slowPollIntervalMs) {
+        this.currentPollIntervalMs = this.slowPollIntervalMs;
+        this._reschedulePoll();
+      }
+    }).getProgress();
+  }
+
+  _reschedulePoll() {
+    if (this.interval) {
+      clearInterval(this.interval);
+    }
+    this.interval = setInterval(() => this._pollServerForProgress(), this.currentPollIntervalMs);
+  }
+
+  start() {
+    this.init();
+    // Perform an initial poll immediately
+    this._pollServerForProgress();
+    // Then set up the interval using the current (initially fast) polling speed
+    this._reschedulePoll();
+  }
+
+  stop() {
+    if (this.interval) {
+      clearInterval(this.interval);
+      this.interval = null;
+    }
+    // Reset to fast polling for next time
+    this.currentPollIntervalMs = this.fastPollIntervalMs;
+    this.lastMessage = null; // Reset last message
+  }
+}
+
+let progressUiManager;
 
 // Function to initialize steps dynamically
   function initializeSteps() {
@@ -368,6 +457,8 @@ function fetchSelectedData() {
   }
   console.log(selectedOptions);
 
+  nextStep(); // Moved here: Call nextStep() only if options are selected
+
   // Show progress section
   const progressSection = document.getElementById('fetch-progress');
   progressSection.classList.remove('hidden');
@@ -482,43 +573,6 @@ jQuery.expr[':'].contains = function(a, i, m) {
   return jQuery(a).text().toUpperCase()
       .indexOf(m[3].toUpperCase()) >= 0;
 };
-
-// ========================= Progress UI Manager ==========================
-
-class ProgressUIManager {
-  constructor(elementId) {
-    this.elementId = elementId;
-    this.element = null;
-    this.interval = null;
-  }
-
-  init() {
-    if (!this.element) {
-      this.element = document.getElementById(this.elementId);
-    }
-  }
-
-  start() {
-    this.init();
-    this.interval = setInterval(() => {
-      google.script.run.withSuccessHandler(message => {
-        if (this.element && message) {
-          this.element.textContent = message;
-        }
-      }).getProgress();
-    }, 1000);
-  }
-
-  stop() {
-    if (this.interval) {
-      clearInterval(this.interval);
-      this.interval = null;
-    }
-  }
-}
-
-let progressUiManager;
-let pendingFetches = 0;
 
 function startProgressPolling() {
   if (!progressUiManager) {
