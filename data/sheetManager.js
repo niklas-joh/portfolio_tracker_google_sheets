@@ -144,25 +144,37 @@ return rowData.length;
 * @param {number} startRow - The row number to start writing the data (default is 2).
 */
 function writeRowsToSheet(sheet, rowData, startRow = 2) {
-if (!sheet) {
-  Logger.log('No valid sheet found to write data.');
-  return;
-}
+  if (!sheet) {
+    Logger.log('No valid sheet found to write data.');
+    return;
+  }
 
-  rowData.forEach((row, rowIndex) => {
-    // Flatten the row if any cell contains an array (spread array values across columns)
-    const flattenedRow = row.flatMap(cell => Array.isArray(cell) ? cell : [cell]);
+  if (!Array.isArray(rowData) || rowData.length === 0) {
+    Logger.log('No data provided to write.');
+    return;
+  }
 
-    // Notify progress for each row written
-    updateProgress(`Fetching row ${startRow + rowIndex}`);
+  // Flatten each row and determine the widest row
+  const flattenedData = rowData.map(row => row.flatMap(cell => Array.isArray(cell) ? cell : [cell]));
+  const maxColumns = flattenedData.reduce((max, row) => Math.max(max, row.length), 0);
 
-  // Log the row data being written for debugging purposes
-  Logger.log(`Writing to ${sheet} and row ${startRow + rowIndex}: ${JSON.stringify(flattenedRow)}`);
-
-  // Write the flattened row to the sheet
-  sheet.getRange(startRow + rowIndex, 1, 1, flattenedRow.length).setValues([flattenedRow]);
+  // Normalize rows to have equal length
+  const normalizedData = flattenedData.map(row => {
+    if (row.length < maxColumns) {
+      return row.concat(new Array(maxColumns - row.length).fill(''));
+    }
+    return row;
   });
 
-  // Update progress when a batch of rows is completed
-  updateProgress(`Completed rows through ${startRow + rowData.length - 1}`);
+  // Inform the progress manager before bulk write
+  updateProgress(`Writing ${normalizedData.length} rows starting at ${startRow}`);
+  Logger.log(`Writing ${normalizedData.length} rows to ${sheet.getName()} starting at row ${startRow}`);
+
+  try {
+    sheet.getRange(startRow, 1, normalizedData.length, maxColumns).setValues(normalizedData);
+    updateProgress(`Completed rows through ${startRow + normalizedData.length - 1}`);
+  } catch (error) {
+    Logger.log('Error writing rows to sheet: ' + error);
+    updateProgress('Error writing data to sheet');
+  }
 }
