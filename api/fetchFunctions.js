@@ -198,7 +198,7 @@ function fetchOrderHistory(params = {}) {
   const queryParams = {
     cursor: params.cursor || '0',     // Default cursor is '0'
     ticker: params.ticker || '',      // Default ticker
-    limit: params.limit || 20         // Max 50, API documentation defaults to 20
+    limit: params.limit || 50         // Max 50, API documentation defaults to 20
   };
 
   // Pass the request to the generic fetchDataAndWriteToSheet function
