@@ -53,7 +53,9 @@ function updateProgress(message) {
  * @returns {string} The latest message set via updateProgress().
  */
 function getProgress() {
-  return progressManager.getProgress('fetch');
+  const message = progressManager.getProgress('fetch');
+  Logger.log(`getProgress returning: ${message}`);
+  return message;
 }
 
 /**
