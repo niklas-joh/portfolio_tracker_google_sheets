@@ -36,11 +36,13 @@ function fetchDataAndWriteToSheet(endpoint, sheetName, params = {}, startRow = 2
   // Inform UI which sheet is being fetched
   updateProgress(`Fetching data for ${sheetName} ...`);
 
-  // Start fetching data
-  fetchAndHandleData(url, sheetName, startRow, endpoint);
+  // Start fetching data and capture the last cursor returned
+  const lastCursor = fetchAndHandleData(url, sheetName, startRow, endpoint);
 
   // Format sheet when done
   formatSheet(sheetName);
+
+  return lastCursor;
 }
 
 /**
@@ -55,31 +57,47 @@ function fetchAndHandleData(url, sheetName, currentRow, endpoint) {
   // Make the API request with rate limiting
   let data = rateLimitedRequest(url, endpoint);
 
-  if (data) {
-    // Write the data and calculate the next row to write
-    const rowsWritten = writeDataToSheet(data.items || data, sheetName, currentRow);
+  let lastCursor = null;
 
-    // Inform UI about progress of written rows
+  if (data) {
+    const items = data.items || data;
+    const rowsWritten = writeDataToSheet(items, sheetName, currentRow);
+
+    if (items && items.length > 0) {
+      const cursor = extractTimestamp(items[items.length - 1]);
+      if (cursor) {
+        lastCursor = cursor;
+      }
+    }
+
     updateProgress(`Fetched rows up to ${currentRow + rowsWritten - 1}`);
 
-    // If there is more data (pagination), fetch the next page
     if (data.nextPagePath) {
       Logger.log('Fetching next page of data...: ' + data.nextPagePath);
-
-      // Notify the UI that we are fetching another page
       updateProgress('Fetching additional data ...');
-
-      // Construct the next page URL
       const nextPageUrl = constructApiUrl(data.nextPagePath, {}, true);
-
-      // Recursively fetch the next page
-      fetchAndHandleData(nextPageUrl, sheetName, currentRow + rowsWritten, endpoint);
+      const nextCursor = fetchAndHandleData(nextPageUrl, sheetName, currentRow + rowsWritten, endpoint);
+      if (nextCursor) {
+        lastCursor = nextCursor;
+      }
     } else {
       Logger.log('No more data to fetch.');
     }
   } else {
     Logger.log(`Error fetching data for ${sheetName}.`);
   }
+
+  return lastCursor;
+}
+
+function extractTimestamp(item) {
+  const fields = ['timestamp', 'time', 'createdAt', 'executedAt', 'paidAt', 'date'];
+  for (let i = 0; i < fields.length; i++) {
+    if (item && Object.prototype.hasOwnProperty.call(item, fields[i])) {
+      return item[fields[i]];
+    }
+  }
+  return null;
 }
 
 /**
@@ -172,14 +190,22 @@ function fetchAccountCash() {
  */
 
 function fetchTransactions(params = {}) {
-  // Declare parameters as a variable
+  const sheetName = API_RESOURCES.TRANSACTIONS.sheetName;
+  const storedCursor = params.cursor ? null : getLastCursor(sheetName);
+
   const queryParams = {
-    cursorID: params.cursor || 'string',  // Default to 'string'
-    limit: params.limit || 50,            // Max 50, API documentation defaults to 20
+    cursor: params.cursor || storedCursor || '0',
+    limit: params.limit || 50,
   };
 
-   // Call the generic fetchDataAndWriteToSheet function with the query parameters
-  fetchDataAndWriteToSheet(API_RESOURCES.TRANSACTIONS.endpoint, API_RESOURCES.TRANSACTIONS.sheetName, queryParams);
+  const sheet = getOrCreateSheet(sheetName);
+  const startRow = storedCursor ? sheet.getLastRow() + 1 : 2;
+
+  const lastCursor = fetchDataAndWriteToSheet(API_RESOURCES.TRANSACTIONS.endpoint, sheetName, queryParams, startRow);
+
+  if (lastCursor) {
+    setLastCursor(sheetName, lastCursor);
+  }
 }
 
 /**
@@ -194,15 +220,20 @@ function fetchTransactions(params = {}) {
  * @returns {void}
  */
 function fetchOrderHistory(params = {}) {
-  // Declare default parameters
+  const sheetName = API_RESOURCES.ORDER_HISTORY.sheetName;
+  const storedCursor = params.cursor ? null : getLastCursor(sheetName);
   const queryParams = {
-    cursor: params.cursor || '0',     // Default cursor is '0'
-    ticker: params.ticker || '',      // Default ticker
-    limit: params.limit || 50         // Max 50, API documentation defaults to 20
+    cursor: params.cursor || storedCursor || '0',
+    ticker: params.ticker || '',
+    limit: params.limit || 50
   };
 
-  // Pass the request to the generic fetchDataAndWriteToSheet function
-  fetchDataAndWriteToSheet(API_RESOURCES.ORDER_HISTORY.endpoint, API_RESOURCES.ORDER_HISTORY.sheetName, queryParams);
+  const sheet = getOrCreateSheet(sheetName);
+  const startRow = storedCursor ? sheet.getLastRow() + 1 : 2;
+  const lastCursor = fetchDataAndWriteToSheet(API_RESOURCES.ORDER_HISTORY.endpoint, sheetName, queryParams, startRow);
+  if (lastCursor) {
+    setLastCursor(sheetName, lastCursor);
+  }
 }
 
 /**
@@ -218,15 +249,20 @@ function fetchOrderHistory(params = {}) {
  * @returns {void}
  */
 function fetchDividends(params = {}) {
-  // Declare default parameters
+  const sheetName = API_RESOURCES.DIVIDENDS.sheetName;
+  const storedCursor = params.cursor ? null : getLastCursor(sheetName);
   const queryParams = {
-    cursor: params.cursor || '0',     // Default cursor is '0'
-    ticker: params.ticker || '',      // Default ticker
-    limit: params.limit || 50         // Default limit is 20, max is 50
+    cursor: params.cursor || storedCursor || '0',
+    ticker: params.ticker || '',
+    limit: params.limit || 50
   };
 
-  // Call the generic fetchDataAndWriteToSheet function with the 'dividends' endpoint
-  fetchDataAndWriteToSheet(API_RESOURCES.DIVIDENDS.endpoint, API_RESOURCES.DIVIDENDS.sheetName, queryParams);
+  const sheet = getOrCreateSheet(sheetName);
+  const startRow = storedCursor ? sheet.getLastRow() + 1 : 2;
+  const lastCursor = fetchDataAndWriteToSheet(API_RESOURCES.DIVIDENDS.endpoint, sheetName, queryParams, startRow);
+  if (lastCursor) {
+    setLastCursor(sheetName, lastCursor);
+  }
 }
 
 
