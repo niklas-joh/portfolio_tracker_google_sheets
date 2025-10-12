@@ -14,8 +14,8 @@ This document tracks future enhancements and implementation considerations for t
 1. ✅ Add Portfolio endpoint (`/api/v0/equity/portfolio`) to fetch current positions and prices
 2. ✅ Create fetchPortfolio() function following existing patterns
 3. ✅ Add menu item for portfolio data fetching
-4. ⏳ Provide formula templates for TWR calculations
-5. ⏳ Create Returns dashboard sheet design
+4. ✅ Provide formula templates for TWR calculations (see `TWR_Formula_Templates.md`)
+5. ✅ Create Returns dashboard sheet design (see `TWR_Formula_Templates.md`)
 
 **Benefits**:
 - Transparent calculations visible to end-users
