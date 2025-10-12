@@ -89,7 +89,7 @@ function setupDailyPortfolioValuesSheet() {
   const marketValueFormula = `=IFERROR(
   IF(
     A2=TODAY(),
-    SUMIF(Portfolio!A:A, "<>", Portfolio!B:B * Portfolio!C:C),
+    SUMPRODUCT(Portfolio!B2:B, Portfolio!D2:D),
     SUMPRODUCT(
       (Historical_shares!$A$2:$A$1000=A2)*1,
       Historical_shares!B$2:Z$2,
