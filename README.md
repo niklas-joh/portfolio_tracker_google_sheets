@@ -27,6 +27,13 @@ A powerful Google Sheets add-on that automatically syncs your Trading212 portfol
 - 🏢 **Instruments List** - Full list of available trading instruments
 - 🌍 **Exchange Information** - Exchange details and metadata
 
+### Portfolio Analytics
+- 📊 **Returns Dashboard** - Calculate Time-Weighted Returns (TWR) for your portfolio
+  - Daily, weekly, monthly, yearly, and all-time returns
+  - Separates investment performance from deposits/withdrawals
+  - Modified Dietz method for accurate calculations
+  - Automatic updates when fetching new data
+
 ### User Experience
 - ✅ **Setup Wizard** - Guided setup process for first-time users
 - 🔄 **Progress Tracking** - Real-time progress updates during data fetching
@@ -83,6 +90,57 @@ A powerful Google Sheets add-on that automatically syncs your Trading212 portfol
 4. **Start Fetching Data**
    - Once setup is complete, you can start fetching your portfolio data
 
+5. **Setup Returns Dashboard** (Optional)
+   - Click `Trading212 Portfolio` → `Returns` → `Setup Returns Dashboard`
+   - This creates sheets for tracking your portfolio performance
+   - Calculates daily, weekly, monthly, and yearly returns
+
+### Portfolio Returns & Analytics
+
+Want to track your investment performance? The Returns Dashboard calculates Time-Weighted Returns (TWR) - the industry-standard method for measuring portfolio performance.
+
+#### Setup Returns Dashboard
+1. **Ensure Prerequisites**
+   - Fetch Portfolio data at least once
+   - Fetch Transactions data
+   - Fetch Cash Balance data
+   - Your Historical_shares and Historical_avg_price_paid sheets must exist
+
+2. **Run Setup**
+   - Click `Trading212 Portfolio` → `Returns` → `Setup Returns Dashboard`
+   - This creates two new sheets:
+     - **Daily_Portfolio_Values**: Calculates your portfolio value for each day
+     - **Returns_Dashboard**: Shows returns for various time periods
+
+3. **View Your Returns**
+   - Open the `Returns_Dashboard` sheet
+   - See returns for: Today, Last 7 Days, Last 30 Days, Year to Date, All Time
+   - Returns automatically update when you fetch new Portfolio data
+
+4. **Access Documentation**
+   - Click `Trading212 Portfolio` → `Returns` → `View Documentation`
+   - Links to comprehensive implementation guides and troubleshooting
+
+#### Understanding Time-Weighted Return
+
+**Why TWR matters:**
+- Separates your investment skill from deposit/withdrawal timing
+- Industry-standard metric used by professional fund managers
+- Fair comparison across different time periods
+
+**Example:**
+```
+Portfolio grew from €10,000 to €10,500 in a month
+You deposited €300 during that month
+
+Simple Return: 5% (but includes your deposit!)
+TWR: 2% (actual investment performance)
+```
+
+For detailed documentation, see:
+- [TWR Formula Templates](docs/TWR_Formula_Templates.md) - Technical implementation guide
+- [Visual Guide](docs/Returns_Dashboard_Visual_Guide.md) - User-friendly reference
+
 ## 📖 How to Use
 
 ### Fetching Data
@@ -111,6 +169,8 @@ You can also fetch individual data types directly from the menu:
 | **Transactions** | Complete transaction history | 212Transactions |
 | **Order History** | Detailed order execution records | History |
 | **Dividends** | All dividend payments received | Dividends |
+| **Returns Dashboard** | Time-Weighted Returns for various periods | Returns_Dashboard |
+| **Daily Portfolio Values** | Historical portfolio valuations | Daily_Portfolio_Values |
 
 ### Understanding the Data
 
