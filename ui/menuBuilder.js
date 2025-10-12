@@ -16,6 +16,7 @@ function onOpen() {
       .addItem('Fetch Exchanges', 'fetchExchanges')
       .addItem('Fetch Account Info', 'fetchAccountInfo')
       .addItem('Fetch Cash Balance', 'fetchAccountCash')
+      .addItem('Fetch Portfolio', 'fetchPortfolio')
       .addItem('Fetch Transactions', 'fetchTransactions')
       .addItem('Fetch Order History', 'fetchOrderHistory')
       .addItem('Fetch Dividends', 'fetchDividends'))

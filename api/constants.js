@@ -74,6 +74,11 @@ const API_RESOURCES = {
     sheetName: 'AccountInfo',
     rateLimit: { limit: 6, windowMs: 30 * SECOND }
   },
+  PORTFOLIO: {
+    endpoint: 'equity/portfolio',
+    sheetName: 'Portfolio',
+    rateLimit: { limit: 1, windowMs: 5 * SECOND }
+  },
   TRANSACTIONS: {
     endpoint: 'history/transactions',
     sheetName: '212Transactions',

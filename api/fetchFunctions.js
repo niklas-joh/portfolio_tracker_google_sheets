@@ -158,6 +158,16 @@ function fetchAccountCash() {
 }
 
 /**
+ * Fetches all open positions from the Trading212 API and writes it to the "Portfolio" sheet.
+ * Includes current prices, quantities, profit/loss, and other position details.
+ * 
+ * @returns {void}
+ */
+function fetchPortfolio() {
+  fetchDataAndWriteToSheet(API_RESOURCES.PORTFOLIO.endpoint, API_RESOURCES.PORTFOLIO.sheetName);
+}
+
+/**
  * Fetches the transactions data from the Trading212 API (version: v0) and writes it to the "Transactions" sheet.
  * Supports query parameters (e.g., limit, cursor).
  * Automatically handles pagination via the nextPagePath if returned by the API.
@@ -249,6 +259,7 @@ function fetchSelectedTrading212Data(selectedOptions) {
     'Pies': fetchPies,
     'Account Info': fetchAccountInfo,
     'Cash Balance': fetchAccountCash,
+    'Portfolio': fetchPortfolio,
     'Transactions': fetchTransactions,
     'Order History': fetchOrderHistory,
     'Dividends': fetchDividends
