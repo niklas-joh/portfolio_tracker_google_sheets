@@ -20,8 +20,9 @@ A powerful Google Sheets add-on that automatically syncs your Trading212 portfol
 ### Data Synchronization
 - 🥧 **Investment Pies** - View all your pie allocations and holdings
 - 💵 **Cash Balance** - Track available and invested cash
+- 📊 **Portfolio Positions** - Current holdings with live prices and P&L
 - 📈 **Transactions** - Complete transaction history with pagination
-- 📊 **Order History** - Detailed order execution records
+- 📝 **Order History** - Detailed order execution records
 - 💎 **Dividends** - Track all dividend payments
 - 🏢 **Instruments List** - Full list of available trading instruments
 - 🌍 **Exchange Information** - Exchange details and metadata
@@ -106,6 +107,7 @@ You can also fetch individual data types directly from the menu:
 | **Exchanges** | Exchange information and metadata | ExchangeList |
 | **Account Info** | Your account details and settings | AccountInfo |
 | **Cash Balance** | Available and invested cash balances | Cash |
+| **Portfolio** | Current holdings with prices and P&L | Portfolio |
 | **Transactions** | Complete transaction history | 212Transactions |
 | **Order History** | Detailed order execution records | History |
 | **Dividends** | All dividend payments received | Dividends |
