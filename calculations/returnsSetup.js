@@ -110,8 +110,8 @@ function setupDailyPortfolioValuesSheet() {
   const cashBalanceFormula = `=IFERROR(
   IF(
     A2=TODAY(),
-    VLOOKUP("Total", AccountCash!A:B, 2, FALSE),
-    VLOOKUP("Total", AccountCash!A:B, 2, FALSE) + 
+    VLOOKUP("Total", Cash!A:B, 2, FALSE),
+    VLOOKUP("Total", Cash!A:B, 2, FALSE) + 
     SUMIFS(212Transactions!B:B, 212Transactions!D:D, ">"&A2, 212Transactions!A:A, "DEPOSIT") - 
     SUMIFS(212Transactions!B:B, 212Transactions!D:D, ">"&A2, 212Transactions!A:A, "WITHDRAW")
   ),
@@ -160,7 +160,7 @@ function setupDailyPortfolioValuesSheet() {
   
   // Add notes to cells with instructions
   sheet.getRange('B2').setNote('Formula calculates market value using Historical_shares and Historical_avg_price_paid. Adjust ranges based on your sheet structure.');
-  sheet.getRange('C2').setNote('Formula reconstructs historical cash balance. Requires AccountCash and 212Transactions sheets.');
+  sheet.getRange('C2').setNote('Formula reconstructs historical cash balance. Requires Cash and 212Transactions sheets.');
   sheet.getRange('E2').setNote('Formula calculates daily net cash flows (deposits - withdrawals).');
   
   Logger.log('Daily_Portfolio_Values sheet created successfully');
@@ -285,7 +285,7 @@ function setupReturnsDashboardSheet() {
   sheet.getRange(lastRow + 2, 1).setWrap(true);
   
   sheet.getRange(lastRow + 4, 1).setValue('✅ How to Use').setFontWeight('bold').setFontSize(11);
-  sheet.getRange(lastRow + 5, 1, 1, 6).merge().setValue('1. Ensure you have fetched Portfolio data, 212Transactions, and AccountCash\n2. Your Historical_shares and Historical_avg_price_paid sheets must exist\n3. Returns will automatically update when you fetch new data\n4. Check Daily_Portfolio_Values sheet if returns look incorrect');
+  sheet.getRange(lastRow + 5, 1, 1, 6).merge().setValue('1. Ensure you have fetched Portfolio data, 212Transactions, and Cash\n2. Your Historical_shares and Historical_avg_price_paid sheets must exist\n3. Returns will automatically update when you fetch new data\n4. Check Daily_Portfolio_Values sheet if returns look incorrect');
   sheet.getRange(lastRow + 5, 1).setWrap(true);
   
   sheet.getRange(lastRow + 7, 1).setValue('⚠️ Limitations').setFontWeight('bold').setFontSize(11);
@@ -339,7 +339,7 @@ function addConditionalFormattingToReturns(sheet, numRows) {
  */
 function checkRequiredSheets() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
-  const requiredSheets = ['Historical_shares', 'Historical_avg_price_paid', '212Transactions', 'AccountCash', 'Portfolio'];
+  const requiredSheets = ['Historical_shares', 'Historical_avg_price_paid', '212Transactions', 'Cash', 'Portfolio'];
   const missingSheets = [];
   
   requiredSheets.forEach(sheetName => {
