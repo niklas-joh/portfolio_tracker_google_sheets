@@ -84,23 +84,29 @@ function fetchAndHandleData(url, sheetName, currentRow, endpoint) {
 
 /**
  * Fetches the "pies" data from the Trading212 API and writes it to the "Pies" sheet.
+ * This efficiently fetches all pie-related data in a single operation, including:
+ * - Basic pie data + settings merged into the "Pies" sheet
+ * - Individual instrument details written to the "Pie Details" sheet
  * 
  * @returns {void}
  */
 function fetchPies() {
-  fetchDataAndWriteToSheet(API_RESOURCES.PIES.endpoint, API_RESOURCES.PIES.sheetName);
+  fetchPiesComplete();
 }
 
 /**
- * Fetches details for all pies from the Trading212 API and writes them to the "Pie Details" sheet.
- * Creates a flat table structure with one row per instrument, including pie metadata for each row.
+ * Fetches complete pie data from the Trading212 API with optimal efficiency.
+ * Makes one call to get the pies list, then one call per pie to get detailed information.
+ * Extracts and organizes data into two sheets:
+ * - '🥧Pies' sheet: Basic pie data merged with settings (one row per pie)
+ * - 'Pie Details' sheet: Instrument data with pie context (one row per instrument)
  * 
  * @returns {void}
  */
-function fetchPieDetails() {
-  updateProgress('Fetching list of pies...');
+function fetchPiesComplete() {
+  updateProgress('Fetching pies data...');
   
-  // Fetch pies list using existing infrastructure
+  // Step 1: Fetch pies list (basic data)
   const piesUrl = constructApiUrl(API_RESOURCES.PIES.endpoint);
   const piesResponse = rateLimitedRequest(piesUrl, API_RESOURCES.PIES.endpoint);
   
@@ -116,105 +122,59 @@ function fetchPieDetails() {
     return;
   }
   
-  Logger.log(`Found ${pies.length} pies. Fetching details for each...`);
+  Logger.log(`Found ${pies.length} pies. Fetching details...`);
   
-  let allInstruments = [];
+  let piesWithSettings = [];  // For '🥧Pies' sheet
+  let allInstruments = [];     // For 'Pie Details' sheet
   
-  // Fetch each pie's details
+  // Step 2: Fetch detailed info for each pie (ONE call per pie)
   pies.forEach((pie, index) => {
     if (pie.id) {
       updateProgress(`Fetching pie ${index + 1} of ${pies.length}: ${pie.name || pie.id}`);
       
-      const dynamicEndpoint = `${API_RESOURCES.PIE.endpoint}/${pie.id}`;
+      const dynamicEndpoint = `${API_RESOURCES.PIES.endpoint}/${pie.id}`;
       const url = constructApiUrl(dynamicEndpoint);
-      const pieDetails = rateLimitedRequest(url, API_RESOURCES.PIE.endpoint);
+      const pieDetails = rateLimitedRequest(url, API_RESOURCES.PIES.endpoint);
       
-      if (pieDetails && pieDetails.instruments) {
-        // Add pie metadata to each instrument
-        const instrumentsWithPieInfo = pieDetails.instruments.map(inst => ({
-          pieId: pie.id,
-          pieName: pie.name,
-          ...inst  // Spread all instrument fields - future-proof
-        }));
+      if (pieDetails) {
+        // Extract settings and merge with basic pie data
+        if (pieDetails.settings) {
+          piesWithSettings.push({
+            ...pie,                    // id, cash, dividendDetails, result, progress, status
+            ...pieDetails.settings     // creationDate, dividendCashAction, goal, icon, etc.
+          });
+        }
         
-        allInstruments = allInstruments.concat(instrumentsWithPieInfo);
+        // Extract instruments with pie context
+        if (pieDetails.instruments) {
+          const instrumentsWithPieInfo = pieDetails.instruments.map(inst => ({
+            pieId: pie.id,
+            pieName: pie.name,
+            ...inst  // Spread all instrument fields - future-proof
+          }));
+          allInstruments = allInstruments.concat(instrumentsWithPieInfo);
+        }
       } else {
         Logger.log(`Failed to fetch details for pie ${pie.id}`);
       }
     }
   });
   
-  // Write all data to sheet using existing infrastructure
+  // Step 3: Write to BOTH sheets
+  if (piesWithSettings.length > 0) {
+    updateProgress(`Writing ${piesWithSettings.length} pies to sheet...`);
+    writeDataToSheet(piesWithSettings, API_RESOURCES.PIES.sheetName);
+    formatSheet(API_RESOURCES.PIES.sheetName);
+  }
+  
   if (allInstruments.length > 0) {
     updateProgress(`Writing ${allInstruments.length} instruments to sheet...`);
     writeDataToSheet(allInstruments, API_RESOURCES.PIE.sheetName);
     formatSheet(API_RESOURCES.PIE.sheetName);
-    updateProgress('Completed writing pie details to sheet');
-    Logger.log(`Successfully wrote ${allInstruments.length} instruments from ${pies.length} pies to sheet`);
-  } else {
-    Logger.log('No pie instruments found to write');
-  }
-}
-
-/**
- * Fetches settings for all pies from the Trading212 API and writes them to the "Pie Settings" sheet.
- * Creates a table structure with one row per pie, including all settings metadata.
- * 
- * @returns {void}
- */
-function fetchPieSettings() {
-  updateProgress('Fetching list of pies...');
-  
-  // Fetch pies list using existing infrastructure
-  const piesUrl = constructApiUrl(API_RESOURCES.PIES.endpoint);
-  const piesResponse = rateLimitedRequest(piesUrl, API_RESOURCES.PIES.endpoint);
-  
-  if (!piesResponse) {
-    Logger.log('Failed to fetch pies list');
-    return;
   }
   
-  const pies = piesResponse.items || piesResponse;
-  
-  if (!Array.isArray(pies) || pies.length === 0) {
-    Logger.log('No pies found');
-    return;
-  }
-  
-  Logger.log(`Found ${pies.length} pies. Fetching settings for each...`);
-  
-  let allSettings = [];
-  
-  // Fetch each pie's details and extract settings
-  pies.forEach((pie, index) => {
-    if (pie.id) {
-      updateProgress(`Fetching pie ${index + 1} of ${pies.length}: ${pie.name || pie.id}`);
-      
-      const dynamicEndpoint = `${API_RESOURCES.PIE_SETTINGS.endpoint}/${pie.id}`;
-      const url = constructApiUrl(dynamicEndpoint);
-      const pieDetails = rateLimitedRequest(url, API_RESOURCES.PIE_SETTINGS.endpoint);
-      
-      if (pieDetails && pieDetails.settings) {
-        // Spread all settings fields - future-proof
-        allSettings.push({
-          ...pieDetails.settings
-        });
-      } else {
-        Logger.log(`Failed to fetch settings for pie ${pie.id}`);
-      }
-    }
-  });
-  
-  // Write all data to sheet using existing infrastructure
-  if (allSettings.length > 0) {
-    updateProgress(`Writing ${allSettings.length} pie settings to sheet...`);
-    writeDataToSheet(allSettings, API_RESOURCES.PIE_SETTINGS.sheetName);
-    formatSheet(API_RESOURCES.PIE_SETTINGS.sheetName);
-    updateProgress('Completed writing pie settings to sheet');
-    Logger.log(`Successfully wrote ${allSettings.length} pie settings to sheet`);
-  } else {
-    Logger.log('No pie settings found to write');
-  }
+  updateProgress('Completed fetching all pie data');
+  Logger.log(`Successfully wrote ${piesWithSettings.length} pies and ${allInstruments.length} instruments`);
 }
 
 /**
@@ -360,8 +320,6 @@ function fetchDividends(params = {}) {
 function fetchSelectedTrading212Data(selectedOptions) {
   const fetchFunctions = {
     'Pies': fetchPies,
-    'Pie Details': fetchPieDetails,
-    'Pie Settings': fetchPieSettings,
     'Account Info': fetchAccountInfo,
     'Cash Balance': fetchAccountCash,
     'Portfolio': fetchPortfolio,
