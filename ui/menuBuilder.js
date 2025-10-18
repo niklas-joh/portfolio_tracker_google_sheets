@@ -13,6 +13,7 @@ function onOpen() {
       .addSeparator()
       .addItem('Fetch Pies', 'fetchPies')
       .addItem('Fetch Pie Details', 'fetchPieDetails')
+      .addItem('Fetch Pie Settings', 'fetchPieSettings')
       .addItem('Fetch Instruments', 'fetchInstrumentsList')
       .addItem('Fetch Exchanges', 'fetchExchanges')
       .addItem('Fetch Account Info', 'fetchAccountInfo')

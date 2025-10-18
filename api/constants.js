@@ -59,6 +59,11 @@ const API_RESOURCES = {
     sheetName: 'Pie Details',
     rateLimit: { limit: 1, windowMs: 5 * SECOND }
   },
+  PIE_SETTINGS: {
+    endpoint: 'equity/pies',  // Base path, ID appended dynamically
+    sheetName: 'Pie Settings',
+    rateLimit: { limit: 1, windowMs: 5 * SECOND }
+  },
   INSTRUMENTS_LIST: {
     endpoint: 'equity/metadata/instruments',
     sheetName: 'InstrumentsList',

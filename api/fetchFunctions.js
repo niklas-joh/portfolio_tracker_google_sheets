@@ -157,6 +157,67 @@ function fetchPieDetails() {
 }
 
 /**
+ * Fetches settings for all pies from the Trading212 API and writes them to the "Pie Settings" sheet.
+ * Creates a table structure with one row per pie, including all settings metadata.
+ * 
+ * @returns {void}
+ */
+function fetchPieSettings() {
+  updateProgress('Fetching list of pies...');
+  
+  // Fetch pies list using existing infrastructure
+  const piesUrl = constructApiUrl(API_RESOURCES.PIES.endpoint);
+  const piesResponse = rateLimitedRequest(piesUrl, API_RESOURCES.PIES.endpoint);
+  
+  if (!piesResponse) {
+    Logger.log('Failed to fetch pies list');
+    return;
+  }
+  
+  const pies = piesResponse.items || piesResponse;
+  
+  if (!Array.isArray(pies) || pies.length === 0) {
+    Logger.log('No pies found');
+    return;
+  }
+  
+  Logger.log(`Found ${pies.length} pies. Fetching settings for each...`);
+  
+  let allSettings = [];
+  
+  // Fetch each pie's details and extract settings
+  pies.forEach((pie, index) => {
+    if (pie.id) {
+      updateProgress(`Fetching pie ${index + 1} of ${pies.length}: ${pie.name || pie.id}`);
+      
+      const dynamicEndpoint = `${API_RESOURCES.PIE_SETTINGS.endpoint}/${pie.id}`;
+      const url = constructApiUrl(dynamicEndpoint);
+      const pieDetails = rateLimitedRequest(url, API_RESOURCES.PIE_SETTINGS.endpoint);
+      
+      if (pieDetails && pieDetails.settings) {
+        // Spread all settings fields - future-proof
+        allSettings.push({
+          ...pieDetails.settings
+        });
+      } else {
+        Logger.log(`Failed to fetch settings for pie ${pie.id}`);
+      }
+    }
+  });
+  
+  // Write all data to sheet using existing infrastructure
+  if (allSettings.length > 0) {
+    updateProgress(`Writing ${allSettings.length} pie settings to sheet...`);
+    writeDataToSheet(allSettings, API_RESOURCES.PIE_SETTINGS.sheetName);
+    formatSheet(API_RESOURCES.PIE_SETTINGS.sheetName);
+    updateProgress('Completed writing pie settings to sheet');
+    Logger.log(`Successfully wrote ${allSettings.length} pie settings to sheet`);
+  } else {
+    Logger.log('No pie settings found to write');
+  }
+}
+
+/**
  * Fetches the instruments list data from the Trading212 API and writes it to the "InstrumentsList" sheet.
  * 
  * @returns {void}
@@ -300,6 +361,7 @@ function fetchSelectedTrading212Data(selectedOptions) {
   const fetchFunctions = {
     'Pies': fetchPies,
     'Pie Details': fetchPieDetails,
+    'Pie Settings': fetchPieSettings,
     'Account Info': fetchAccountInfo,
     'Cash Balance': fetchAccountCash,
     'Portfolio': fetchPortfolio,
