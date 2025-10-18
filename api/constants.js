@@ -55,7 +55,7 @@ const API_RESOURCES = {
     rateLimit: { limit: 1, windowMs: 30 * SECOND } 
   },
   PIE: {
-    endpoint: 'equity/pies/2616371',
+    endpoint: 'equity/pies',  // Base path, ID appended dynamically
     sheetName: 'Pie Details',
     rateLimit: { limit: 1, windowMs: 5 * SECOND }
   },
