@@ -138,31 +138,33 @@ return rowData.length;
 /**
 * Writes row data to the given sheet starting from the specified row index.
 * Handles the case where resolveNestedField returns an array, spreading it across multiple columns.
+* Uses batch writing for optimal performance.
 * 
 * @param {GoogleAppsScript.Spreadsheet.Sheet} sheet - The sheet to write the data into.
 * @param {Array<Array<string>>} rowData - The data to write into the sheet.
 * @param {number} startRow - The row number to start writing the data (default is 2).
 */
 function writeRowsToSheet(sheet, rowData, startRow = 2) {
-if (!sheet) {
-  Logger.log('No valid sheet found to write data.');
-  return;
-}
+  if (!sheet || !rowData || rowData.length === 0) {
+    Logger.log('No valid sheet found to write data.');
+    return;
+  }
 
-  rowData.forEach((row, rowIndex) => {
-    // Flatten the row if any cell contains an array (spread array values across columns)
-    const flattenedRow = row.flatMap(cell => Array.isArray(cell) ? cell : [cell]);
+  // Flatten all rows at once (reusing existing flatMap logic)
+  const flattenedData = rowData.map(row => 
+    row.flatMap(cell => Array.isArray(cell) ? cell : [cell])
+  );
 
-    // Notify progress for each row written
-    updateProgress(`Fetching row ${startRow + rowIndex}`);
+  // Pad rows to same length (Google Sheets requires rectangular arrays)
+  const maxCols = Math.max(...flattenedData.map(row => row.length));
+  const paddedData = flattenedData.map(row => 
+    row.concat(Array(maxCols - row.length).fill(''))
+  );
 
-  // Log the row data being written for debugging purposes
-  Logger.log(`Writing to ${sheet} and row ${startRow + rowIndex}: ${JSON.stringify(flattenedRow)}`);
-
-  // Write the flattened row to the sheet
-  sheet.getRange(startRow + rowIndex, 1, 1, flattenedRow.length).setValues([flattenedRow]);
-  });
-
-  // Update progress when a batch of rows is completed
-  updateProgress(`Completed rows through ${startRow + rowData.length - 1}`);
+  // Write ALL rows in ONE batch operation
+  sheet.getRange(startRow, 1, paddedData.length, maxCols).setValues(paddedData);
+  
+  // Single progress update at end
+  updateProgress(`Completed rows through ${startRow + paddedData.length - 1}`);
+  Logger.log(`Batch wrote ${paddedData.length} rows to ${sheet.getName()}`);
 }
