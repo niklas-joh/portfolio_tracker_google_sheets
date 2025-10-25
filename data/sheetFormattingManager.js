@@ -263,43 +263,45 @@ function createTriggers() {
   }
   
   // Create a new trigger for the onEdit function
-  ScriptApp.newTrigger('onEdit')
+  /** ScriptApp.newTrigger('onEdit')
     .forSpreadsheet(SpreadsheetApp.getActiveSpreadsheet())
     .onEdit()
     .create();
+  */
 }
 
 /**
  * Handle edits to the spreadsheet and automatically apply formatting if needed
+ * DISABLED: This function has been commented out to improve performance
  */
-function onEdit(e) {
-  // Check if edit was made to one of our configuration sheets
-  const sheet = e.range.getSheet();
-  const sheetName = sheet.getName();
-  
-  if (sheetName === 'FormatConfigurations' || sheetName === 'ColumnFormatMapping') {
-    // Don't trigger for edits to instructions
-    if (e.range.getRow() > sheet.getLastRow() - 5) {
-      return;
-    }
-    
-    // Check if the edited cell is in a column that affects formatting
-    const col = e.range.getColumn();
-    
-    if (sheetName === 'FormatConfigurations' && col === 2) {
-      // Format type was changed in dropdown
-      updateFormatPatternAndExample(sheet, e.range.getRow());
-      applyFormattingToAllSheets();
-    } else if (sheetName === 'FormatConfigurations' && col === 3) {
-      // Format pattern was directly changed
-      updateExampleFormatting(sheet, e.range.getRow());
-      applyFormattingToAllSheets();
-    } else if (sheetName === 'ColumnFormatMapping' && col === 3) {
-      // Format category was changed
-      applyFormattingToSpecificColumn(sheet, e.range.getRow());
-    }
-  }
-}
+// function onEdit(e) {
+//   // Check if edit was made to one of our configuration sheets
+//   const sheet = e.range.getSheet();
+//   const sheetName = sheet.getName();
+//   
+//   if (sheetName === 'FormatConfigurations' || sheetName === 'ColumnFormatMapping') {
+//     // Don't trigger for edits to instructions
+//     if (e.range.getRow() > sheet.getLastRow() - 5) {
+//       return;
+//     }
+//     
+//     // Check if the edited cell is in a column that affects formatting
+//     const col = e.range.getColumn();
+//     
+//     if (sheetName === 'FormatConfigurations' && col === 2) {
+//       // Format type was changed in dropdown
+//       updateFormatPatternAndExample(sheet, e.range.getRow());
+//       applyFormattingToAllSheets();
+//     } else if (sheetName === 'FormatConfigurations' && col === 3) {
+//       // Format pattern was directly changed
+//       updateExampleFormatting(sheet, e.range.getRow());
+//       applyFormattingToAllSheets();
+//     } else if (sheetName === 'ColumnFormatMapping' && col === 3) {
+//       // Format category was changed
+//       applyFormattingToSpecificColumn(sheet, e.range.getRow());
+//     }
+//   }
+// }
 
 /**
  * Update the format pattern and example formatting when format type is changed via dropdown
